@@ -1,6 +1,15 @@
 [profile.default]
-src = "src"
-out = "out"
-libs = ["lib"]
+# libs = ['lib']
+# test = 'test'
+# cache_path = 'cache_forge'
 
-# See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
+remappings = [
+    '@synthetixio=node_modules/@synthetixio',
+    'forge-std=lib/forge-std/src',
+    "@perimetersec/fuzzlib=lib/fuzzlib/",
+    "@openzeppelin=node_modules/@openzeppelin",
+]
+# src = 'contracts'
+# out = 'out'
+# deny_warnings = true
+optimization = false
