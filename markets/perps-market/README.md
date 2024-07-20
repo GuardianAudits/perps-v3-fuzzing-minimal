@@ -1,66 +1,24 @@
-## Foundry
+#Synthetix V3 Perps Market Fuzz Suite
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+###Installation
 
-Foundry consists of:
+```
+forge install perimetersec/fuzzlib@main --no-commit &&
+forge install foundry-rs/forge-std --no-commit &&
+mv lib markets/perps-market/lib
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
-
-## Documentation
-
-https://book.getfoundry.sh/
-
-## Usage
-
-### Build
-
-```shell
-$ forge build
 ```
 
-### Test
+###Go to perps dir
+`cd markets/perps-market`
 
-```shell
-$ forge test
-```
+###Run Foundry
+`forge test --mt test_modifyCollateral`
 
-### Format
+###Run Echidna with no Slither check (fast)
 
-```shell
-$ forge fmt
-```
+```PATH=./contracts/fuzzing/:$PATH echidna contracts/fuzzing/Fuzz.sol --contract Fuzz --config echidna.yaml```
 
-### Gas Snapshots
+###Run Echidna with a Slither check (slow)
 
-```shell
-$ forge snapshot
-```
-
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+```echidna contracts/fuzzing/Fuzz.sol --contract Fuzz --config echidna.yaml```

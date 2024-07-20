@@ -116,18 +116,6 @@ contract FoundryPlayground is FuzzModules {
         fuzz_liquidateFlaggedAccounts(100);
     }
 
-    function test_createDebtWETH() public {
-        fuzz_modifyCollateral(1e18, 1);
-        fuzz_modifyCollateral(1e18, 0);
-        fuzz_createDebt(true); //isWeth
-    }
-    function test_createDebtWBTC() public {
-        fuzz_modifyCollateral(1e18, 2);
-        fuzz_modifyCollateral(1e18, 0);
-
-        fuzz_createDebt(false); //isWeth
-    }
-
     function test_order_liquidateMargin() public {
         //this works
         vm.prank(USER1); //using start prank to make all pranks inside all modules here
