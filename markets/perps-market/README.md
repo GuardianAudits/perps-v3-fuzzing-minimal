@@ -1,5 +1,15 @@
 #Synthetix V3 Perps Market Fuzz Suite
 
+##Run fuzz instantaneously
+
+```
+forge install perimetersec/fuzzlib@main --no-commit &&
+forge install foundry-rs/forge-std --no-commit &&
+mv lib markets/perps-market/lib &&
+PATH=./contracts/fuzzing/:$PATH echidna contracts/fuzzing/Fuzz.sol --contract Fuzz --config echidna.yaml
+```
+
+
 ###Installation
 
 ```
