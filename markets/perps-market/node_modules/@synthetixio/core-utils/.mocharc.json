@@ -1,0 +1,5 @@
+{
+  "spec": ["test/**/*.test.ts"],
+  "timeout": 10000,
+  "watch-files": ["utils/**/*.ts", "test/**/*.ts"]
+}

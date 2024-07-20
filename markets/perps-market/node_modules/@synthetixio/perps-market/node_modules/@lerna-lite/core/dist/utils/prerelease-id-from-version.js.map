@@ -1,0 +1,1 @@
+{"version":3,"file":"prerelease-id-from-version.js","sourceRoot":"","sources":["../../src/utils/prerelease-id-from-version.ts"],"names":[],"mappings":"AAAA,OAAO,MAAM,MAAM,QAAQ,CAAC;AAM5B,MAAM,UAAU,uBAAuB,CAAC,OAAe;IACrD,OAAQ,CAAC,MAAM,CAAC,UAAU,CAAC,OAAO,CAAC,IAAI,EAAE,CAAc,CAAC,KAAK,EAAE,CAAC;AAClE,CAAC"}

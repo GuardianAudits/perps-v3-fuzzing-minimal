@@ -1,0 +1,15 @@
+deployments/local
+deployments/hardhat
+
+cannon
+typechain-types
+
+# generated test modules
+contracts/modules/test
+contracts/generated
+
+# generated routers
+contracts/routers
+
+# generated contract typings
+test/generated/typechain

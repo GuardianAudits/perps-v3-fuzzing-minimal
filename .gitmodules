@@ -1,6 +1,0 @@
-[submodule "lib/forge-std"]
-	path = lib/forge-std
-	url = https://github.com/foundry-rs/forge-std
-[submodule "markets/lib/forge-std"]
-	path = markets/lib/forge-std
-	url = https://github.com/foundry-rs/forge-std

@@ -1,0 +1,43 @@
+{
+	"name": "tildify",
+	"version": "3.0.0",
+	"description": "Convert an absolute path to a tilde path: `/Users/sindresorhus/dev` → `~/dev`",
+	"license": "MIT",
+	"repository": "sindresorhus/tildify",
+	"funding": "https://github.com/sponsors/sindresorhus",
+	"author": {
+		"name": "Sindre Sorhus",
+		"email": "sindresorhus@gmail.com",
+		"url": "https://sindresorhus.com"
+	},
+	"type": "module",
+	"exports": "./index.js",
+	"engines": {
+		"node": "^12.20.0 || ^14.13.1 || >=16.0.0"
+	},
+	"scripts": {
+		"test": "xo && ava && tsd"
+	},
+	"files": [
+		"index.js",
+		"index.d.ts"
+	],
+	"keywords": [
+		"unexpand",
+		"homedir",
+		"tilde",
+		"tildify",
+		"collapse",
+		"path",
+		"home",
+		"directory",
+		"user",
+		"expand",
+		"convert"
+	],
+	"devDependencies": {
+		"ava": "^3.15.0",
+		"tsd": "^0.17.0",
+		"xo": "^0.44.0"
+	}
+}

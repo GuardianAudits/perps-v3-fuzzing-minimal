@@ -1,0 +1,55 @@
+name = "synthetix-sample-project"
+version = "<%= package.version %>"
+description = "Sample usage of the router manager"
+
+[setting.salt]
+description = "Change this to a unique string when deploying multiple instances of the system. Note that only the proxy contract will be unique."
+defaultValue = "sample-project"
+
+[setting.initialOwner]
+description = "Admin user to initialize the system"
+defaultValue = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+
+[setting.owner]
+description = "Admin user for the system"
+defaultValue = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266"
+
+[contract.CoreModule]
+artifact = "contracts/modules/CoreModule.sol:CoreModule"
+
+[contract.InitializableModule]
+artifact = "contracts/modules/InitializableModule.sol:InitializableModule"
+
+[contract.SettingsModule]
+artifact = "contracts/modules/SettingsModule.sol:SettingsModule"
+
+[contract.SomeModule]
+artifact = "contracts/modules/SomeModule.sol:SomeModule"
+
+[contract.AnotherModule]
+artifact = "contracts/modules/AnotherModule.sol:AnotherModule"
+
+[contract.InitialProxy]
+artifact = "contracts/Proxy.sol:Proxy"
+args = ["<%= contracts.CoreModule.address %>", "<%= settings.initialOwner %>"]
+abiOf = ["CoreModule"]
+salt = "<%= settings.salt %>"
+
+[router.Router]
+contracts = [
+    "CoreModule",
+    "InitializableModule",
+    "SettingsModule",
+    "SomeModule",
+    "AnotherModule",
+]
+
+[invoke.upgrade_proxy]
+target = ["InitialProxy"]
+from = "<%= settings.owner %>"
+func = "upgradeTo"
+args = ["<%= contracts.Router.address %>"]
+factory.Proxy.abiOf = ["Router"]
+factory.Proxy.event = "Upgraded"
+factory.Proxy.arg = 0
+factory.Proxy.highlight = true

@@ -1,0 +1,13 @@
+{
+  "extends": "@graphprotocol/graph-ts/types/tsconfig.base.json",
+  "include": [
+    "mainnet",
+    "sepolia",
+    "optimism-mainnet",
+    "optimism-sepolia",
+    "base",
+    "base-sepolia",
+    "arbitrum",
+    "arbitrum-sepolia"
+  ]
+}

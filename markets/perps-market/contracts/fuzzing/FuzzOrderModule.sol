@@ -1,0 +1,111 @@
+// SPDX-License-Identifier: GPL-3.0
+pragma solidity ^0.8.0;
+
+import "./FuzzSetup.sol";
+import "./helper/preconditions/PreconditionsOrderModule.sol";
+import "./helper/postconditions/PostconditionsOrderModule.sol";
+import "./util/FunctionCalls.sol";
+import "../storage/Position.sol";
+
+contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule {
+    function fuzz_commitOrder(int128 sizeDelta, uint256 acceptablePrice) public setCurrentActor {
+        console2.log("===== FuzzOrderModule::fuzz_commitOrder START =====");
+        address[] memory actorsToUpdate = new address[](1);
+        actorsToUpdate[0] = currentActor;
+
+        bytes32 trackingCode;
+        address referrer;
+        int128 positionSize;
+        console.log("msg.sender", msg.sender);
+        console2.log("===== _before START =====");
+
+        _before(actorsToUpdate);
+        console.log("msg.sender", msg.sender);
+
+        console2.log("===== _before END =====");
+
+        console2.log("===== commitOrderPreconditions START =====");
+        CommitOrderParams memory params = commitOrderPreconditions(
+            sizeDelta,
+            acceptablePrice,
+            trackingCode,
+            referrer
+        );
+        console.log("msg.sender", msg.sender);
+
+        console2.log("===== commitOrderPreconditions END =====");
+
+        positionSize = params.marketId == 1
+            ? states[0].actorStates[params.accountId].wethMarket.positionSize
+            : states[0].actorStates[params.accountId].wbtcMarket.positionSize;
+
+        if (sizeDelta < 0 && acceptablePrice % 5 == 0 && positionSize != 0) {
+            params.sizeDelta = positionSize * -1;
+        }
+        console2.log("===== _commitOrderCall START =====");
+
+        (bool success, bytes memory returnData) = _commitOrderCall(
+            params.accountId,
+            params.marketId,
+            params.sizeDelta,
+            params.acceptablePrice,
+            params.settlementStrategyId,
+            params.trackingCode,
+            params.referrer
+        );
+        console2.log("===== _commitOrderCall END =====");
+        console2.log("===== commitOrderPostconditions START =====");
+
+        commitOrderPostconditions(success, returnData, actorsToUpdate, params.accountId);
+        console2.log("===== commitOrderPostconditions END =====");
+
+        console2.log("===== FuzzOrderModule::fuzz_commitOrder END =====");
+    }
+
+    function fuzz_settleOrder(uint8 settleUser) public setCurrentActor {
+        SettleOrderParams memory params = settleOrderPreconditions(settleUser);
+
+        address[] memory actorsToUpdate = new address[](2);
+        actorsToUpdate[0] = currentActor;
+        actorsToUpdate[1] = params.settleUser;
+
+        _before(actorsToUpdate);
+
+        (bool success, bytes memory returnData) = _settleOrderCall(
+            actorsToUpdate[1],
+            params.accountId
+        );
+
+        settleOrderPostconditions(
+            success,
+            returnData,
+            actorsToUpdate,
+            params.settleUser,
+            params.accountId
+        );
+    }
+
+    function fuzz_cancelOrder(uint8 cancelUser) public setCurrentActor {
+        vm.warp(block.timestamp + 6); //TODO:
+        CancelOrderParams memory params = cancelOrderPreconditions(cancelUser);
+
+        address[] memory actorsToUpdate = new address[](2);
+        actorsToUpdate[0] = currentActor;
+        actorsToUpdate[1] = params.cancelUser;
+
+        _before(actorsToUpdate);
+
+        (bool success, bytes memory returnData) = _cancelOrderCall(
+            actorsToUpdate[1],
+            params.accountId
+        );
+
+        cancelOrderPostconditions(
+            success,
+            returnData,
+            actorsToUpdate,
+            params.cancelUser,
+            params.accountId
+        );
+    }
+}

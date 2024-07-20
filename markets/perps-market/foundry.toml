@@ -1,0 +1,15 @@
+[profile.default]
+libs = ['lib']
+# test = 'test'
+cache_path = 'cache_forge'
+
+remappings = [
+    '@synthetixio=node_modules/@synthetixio',
+    'forge-std=lib/forge-std/src',
+    "@perimetersec/fuzzlib=lib/fuzzlib/",
+    "@openzeppelin=node_modules/@openzeppelin",
+]
+src = 'contracts/fuzzing'
+out = 'out'
+# deny_warnings = true
+optimization = false
