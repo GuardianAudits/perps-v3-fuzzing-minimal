@@ -37,13 +37,12 @@ abstract contract PreconditionsOrderModule is PreconditionsBase {
         uint128 settlementStrategyId = 0; //@coverage:limiter currently employing only one settlement strategy
         console2.log("===== uint128 account  START =====");
         console2.log("currentActor", currentActor);
+        console2.log("current msg.sender", msg.sender);
+
         console2.log("acceptablePrice", acceptablePrice);
 
-        uint128[] memory accountIds = userToAccountIds[currentActor];
-        console2.log("Number of accounts for currentActor", accountIds.length);
-        uint128 account = userToAccountIds[currentActor][
-            acceptablePrice % userToAccountIds[currentActor].length
-        ];
+        uint128 accountIds = userToAccountIds[currentActor];
+        uint128 account = userToAccountIds[currentActor];
         console2.log("===== uint128 account  END =====");
 
         uint128 marketId = acceptablePrice % 2 == 0 ? 1 : 2;
@@ -86,23 +85,30 @@ abstract contract PreconditionsOrderModule is PreconditionsBase {
         console2.log("===== PreconditionsOrderModule:commitOrderPreconditions END =====");
     }
 
-    function settleOrderPreconditions(
-        uint8 settleUser
-    ) internal returns (SettleOrderParams memory) {
-        uint128 account = userToAccountIds[commitCaller][
-            settleUser % userToAccountIds[commitCaller].length
-        ];
+    function settleOrderPreconditions() internal returns (SettleOrderParams memory) {
+        for (uint256 i = 0; i < USERS.length; i++) {
+            address settelUser = USERS[i];
+            uint128 account = userToAccountIds[settelUser];
 
-        return SettleOrderParams({settleUser: commitCaller, accountId: account});
+            (bool success, bytes memory returnData) = perps.call(
+                abi.encodeWithSelector(asyncOrderModuleImpl.getOrder.selector, account)
+            );
+            assert(success);
+
+            AsyncOrder.Data memory order = abi.decode(returnData, (AsyncOrder.Data));
+            if (order.commitmentTime != 0) {
+                return SettleOrderParams({settleUser: settelUser, accountId: account});
+            }
+        }
+
+        require(false, "No valid order found");
     }
 
     function cancelOrderPreconditions(
         uint8 cancelUser
     ) internal view returns (CancelOrderParams memory) {
         address user = USERS[cancelUser % (USERS.length - 1)];
-        uint128 account = userToAccountIds[user][
-            cancelUser % userToAccountIds[currentActor].length
-        ];
+        uint128 account = userToAccountIds[user];
         uint128 marketId = cancelUser % 2 == 0 ? 1 : 2;
 
         return

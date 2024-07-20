@@ -1,12 +1,9 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 
-import "./FuzzLiquidationModule.sol";
-import "./FuzzOrderModule.sol";
-import "./FuzzAdmin.sol";
-import "./FuzzPerpsAccountModule.sol";
+import "./FuzzModules.sol";
 
-contract Fuzz is FuzzLiquidationModule, FuzzPerpsAccountModule, FuzzOrderModule, FuzzAdmin {
+contract Fuzz is FuzzModules {
     constructor() payable {
         setup();
         setupActors();

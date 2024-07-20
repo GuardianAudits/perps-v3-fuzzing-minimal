@@ -28,61 +28,7 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
                 (currentBalance * UINT_MAX_SYNTHETIX_USD_CHANGE_BP) / UINT_ONE_HUNDRED_BP
             );
     }
-
-    function changeWETHPythPricePreconditions(
-        int64 newPrice
-    ) internal returns (ChangePythPriceParams memory) {
-        int256 currentPrice = pythWrapperWETH.getBenchmarkPrice(
-            WETH_PYTH_PRICE_FEED_ID,
-            0 //uint64 requestedTime, irrelevant for mock
-        );
-        return
-            ChangePythPriceParams({
-                newPrice: int256(
-                    fl.clamp(
-                        int256(newPrice),
-                        max(
-                            int256(
-                                (currentPrice * INT_ONE_HUNDRED_BP) /
-                                    (INT_MAX_CHANGE_BP + INT_ONE_HUNDRED_BP)
-                            ),
-                            500e8 // min ETH price $500
-                        ),
-                        int256(
-                            (currentPrice * (INT_MAX_CHANGE_BP + INT_ONE_HUNDRED_BP)) /
-                                INT_ONE_HUNDRED_BP
-                        )
-                    )
-                ),
-                id: WETH_PYTH_PRICE_FEED_ID
-            });
-    }
-
-    function changeWBTCPythPricePreconditions(
-        int64 newPrice
-    ) internal returns (ChangePythPriceParams memory) {
-        int256 currentPrice = pythWrapperWBTC.getBenchmarkPrice(WBTC_PYTH_PRICE_FEED_ID, 0);
-        return
-            ChangePythPriceParams({
-                newPrice: int256(
-                    fl.clamp(
-                        int256(newPrice),
-                        max(
-                            int256(
-                                (currentPrice * INT_ONE_HUNDRED_BP) /
-                                    (INT_MAX_CHANGE_BP + INT_ONE_HUNDRED_BP)
-                            ),
-                            500e8 // min price $500
-                        ),
-                        int256(
-                            (currentPrice * (INT_MAX_CHANGE_BP + INT_ONE_HUNDRED_BP)) /
-                                INT_ONE_HUNDRED_BP
-                        )
-                    )
-                ),
-                id: WBTC_PYTH_PRICE_FEED_ID
-            });
-    }
+    event DebugPricePre(int256 p, string s);
 
     function changeOracleManagerPricePreconditions(
         uint256 nodeIndex,
@@ -93,16 +39,125 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
 
         int256 currentPrice = mockOracleManager.process(nodeId).price;
 
-        clampedPrice = fl.clamp(
-            int256(newPrice),
-            fl.max(
-                int256(
-                    (currentPrice * INT_ONE_HUNDRED_BP) / (INT_MAX_CHANGE_BP + INT_ONE_HUNDRED_BP)
-                ),
-                500e8 // min ETH price $500
-            ),
-            int256((currentPrice * (INT_MAX_CHANGE_BP + INT_ONE_HUNDRED_BP)) / INT_ONE_HUNDRED_BP)
+        int256 minBound = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
+            INT_ONE_HUNDRED_BP; // -20%
+        int256 maxBound = (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) /
+            INT_ONE_HUNDRED_BP; // +20%
+
+        if (minBound < 500e18) {
+            minBound = 500e18; // min ETH price $500
+        }
+
+        if (maxBound < minBound) {
+            maxBound = minBound;
+        }
+
+        clampedPrice = fl.clamp(newPrice, minBound, maxBound);
+    }
+
+    function changeWETHPythPricePreconditions(
+        int64 newPrice
+    ) internal returns (ChangePythPriceParams memory) {
+        int256 currentPrice = pythWrapper.getBenchmarkPrice(
+            WETH_FEED_ID,
+            0 //uint64 requestedTime, irrelevant for mock
         );
+
+        int256 minBound = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
+            INT_ONE_HUNDRED_BP; // -20%
+        int256 maxBound = (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) /
+            INT_ONE_HUNDRED_BP; // +20%
+
+        if (minBound < 500e18) {
+            minBound = 500e18; // min ETH price $500
+        }
+
+        if (maxBound < minBound) {
+            maxBound = minBound;
+        }
+
+        int clampedPrice = fl.clamp(newPrice, minBound, maxBound);
+
+        fl.log("changeWETHPythPricePreconditions::newPrice", clampedPrice);
+
+        return ChangePythPriceParams({newPrice: clampedPrice, id: WETH_FEED_ID});
+    }
+
+    function changeWBTCPythPricePreconditions(
+        int64 newPrice
+    ) internal returns (ChangePythPriceParams memory) {
+        int256 currentPrice = pythWrapper.getBenchmarkPrice(WBTC_FEED_ID, 0);
+        emit DebugPricing(currentPrice, "CURRENT PRICE");
+
+        int256 minBound = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
+            INT_ONE_HUNDRED_BP; // -20%
+        int256 maxBound = (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) /
+            INT_ONE_HUNDRED_BP; // +20%
+
+        if (minBound < 500e18) {
+            minBound = 500e18; // min WBTC price $500
+        }
+
+        if (maxBound < minBound) {
+            maxBound = minBound;
+        }
+
+        int clampedPrice = fl.clamp(newPrice, minBound, maxBound);
+
+        fl.log("changeWBTCPythPricePreconditions::newPrice", clampedPrice);
+
+        return ChangePythPriceParams({newPrice: clampedPrice, id: WBTC_FEED_ID});
+    }
+
+    function crashWETHPythPricePreconditions() internal returns (ChangePythPriceParams memory) {
+        int256 currentPrice = pythWrapper.getBenchmarkPrice(WETH_FEED_ID, 0);
+
+        int256 newPrice = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
+            INT_ONE_HUNDRED_BP;
+        int256 clampedPrice = newPrice < int(500e18) ? int(500e18) : newPrice;
+
+        return ChangePythPriceParams({newPrice: clampedPrice, id: WETH_FEED_ID});
+    }
+
+    function pumpWETHPythPricePreconditions() internal returns (ChangePythPriceParams memory) {
+        int256 currentPrice = pythWrapper.getBenchmarkPrice(
+            WETH_FEED_ID,
+            0 //uint64 requestedTime, irrelevant for mock
+        );
+
+        return
+            ChangePythPriceParams({
+                newPrice: int256(
+                    (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP
+                ),
+                id: WETH_FEED_ID
+            });
+    }
+
+    event DebugPricing(int256 p, string s);
+    function crashWBTCPythPricePreconditions() internal returns (ChangePythPriceParams memory) {
+        int256 currentPrice = pythWrapper.getBenchmarkPrice(WBTC_FEED_ID, 0);
+
+        int256 newPrice = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
+            INT_ONE_HUNDRED_BP;
+        int256 clampedPrice = newPrice < int(500e18) ? int(500e18) : newPrice;
+
+        return ChangePythPriceParams({newPrice: clampedPrice, id: WBTC_FEED_ID});
+    }
+
+    function pumpWBTCPythPricePreconditions() internal returns (ChangePythPriceParams memory) {
+        int256 currentPrice = pythWrapper.getBenchmarkPrice(
+            WBTC_FEED_ID,
+            0 //uint64 requestedTime, irrelevant for mock
+        );
+
+        return
+            ChangePythPriceParams({
+                newPrice: int256(
+                    (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP
+                ),
+                id: WBTC_FEED_ID
+            });
     }
 
     function delegateCollateralPreconditions(

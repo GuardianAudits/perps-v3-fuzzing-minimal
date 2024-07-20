@@ -15,8 +15,8 @@ contract FuzzLiquidationModule is PreconditionsLiquidationModule, Postconditions
     event Debug(string s);
     event LogBytes(bytes data);
 
-    function fuzz_liquidatePosition(uint8 flagUser) public setCurrentActor {
-        LiquidatePositionParams memory params = liquidatePositionPreconditions(flagUser);
+    function fuzz_liquidatePosition() public setCurrentActor {
+        LiquidatePositionParams memory params = liquidatePositionPreconditions();
 
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor; //This is liquidator
@@ -36,8 +36,8 @@ contract FuzzLiquidationModule is PreconditionsLiquidationModule, Postconditions
         );
     }
 
-    function fuzz_liquidateMarginOnly(uint8 flagUser) public setCurrentActor {
-        LiquidateMarginOnlyParams memory params = liquidateMarginOnlyPreconditions(flagUser);
+    function fuzz_liquidateMarginOnly() public setCurrentActor {
+        LiquidateMarginOnlyParams memory params = liquidateMarginOnlyPreconditions();
 
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor; //This is liquidator
@@ -70,9 +70,7 @@ contract FuzzLiquidationModule is PreconditionsLiquidationModule, Postconditions
     }
 
     function fuzz_liquidateFlaggedAccounts(uint8 maxNumberOfAccounts) public {
-        LiquidateFlaggedAccountsParams memory params = liquidateFlaggedAccountsPreconditions(
-            maxNumberOfAccounts
-        );
+        LiquidateFlaggedParams memory params = liquidateFlaggedPreconditions(maxNumberOfAccounts);
 
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor; //This is liquidator

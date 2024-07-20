@@ -10,18 +10,16 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
         address[] memory actorsToUpdate,
         address flaggedUser,
         address liquidator,
-        uint128 accountId
+        uint128 accountIds
     ) internal {
         if (success) {
             _after(actorsToUpdate);
-            // invariant_LIQ_02(accountId);
-            // invariant_LIQ_03();
+            invariant_LIQ_03();
+            // @audit-ok This assertion is supposed to fail to show a user can be liquidated in such a scenario.
             // invariant_LIQ_08();
-            // invariant_LIQ_09(accountId);
-            // invariant_LIQ_10(accountId);
-            // invariant_LIQ_11(accountId);
-            // invariant_LIQ_12(accountId);
-            onSuccessInvariantsGeneral(returnData, accountId);
+            invariant_LIQ_09(accountIds);
+            invariant_LIQ_11(accountIds);
+            onSuccessInvariantsGeneral(returnData, accountIds);
         } else {
             onFailInvariantsGeneral(returnData);
         }
@@ -36,7 +34,6 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
     ) internal {
         if (success) {
             _after(actorsToUpdate);
-            // invariant_LIQ_12(accountId);
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
             onFailInvariantsGeneral(returnData);
@@ -51,8 +48,9 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
     ) internal {
         if (success) {
             _after(actorsToUpdate);
-
-            onSuccessInvariantsGeneral(returnData, type(uint128).max);
+            for (uint i = 0; i < flaggedAccounts.length; i++) {
+                onSuccessInvariantsGeneral(returnData, uint128(flaggedAccounts[i]));
+            }
         } else {
             onFailInvariantsGeneral(returnData);
         }
@@ -66,8 +64,9 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
     ) internal {
         if (success) {
             _after(actorsToUpdate);
-
-            onSuccessInvariantsGeneral(returnData, type(uint128).max);
+            for (uint i = 0; i < flaggedAccounts.length; i++) {
+                onSuccessInvariantsGeneral(returnData, uint128(flaggedAccounts[i]));
+            }
         } else {
             onFailInvariantsGeneral(returnData);
         }

@@ -5,12 +5,11 @@ import "../../properties/Properties.sol";
 
 abstract contract PostconditionsBase is Properties {
     function onSuccessInvariantsGeneral(bytes memory returnData, uint128 account) internal {
-        // invariant_LIQ_01(account);
-        // invariant_LIQ_02(account);
-        // invariant_ORD_10();
+        fl.log(">>ACCOUNT FOR onSuccessInvariantsGeneral", account);
+        invariant_LIQ_01(account);
+        // @audit Review this assertion for perps market.
         // invariant_ORD_11();
-        // invariant_ORD_14();
-        // invariant_MGN_08(); // TODO: uncomment
+        // invariant_MGN_08(); //TODO: percEq
     }
 
     function onFailInvariantsGeneral(bytes memory returnData) internal {}

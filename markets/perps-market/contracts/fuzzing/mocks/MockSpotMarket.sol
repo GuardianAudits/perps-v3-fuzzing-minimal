@@ -74,12 +74,12 @@ contract MockSpotMarket {
         return synth[marketId];
     }
 
-    function getMarketSkewScale(uint128 synthMarketId) external view returns (uint256 skewScale) {
+    function getMarketSkewScale(uint128 synthMarketId) external view returns (uint128 skewScale) {
         if (getSynth(synthMarketId) == address(wethTokenMock)) {
-            return WETH_MARKET_SKEW_SCALE;
+            return uint128(WETH_MARKET_SKEW_SCALE);
         }
         if (getSynth(synthMarketId) == address(wbtcTokenMock)) {
-            return WBTC_MARKET_SKEW_SCALE;
+            return uint128(WBTC_MARKET_SKEW_SCALE);
         }
     }
 

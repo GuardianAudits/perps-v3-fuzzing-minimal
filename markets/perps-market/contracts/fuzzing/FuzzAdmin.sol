@@ -17,27 +17,34 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
         v3Mock.burnUSDFromSynthetix(amount);
     }
 
+    event DebugPrice(int256 p, string s);
+
     function fuzz_changeWETHPythPrice(int64 newPrice) public {
         ChangePythPriceParams memory params = changeWETHPythPricePreconditions(newPrice);
+        fl.gt(params.newPrice, 0, "fuzz_changeWETHPythPrice AFTER CHANGED PRICE");
 
-        pythWrapperWETH.setBenchmarkPrice(params.newPrice);
+        pythWrapper.setBenchmarkPrice(WETH_FEED_ID, params.newPrice);
 
         changePythPricePostconditions(params.id, params.newPrice);
     }
 
     function fuzz_changeWBTCPythPrice(int64 newPrice) public {
         ChangePythPriceParams memory params = changeWBTCPythPricePreconditions(newPrice);
+        fl.gt(params.newPrice, 0, "fuzz_changeWBTCPythPrice AFTER CHANGED PRICE");
 
-        pythWrapperWBTC.setBenchmarkPrice(params.newPrice);
+        pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, params.newPrice);
 
         changePythPricePostconditions(params.id, params.newPrice);
     }
+
+    event OM(bytes32 node, string s);
 
     function fuzz_changeOracleManagerPrice(uint256 nodeIndex, int256 newPrice) public {
         (int256 newClampedPrice, bytes32 nodeId) = changeOracleManagerPricePreconditions(
             nodeIndex,
             newPrice
         );
+        fl.gt(newClampedPrice, 0, "fuzz_changeOracleManagerPrice CLAMPED PRICE NEGATIVE!");
 
         mockOracleManager.changePrice(nodeId, newClampedPrice);
 
@@ -65,5 +72,60 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
             leverage,
             marketId
         );
+    }
+
+    function fuzz_crashWBTCPythPrice(uint loops) public {
+        loops == 0 ? loops = 1 : loops;
+        ChangePythPriceParams memory params;
+        for (uint i; i < loops; i++) {
+            params = crashWBTCPythPricePreconditions();
+
+            pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, params.newPrice);
+        }
+        fl.gt(params.newPrice, 0, "fuzz_crashWBTCPythPrice AFTER CHANGED PRICE");
+
+        changePythPricePostconditions(params.id, params.newPrice);
+    }
+
+    function fuzz_pumpWBTCPythPrice(uint loops) public {
+        loops == 0 ? loops = 1 : loops;
+
+        ChangePythPriceParams memory params;
+        for (uint i; i < loops; i++) {
+            params = pumpWBTCPythPricePreconditions();
+
+            pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, params.newPrice);
+        }
+        fl.gt(params.newPrice, 0, "fuzz_crashWBTCPythPrice AFTER CHANGED PRICE");
+
+        changePythPricePostconditions(params.id, params.newPrice);
+    }
+
+    function fuzz_crashWETHPythPrice(uint loops) public {
+        loops == 0 ? loops = 1 : loops;
+
+        ChangePythPriceParams memory params;
+        for (uint i; i < loops; i++) {
+            params = crashWETHPythPricePreconditions();
+
+            pythWrapper.setBenchmarkPrice(WETH_FEED_ID, params.newPrice);
+        }
+        fl.gt(params.newPrice, 0, "fuzz_crashWETHPythPrice AFTER CHANGED PRICE");
+
+        changePythPricePostconditions(params.id, params.newPrice);
+    }
+
+    function fuzz_pumpWETHPythPrice(uint loops) public {
+        loops == 0 ? loops = 1 : loops;
+
+        ChangePythPriceParams memory params;
+        for (uint i; i < loops; i++) {
+            params = pumpWETHPythPricePreconditions();
+
+            pythWrapper.setBenchmarkPrice(WETH_FEED_ID, params.newPrice);
+        }
+        fl.gt(params.newPrice, 0, "fuzz_crashWETHPythPrice AFTER CHANGED PRICE");
+
+        changePythPricePostconditions(params.id, params.newPrice);
     }
 }

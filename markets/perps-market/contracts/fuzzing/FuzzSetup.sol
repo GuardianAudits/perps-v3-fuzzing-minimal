@@ -9,6 +9,9 @@ import "@perimetersec/fuzzlib/src/FuzzBase.sol";
 import "./helper/FuzzStorageVariables.sol";
 contract FuzzSetup is FuzzBase, FuzzStorageVariables {
     function setup() internal {
+        //Foundry comparibility
+        checkCaller = new CheckCaller();
+
         router = new MockRouter();
         perps = address(new Proxy(address(router), address(this)));
 
@@ -24,7 +27,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         addPerpsMarketFactoryModuleSels();
         addPerpsMarketModuleSels();
         addLiquidationModuleSels();
-        // addPoolModuleSels();
+        addMockLensModuleSels();
         addFeatureFlagModuleSels();
         addMockModuleSels();
         addMockPythERC7412WrapperSels();
@@ -115,11 +118,13 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         );
 
         vaultModuleMock = new MockVaultModule(v3Mock, perps);
+        mockLensModuleImpl = new MockLensModule();
     }
 
-    function deployMockPythERC7412Wrapper() public {
-        pythWrapperWETH = new MockPythERC7412Wrapper();
-        pythWrapperWBTC = new MockPythERC7412Wrapper();
+    function deployMockPythERC7412Wrapper() private {
+        pythWrapper = new MockPythERC7412Wrapper(address(mockOracleManager));
+        pythWrapper.setBenchmarkPrice(WETH_FEED_ID, 3_000e18);
+        pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, 10_000e18);
     }
 
     function deployMockOracleManager() private {
@@ -134,7 +139,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         initialPrices[0] = 1e18;
         initialPrices[1] = 3_000e18;
         initialPrices[2] = 10_000e18;
-        initialPrices[3] = 0;
+        initialPrices[3] = 1e18;
 
         tokenChainlinkNode[address(sUSDTokenMock)] = SUSD_ORACLE_NODE_ID;
         tokenChainlinkNode[address(wethTokenMock)] = WETH_ORACLE_NODE_ID;
@@ -321,59 +326,8 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
     }
 
     function addMockPythERC7412WrapperSels() private {
-        (bool success, ) = perps.call(
-            abi.encodeWithSelector(
-                router.addFunctionAndImplementation.selector,
-                pythWrapperWETH.setBenchmarkPrice.selector,
-                address(pythWrapperWETH)
-            )
-        );
-        assert(success);
-
-        (success, ) = perps.call(
-            abi.encodeWithSelector(
-                router.addFunctionAndImplementation.selector,
-                pythWrapperWETH.setAlwaysRevertFlag.selector,
-                address(pythWrapperWETH)
-            )
-        );
-        assert(success);
-
-        (success, ) = perps.call(
-            abi.encodeWithSelector(
-                router.addFunctionAndImplementation.selector,
-                pythWrapperWETH.getBenchmarkPrice.selector,
-                address(pythWrapperWETH)
-            )
-        );
-        assert(success);
-
-        (success, ) = perps.call(
-            abi.encodeWithSelector(
-                router.addFunctionAndImplementation.selector,
-                pythWrapperWBTC.setBenchmarkPrice.selector,
-                address(pythWrapperWBTC)
-            )
-        );
-        assert(success);
-
-        (success, ) = perps.call(
-            abi.encodeWithSelector(
-                router.addFunctionAndImplementation.selector,
-                pythWrapperWBTC.setAlwaysRevertFlag.selector,
-                address(pythWrapperWBTC)
-            )
-        );
-        assert(success);
-
-        (success, ) = perps.call(
-            abi.encodeWithSelector(
-                router.addFunctionAndImplementation.selector,
-                pythWrapperWBTC.getBenchmarkPrice.selector,
-                address(pythWrapperWBTC)
-            )
-        );
-        assert(success);
+        pythWrapper.setBenchmarkPrice(WETH_FEED_ID, 3_000e18);
+        pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, 10_000e18);
     }
 
     function addAsyncOrderSettlementPythModuleSels() private {
@@ -391,9 +345,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
-                collateralConfigurationModuleImpl
-                    .setCollateralConfiguration
-                    .selector,
+                collateralConfigurationModuleImpl.setCollateralConfiguration.selector,
                 address(collateralConfigurationModuleImpl)
             )
         );
@@ -402,9 +354,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
-                collateralConfigurationModuleImpl
-                    .getCollateralConfiguration
-                    .selector,
+                collateralConfigurationModuleImpl.getCollateralConfiguration.selector,
                 address(collateralConfigurationModuleImpl)
             )
         );
@@ -413,9 +363,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
-                collateralConfigurationModuleImpl
-                    .getCollateralConfigurationFull
-                    .selector,
+                collateralConfigurationModuleImpl.getCollateralConfigurationFull.selector,
                 address(collateralConfigurationModuleImpl)
             )
         );
@@ -424,9 +372,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
-                collateralConfigurationModuleImpl
-                    .setCollateralLiquidateRewardRatio
-                    .selector,
+                collateralConfigurationModuleImpl.setCollateralLiquidateRewardRatio.selector,
                 address(collateralConfigurationModuleImpl)
             )
         );
@@ -435,9 +381,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
-                collateralConfigurationModuleImpl
-                    .getCollateralLiquidateRewardRatio
-                    .selector,
+                collateralConfigurationModuleImpl.getCollateralLiquidateRewardRatio.selector,
                 address(collateralConfigurationModuleImpl)
             )
         );
@@ -464,9 +408,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
-                collateralConfigurationModuleImpl
-                    .getRegisteredDistributor
-                    .selector,
+                collateralConfigurationModuleImpl.getRegisteredDistributor.selector,
                 address(collateralConfigurationModuleImpl)
             )
         );
@@ -650,9 +592,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
-                marketConfigurationModuleImpl
-                    .setSettlementStrategyEnabled
-                    .selector,
+                marketConfigurationModuleImpl.setSettlementStrategyEnabled.selector,
                 address(marketConfigurationModuleImpl)
             )
         );
@@ -715,9 +655,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
-                marketConfigurationModuleImpl
-                    .setMaxLiquidationParameters
-                    .selector,
+                marketConfigurationModuleImpl.setMaxLiquidationParameters.selector,
                 address(marketConfigurationModuleImpl)
             )
         );
@@ -753,9 +691,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
-                marketConfigurationModuleImpl
-                    .getMaxLiquidationParameters
-                    .selector,
+                marketConfigurationModuleImpl.getMaxLiquidationParameters.selector,
                 address(marketConfigurationModuleImpl)
             )
         );
@@ -1213,6 +1149,53 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
+    function addMockLensModuleSels() private {
+        (bool success, ) = perps.call(
+            abi.encodeWithSelector(
+                router.addFunctionAndImplementation.selector,
+                mockLensModuleImpl.isOrderExpired.selector,
+                address(mockLensModuleImpl)
+            )
+        );
+        assert(success);
+
+        (success, ) = perps.call(
+            abi.encodeWithSelector(
+                router.addFunctionAndImplementation.selector,
+                mockLensModuleImpl.getOrder.selector,
+                address(mockLensModuleImpl)
+            )
+        );
+        assert(success);
+
+        (success, ) = perps.call(
+            abi.encodeWithSelector(
+                router.addFunctionAndImplementation.selector,
+                mockLensModuleImpl.getSettlementRewardCost.selector,
+                address(mockLensModuleImpl)
+            )
+        );
+        assert(success);
+
+        (success, ) = perps.call(
+            abi.encodeWithSelector(
+                router.addFunctionAndImplementation.selector,
+                mockLensModuleImpl.calculateFillPrice.selector,
+                address(mockLensModuleImpl)
+            )
+        );
+        assert(success);
+
+        // (success, ) = perps.call(
+        //     abi.encodeWithSelector(
+        //         router.addFunctionAndImplementation.selector,
+        //         mockLensModuleImpl.calculateOrderFee.selector,
+        //         address(mockLensModuleImpl)
+        //     )
+        // );
+        // assert(success);
+    }
+
     function enableAllFeatureFlags() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
@@ -1242,7 +1225,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
                     strategyType: WETH_SETTLEMENT_STRATEGY_TYPE,
                     settlementDelay: WETH_SETTLEMENT_DELAY,
                     settlementWindowDuration: WETH_SETTLEMENT_WINDOW_DURATION,
-                    priceVerificationContract: address(pythWrapperWETH),
+                    priceVerificationContract: address(pythWrapper),
                     feedId: WETH_FEED_ID,
                     settlementReward: WETH_SETTLEMENT_REWARD,
                     disabled: WETH_DISABLED,
@@ -1262,7 +1245,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
                     strategyType: WBTC_SETTLEMENT_STRATEGY_TYPE,
                     settlementDelay: WBTC_SETTLEMENT_DELAY,
                     settlementWindowDuration: WBTC_SETTLEMENT_WINDOW_DURATION,
-                    priceVerificationContract: address(pythWrapperWBTC),
+                    priceVerificationContract: address(pythWrapper),
                     feedId: WBTC_FEED_ID,
                     settlementReward: WBTC_SETTLEMENT_REWARD,
                     disabled: WBTC_DISABLED,
@@ -1313,9 +1296,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
     function setSnxUSDCollateralConfiguration() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
-                collateralConfigurationModuleImpl
-                    .setCollateralConfiguration
-                    .selector,
+                collateralConfigurationModuleImpl.setCollateralConfiguration.selector,
                 SNX_USD_COLLATERAL_ID,
                 SNX_USD_MAX_COLLATERAL_AMOUNT,
                 SNX_USD_UPPER_LIMIT_DISCOUNT,
@@ -1329,9 +1310,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
     function setWETHCollateralConfiguration() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
-                collateralConfigurationModuleImpl
-                    .setCollateralConfiguration
-                    .selector,
+                collateralConfigurationModuleImpl.setCollateralConfiguration.selector,
                 WETH_COLLATERAL_ID,
                 WETH_MAX_COLLATERAL_AMOUNT,
                 WETH_UPPER_LIMIT_DISCOUNT,
@@ -1345,9 +1324,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
     function setWBTCCollateralConfiguration() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
-                collateralConfigurationModuleImpl
-                    .setCollateralConfiguration
-                    .selector,
+                collateralConfigurationModuleImpl.setCollateralConfiguration.selector,
                 WBTC_COLLATERAL_ID,
                 WBTC_MAX_COLLATERAL_AMOUNT,
                 WBTC_UPPER_LIMIT_DISCOUNT,
@@ -1400,11 +1377,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         synthAddresses[1] = address(wbtcTokenMock);
 
         (bool success, ) = address(spot).call(
-            abi.encodeWithSelector(
-                spot.setSynthForMarketId.selector,
-                synthIds,
-                synthAddresses
-            )
+            abi.encodeWithSelector(spot.setSynthForMarketId.selector, synthIds, synthAddresses)
         );
         assert(success);
     }
@@ -1422,29 +1395,17 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
 
     function createAccounts() private {
         (bool success, ) = perps.call(
-            abi.encodeWithSelector(
-                mockModuleImpl.createAccount.selector,
-                uint128(1),
-                USER1
-            )
+            abi.encodeWithSelector(mockModuleImpl.createAccount.selector, uint128(1), USER1)
         );
         assert(success);
 
         (success, ) = perps.call(
-            abi.encodeWithSelector(
-                mockModuleImpl.createAccount.selector,
-                uint128(2),
-                USER2
-            )
+            abi.encodeWithSelector(mockModuleImpl.createAccount.selector, uint128(2), USER2)
         );
         assert(success);
 
         (success, ) = perps.call(
-            abi.encodeWithSelector(
-                mockModuleImpl.createAccount.selector,
-                uint128(3),
-                USER3
-            )
+            abi.encodeWithSelector(mockModuleImpl.createAccount.selector, uint128(3), USER3)
         );
         assert(success);
     }
@@ -1473,6 +1434,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
 
         vm.prank(USER3);
+        console2.log("Msg sender in setup", msg.sender);
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 mockModuleImpl.grantPermission.selector,
@@ -1481,8 +1443,6 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
                 USER3
             )
         );
-        console2.log("Msg sender in setup", msg.sender);
-
         assert(success);
     }
 
@@ -1515,22 +1475,21 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
             assert(success);
 
             for (uint8 j = 0; j < tokens.length; j++) {
-                tokens[j].mint(
-                    user,
-                    INITIAL_TOKEN_BALANCE * (10 ** tokens[j].decimals())
-                );
+                tokens[j].mint(user, INITIAL_TOKEN_BALANCE * (10 ** tokens[j].decimals()));
                 for (uint8 k = 0; k < targets.length; k++) {
                     vm.prank(user);
                     tokens[j].approve(targets[k], type(uint128).max);
                 }
             }
         }
+
+        _depositInitialAmounts(1, 0, 10_000e18);
     }
 
     function setupAccountIds() internal {
-        userToAccountIds[USER1] = [uint128(1)];
-        userToAccountIds[USER2] = [uint128(2)];
-        userToAccountIds[USER3] = [uint128(3)];
+        userToAccountIds[USER1] = uint128(1);
+        userToAccountIds[USER2] = uint128(2);
+        userToAccountIds[USER3] = uint128(3);
         accountIdToUser[uint128(1)] = USER1;
         accountIdToUser[uint128(2)] = USER2;
         accountIdToUser[uint128(3)] = USER3;
@@ -1581,7 +1540,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         mockPyth.setRequiredFee(100);
     }
 
-    function setUpdatePriceDataWETH() public {
+    function setUpdatePriceDataWETH() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.updatePriceData.selector,
@@ -1593,7 +1552,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setUpdatePriceDataWBTC() public {
+    function setUpdatePriceDataWBTC() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.updatePriceData.selector,
@@ -1605,7 +1564,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
     //from test/integration/bootstrap/bootstrapPerpsMarkets.ts
-    function setFundingParametersWETH() public {
+    function setFundingParametersWETH() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setFundingParameters.selector,
@@ -1617,7 +1576,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setFundingParametersWBTC() public {
+    function setFundingParametersWBTC() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setFundingParameters.selector,
@@ -1629,7 +1588,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setMaxMarketSizeWETH() public {
+    function setMaxMarketSizeWETH() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setMaxMarketSize.selector,
@@ -1640,7 +1599,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setMaxMarketSizeWBTC() public {
+    function setMaxMarketSizeWBTC() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setMaxMarketSize.selector,
@@ -1651,7 +1610,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setMaxMarketValueWETH() public {
+    function setMaxMarketValueWETH() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setMaxMarketValue.selector,
@@ -1662,7 +1621,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setMaxMarketValueWBTC() public {
+    function setMaxMarketValueWBTC() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setMaxMarketValue.selector,
@@ -1673,7 +1632,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setOrderFeesWETH() public {
+    function setOrderFeesWETH() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setOrderFees.selector,
@@ -1685,7 +1644,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setOrderFeesWBTC() public {
+    function setOrderFeesWBTC() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setOrderFees.selector,
@@ -1697,7 +1656,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setLiquidationParametersWETH() public {
+    function setLiquidationParametersWETH() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setLiquidationParameters.selector,
@@ -1712,7 +1671,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setLiquidationParametersWBTC() public {
+    function setLiquidationParametersWBTC() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
                 marketConfigurationModuleImpl.setLiquidationParameters.selector,
@@ -1727,12 +1686,10 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setMaxLiquidationParametersWETH() public {
+    function setMaxLiquidationParametersWETH() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
-                marketConfigurationModuleImpl
-                    .setMaxLiquidationParameters
-                    .selector,
+                marketConfigurationModuleImpl.setMaxLiquidationParameters.selector,
                 1,
                 WETH_MAX_LIQUIDATION_LIMIT_ACCUMULATION_MULTIPLIER,
                 WETH_MAX_SECONDS_IN_LIQUIDATION_WINDOW,
@@ -1743,12 +1700,10 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
     }
 
-    function setMaxLiquidationParametersWBTC() public {
+    function setMaxLiquidationParametersWBTC() private {
         (bool success, ) = perps.call(
             abi.encodeWithSelector(
-                marketConfigurationModuleImpl
-                    .setMaxLiquidationParameters
-                    .selector,
+                marketConfigurationModuleImpl.setMaxLiquidationParameters.selector,
                 2,
                 WBTC_MAX_LIQUIDATION_LIMIT_ACCUMULATION_MULTIPLIER,
                 WBTC_MAX_SECONDS_IN_LIQUIDATION_WINDOW,
@@ -1779,11 +1734,10 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
             )
         );
         assert(success);
+        collateralToMarketId[address(wethTokenMock)] = 1;
     }
     function setPerpMarketFactoryModuleImplInVault() private {
-        vaultModuleMock.setPerpMarketFactoryModuleImpl(
-            perpsMarketFactoryModuleImpl
-        );
+        vaultModuleMock.setPerpMarketFactoryModuleImpl(perpsMarketFactoryModuleImpl);
     }
 
     function setCreateMarketWBTC() private {
@@ -1796,31 +1750,58 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
             )
         );
         assert(success);
+        collateralToMarketId[address(wbtcTokenMock)] = 2;
     }
 
-    function _getRandomCollateralToken(
-        uint256 collateralTokenIndex
-    ) internal returns (address) {
+    function _getRandomCollateralToken(uint256 collateralTokenIndex) internal returns (address) {
         (bool success, bytes memory data) = perps.call(
-            abi.encodeWithSelector(
-                globalPerpsMarketModuleImpl.getSupportedCollaterals.selector
-            )
+            abi.encodeWithSelector(globalPerpsMarketModuleImpl.getSupportedCollaterals.selector)
         );
         assert(success);
         uint256[] memory supportedCollaterals = abi.decode(data, (uint256[]));
+        // assert(supportedCollaterals.length == 3);
 
-        uint256 clampedIndex = collateralTokenIndex %
-            supportedCollaterals.length;
-        supportedCollaterals[clampedIndex] == 1
-            ? address(wethTokenMock)
-            : address(wbtcTokenMock);
+        uint256 clampedIndex = collateralTokenIndex % supportedCollaterals.length;
+        address collateral;
+        if (clampedIndex == 0) collateral = address(sUSDTokenMock);
+        else if (clampedIndex == 1) collateral = address(wethTokenMock);
+        else collateral = address(wbtcTokenMock);
+        return collateral;
+        // TODO: Cleanup.
+        // return supportedCollaterals[clampedIndex]; //== 1 ? address(wethTokenMock) : address(wbtcTokenMock);
     }
 
-    function _getRandomNodeId(
-        uint256 nodeIndex
-    ) internal returns (bytes32 nodeId) {
+    function _getRandomNodeId(uint256 nodeIndex) internal returns (bytes32 nodeId) {
         // first oracle nodeId is sUSD, ignore because its price shouldn't change
         nodeIndex = (nodeIndex % mockOracleManager.getActiveNodesLength()) + 1;
         nodeId = mockOracleManager.activeNodes(nodeIndex);
+    }
+
+    function _depositInitialAmounts(uint128 accountId, uint128 collateralId, int delta) internal {
+        address user;
+        if (accountId == 1) {
+            user = USER1;
+        } else if (accountId == 2) {
+            user = USER2;
+        } else {
+            user = USER3;
+        }
+        vm.prank(user);
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.modifyCollateral.selector,
+                accountId,
+                collateralId,
+                delta
+            )
+        );
+        if (!success) {
+            if (returnData.length > 0) {
+                string memory errorMessage = abi.decode(returnData, (string));
+                revert(errorMessage);
+            } else {
+                revert("Call to perps contract failed");
+            }
+        }
     }
 }

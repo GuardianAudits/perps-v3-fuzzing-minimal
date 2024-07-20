@@ -8,17 +8,20 @@ import "./util/FunctionCalls.sol";
 import "../storage/Position.sol";
 
 contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule {
+    mapping(uint128 accountId => CommitOrderParams params) public pendingOrder;
+
     function fuzz_commitOrder(int128 sizeDelta, uint256 acceptablePrice) public setCurrentActor {
         console2.log("===== FuzzOrderModule::fuzz_commitOrder START =====");
+
         address[] memory actorsToUpdate = new address[](1);
         actorsToUpdate[0] = currentActor;
+        console2.log("===== _currentActor  =====", msg.sender);
 
         bytes32 trackingCode;
         address referrer;
         int128 positionSize;
         console.log("msg.sender", msg.sender);
         console2.log("===== _before START =====");
-
         _before(actorsToUpdate);
         console.log("msg.sender", msg.sender);
 
@@ -31,6 +34,9 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
             trackingCode,
             referrer
         );
+
+        require(pendingOrder[params.accountId].accountId == uint128(0), "User has a pending order");
+
         console.log("msg.sender", msg.sender);
 
         console2.log("===== commitOrderPreconditions END =====");
@@ -56,21 +62,30 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
         console2.log("===== _commitOrderCall END =====");
         console2.log("===== commitOrderPostconditions START =====");
 
-        commitOrderPostconditions(success, returnData, actorsToUpdate, params.accountId);
+        commitOrderPostconditions(
+            success,
+            returnData,
+            actorsToUpdate,
+            params.accountId,
+            params.marketId
+        );
+
+        pendingOrder[params.accountId] = params;
         console2.log("===== commitOrderPostconditions END =====");
 
         console2.log("===== FuzzOrderModule::fuzz_commitOrder END =====");
     }
 
-    function fuzz_settleOrder(uint8 settleUser) public setCurrentActor {
-        SettleOrderParams memory params = settleOrderPreconditions(settleUser);
+    function fuzz_settleOrder() public setCurrentActor {
+        vm.warp(block.timestamp + 6);
+        SettleOrderParams memory params = settleOrderPreconditions();
 
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor;
         actorsToUpdate[1] = params.settleUser;
 
         _before(actorsToUpdate);
-
+        fl.log(">>>>>>CURRENT ACTOR:", currentActor);
         (bool success, bytes memory returnData) = _settleOrderCall(
             actorsToUpdate[1],
             params.accountId
@@ -81,8 +96,10 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
             returnData,
             actorsToUpdate,
             params.settleUser,
-            params.accountId
+            params.accountId,
+            pendingOrder[params.accountId].marketId
         );
+        delete pendingOrder[params.accountId];
     }
 
     function fuzz_cancelOrder(uint8 cancelUser) public setCurrentActor {
@@ -107,5 +124,6 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
             params.cancelUser,
             params.accountId
         );
+        delete pendingOrder[params.accountId];
     }
 }

@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {MockSynthetixV3} from "./MockSynthetixV3.sol";
 import {PerpsMarketFactoryModule} from "../../modules/PerpsMarketFactoryModule.sol";
+import {console2} from "lib/forge-std/src/Test.sol";
 
 contract MockVaultModule {
     MockSynthetixV3 internal v3Mock;
@@ -43,7 +44,10 @@ contract MockVaultModule {
             );
             assert(success);
             uint128 minimumMarketCreditCapacity = abi.decode(returnData, (uint128));
-
+            console2.log(
+                "delegateCollateral::minimumMarketCreditCapacity",
+                minimumMarketCreditCapacity
+            );
             require(currentCreditCapacity > minimumMarketCreditCapacity, "isCapacityLocked");
 
             increase = false;

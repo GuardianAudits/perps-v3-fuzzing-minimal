@@ -4,11 +4,12 @@ pragma solidity ^0.8.0;
 import {IRewardDistributor} from "@synthetixio/main/contracts/interfaces/external/IRewardDistributor.sol";
 import {IERC165} from "@synthetixio/core-contracts/contracts/interfaces/IERC165.sol";
 import "./MockSynthetixV3.sol";
+import {console2} from "lib/forge-std/src/Test.sol";
 
 contract MockRewardDistributor {
     MockSynthetixV3 v3Mock;
-    uint128 poolId;
-    uint collateralId;
+    uint128 public poolId;
+    uint public collateralId;
     constructor(MockSynthetixV3 _v3Mock, uint128 _poolId, uint _collateralId) {
         v3Mock = _v3Mock;
         poolId = _poolId;
@@ -23,10 +24,17 @@ contract MockRewardDistributor {
         return v3Mock.getCollateralTypes();
     }
 
-    function distributeRewards(address collateralType, uint256 amount) external {
+    function distributeRewards(
+        uint128 poolId_,
+        address collateralType_,
+        uint256 amount_,
+        uint64 start_,
+        uint32 duration_
+    ) external {
         // distribute a portion of debt rewards to different vaults
         // TODO: commenting out temporarily to resolve issues in LiquidationModule coverage
         // v3Mock.updateRewardDistribution(collateralType, amount);
+        console2.log("====== MockRewardDistributor::distributeRewards END ======");
     }
 
     /**

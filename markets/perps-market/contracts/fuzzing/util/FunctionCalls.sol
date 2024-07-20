@@ -6,7 +6,7 @@ import "../helper/FuzzStorageVariables.sol";
 import {AsyncOrder} from "../../storage/AsyncOrder.sol";
 
 contract FunctionCalls is FuzzBase, FuzzStorageVariables {
-    event ModifyCollateralCall(uint128 accountId, address collateralAddress, int256 amountDelta);
+    event ModifyCollateralCall(uint128 accountId, uint128 collateralId, int256 amountDelta);
     event PayDebtCall(uint128 accountId, uint128 amount);
     event SettleOrderCall(address settleUser, uint128 accountId);
     event CancelOrderCall(address settleUser, uint128 accountId);
@@ -26,17 +26,17 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
 
     function _modifyCollateralCall(
         uint128 accountId,
-        address collateralAddress,
+        uint128 collateralId,
         int256 amountDelta
     ) internal returns (bool success, bytes memory returnData) {
-        emit ModifyCollateralCall(accountId, collateralAddress, amountDelta);
+        emit ModifyCollateralCall(accountId, collateralId, amountDelta);
 
         vm.prank(currentActor);
         (success, returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsAccountModuleImpl.modifyCollateral.selector,
                 accountId,
-                collateralAddress,
+                collateralId,
                 amountDelta
             )
         );
@@ -94,7 +94,7 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
     ) internal returns (bool success, bytes memory returnData) {
         emit SettleOrderCall(settleUser, accountId);
 
-        vm.prank(settleUser);
+        vm.prank(currentActor);
         (success, returnData) = perps.call(
             abi.encodeWithSelector(
                 asyncOrderSettlementPythModuleImpl.settleOrder.selector,
@@ -109,7 +109,7 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
     ) internal returns (bool success, bytes memory returnData) {
         emit CancelOrderCall(settleUser, accountId);
 
-        vm.prank(settleUser);
+        vm.prank(currentActor);
         (success, returnData) = perps.call(
             abi.encodeWithSelector(asyncOrderCancelModuleImpl.cancelOrder.selector, accountId)
         );

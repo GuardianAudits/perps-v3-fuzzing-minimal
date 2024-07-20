@@ -48,16 +48,16 @@ abstract contract FuzzConstants {
 
     //markets/perps-market/test/integration/Account/Margins.test.ts
     //synthetix/perps-v3-fuzzing-fresh/markets/spot-market/test/AtomicOrderModule.buy.test.ts
-    uint internal constant WETH_MARKET_SKEW_SCALE = 100;
-    uint internal constant WBTC_MARKET_SKEW_SCALE = 10000;
+    uint128 internal constant WETH_MARKET_SKEW_SCALE = 100e18;
+    uint128 internal constant WBTC_MARKET_SKEW_SCALE = 10000e18;
 
     // Settlement strategy WETH
     SettlementStrategy.Type internal constant WETH_SETTLEMENT_STRATEGY_TYPE =
         SettlementStrategy.Type.PYTH;
     uint256 internal constant WETH_SETTLEMENT_DELAY = 5;
     uint256 internal constant WETH_SETTLEMENT_WINDOW_DURATION = 120;
-    bytes32 internal constant WETH_FEED_ID = bytes32(0);
-    uint256 internal constant WETH_SETTLEMENT_REWARD = 5;
+    bytes32 internal constant WETH_FEED_ID = "2";
+    uint256 internal constant WETH_SETTLEMENT_REWARD = 5e18;
     bool internal constant WETH_DISABLED = false;
     uint256 internal constant WETH_COMMITMENT_PRICE_DELAY = 2;
 
@@ -66,8 +66,8 @@ abstract contract FuzzConstants {
         SettlementStrategy.Type.PYTH;
     uint256 internal constant WBTC_SETTLEMENT_DELAY = 5;
     uint256 internal constant WBTC_SETTLEMENT_WINDOW_DURATION = 120;
-    bytes32 internal constant WBTC_FEED_ID = bytes32(0);
-    uint256 internal constant WBTC_SETTLEMENT_REWARD = 5;
+    bytes32 internal constant WBTC_FEED_ID = "3";
+    uint256 internal constant WBTC_SETTLEMENT_REWARD = 5e18;
     bool internal constant WBTC_DISABLED = false;
     uint256 internal constant WBTC_COMMITMENT_PRICE_DELAY = 2;
 
@@ -97,11 +97,11 @@ abstract contract FuzzConstants {
     uint128 internal constant MAX_COLLATERALS_PER_ACCOUNT = 100000;
 
     // WETH Funding Parameters
-    uint256 internal constant WETH_SKEW_SCALE = 1_000_000;
+    uint128 internal constant WETH_SKEW_SCALE = 1_000_000e18;
     uint256 internal constant WETH_MAX_FUNDING_VELOCITY = 0;
 
     // WBTC Funding Parameters
-    uint256 internal constant WBTC_SKEW_SCALE = 1_000_000;
+    uint128 internal constant WBTC_SKEW_SCALE = 1_000_000e18;
     uint256 internal constant WBTC_MAX_FUNDING_VELOCITY = 0;
 
     // Max Market Sizes
@@ -113,10 +113,10 @@ abstract contract FuzzConstants {
     uint256 internal constant WBTC_MAX_MARKET_VALUE = 0;
 
     // Order Fee Ratios
-    uint256 internal constant WETH_MAKER_FEE_RATIO = 0;
-    uint256 internal constant WETH_TAKER_FEE_RATIO = 0;
-    uint256 internal constant WBTC_MAKER_FEE_RATIO = 0;
-    uint256 internal constant WBTC_TAKER_FEE_RATIO = 0;
+    uint256 internal constant WETH_MAKER_FEE_RATIO = 0.003e18;
+    uint256 internal constant WETH_TAKER_FEE_RATIO = 0.006e18;
+    uint256 internal constant WBTC_MAKER_FEE_RATIO = 0.003e18;
+    uint256 internal constant WBTC_TAKER_FEE_RATIO = 0.006e18;
 
     // WETH Liquidation Parameters
     uint256 internal constant WETH_INITIAL_MARGIN_FRACTION = 2e18;
@@ -133,14 +133,14 @@ abstract contract FuzzConstants {
     uint256 internal constant WBTC_MINIMUM_POSITION_MARGIN = 1000e18;
 
     // WETH Max Liquidation Parameters
-    uint256 internal constant WETH_MAX_LIQUIDATION_LIMIT_ACCUMULATION_MULTIPLIER = 1e18;
-    uint256 internal constant WETH_MAX_SECONDS_IN_LIQUIDATION_WINDOW = 10e18;
+    uint256 internal constant WETH_MAX_LIQUIDATION_LIMIT_ACCUMULATION_MULTIPLIER = 0.00001e18;
+    uint256 internal constant WETH_MAX_SECONDS_IN_LIQUIDATION_WINDOW = 60;
     uint256 internal constant WETH_MAX_LIQUIDATION_PD = 0;
     address internal constant WETH_ENDORSED_LIQUIDATOR = address(0);
 
     // WBTC Max Liquidation Parameters
-    uint256 internal constant WBTC_MAX_LIQUIDATION_LIMIT_ACCUMULATION_MULTIPLIER = 1e18;
-    uint256 internal constant WBTC_MAX_SECONDS_IN_LIQUIDATION_WINDOW = 10e18;
+    uint256 internal constant WBTC_MAX_LIQUIDATION_LIMIT_ACCUMULATION_MULTIPLIER = 0.00001e18;
+    uint256 internal constant WBTC_MAX_SECONDS_IN_LIQUIDATION_WINDOW = 60;
     uint256 internal constant WBTC_MAX_LIQUIDATION_PD = 0;
     address internal constant WBTC_ENDORSED_LIQUIDATOR = address(0);
 
@@ -153,8 +153,8 @@ abstract contract FuzzConstants {
     uint256 internal constant UINT_MAX_SYNTHETIX_USD_CHANGE_BP = 2000; // 20% is the max change for 1 transaction
     uint256 internal constant UINT_ONE_HUNDRED_BP = 10000;
 
-    int256 internal constant INT_MAX_CHANGE_BP = type(int256).max; // 20% is the max change for 1 transaction
-    uint256 internal constant UINT_MAX_CHANGE_BP = type(uint256).max; //  2000; // 20% is the max change for 1 transaction
+    int256 internal constant INT_MAX_CHANGE_BP = 2000; // 20% is the max change for 1 transaction
+    uint256 internal constant UINT_MAX_CHANGE_BP = 2000; //  2000; // 20% is the max change for 1 transaction
 
     uint128 internal constant MAX_ALLOWABLE = 10_000_000 * 1e18;
     int256 internal constant PRICE_DIVERGENCE_BPS_256 = 100;

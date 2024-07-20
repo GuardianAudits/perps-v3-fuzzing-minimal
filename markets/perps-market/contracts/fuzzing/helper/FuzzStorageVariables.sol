@@ -3,6 +3,7 @@
 pragma solidity ^0.8.0;
 
 import "../util/FuzzConstants.sol";
+import "../util/CheckCaller.sol";
 
 import {MockRouter} from "../mocks/MockRouter.sol";
 import {MockSynthetixV3} from "../mocks/MockSynthetixV3.sol";
@@ -29,23 +30,30 @@ import {MockPythERC7412Wrapper} from "../../mocks/MockPythERC7412Wrapper.sol";
 import {MockRewardDistributor} from "../mocks/MockRewardDistributor.sol";
 import {MockSpotMarket} from "../mocks/MockSpotMarket.sol";
 import {MockVaultModule} from "../mocks/MockVaultModule.sol";
+import {MockLensModule} from "../mocks/MockLensModule.sol";
 
 import {MockGasPriceNode} from "../../mocks/MockGasPriceNode.sol";
 
 import "lib/forge-std/src/Test.sol";
 
 contract FuzzStorageVariables is FuzzConstants, Test {
+    //Foundry compatibility
+    bool isFoundry;
+    bool guidedDone;
+    CheckCaller checkCaller;
+
     // Echidna settings
     address internal currentActor;
     bool internal _setActor = true;
 
     // user => accountId
-    mapping(address => uint128[]) userToAccountIds;
+    mapping(address => uint128) userToAccountIds;
     mapping(uint128 => address) accountIdToUser;
     // pythNodeId => chainlinkNodeId, chainlinkNodeId => pythNodeId
     mapping(bytes32 node1 => bytes32 node2) oracleNodes;
     // collateralToken => chainlink nodeId
     mapping(address collateralToken => bytes32 nodeId) tokenChainlinkNode;
+    mapping(address => uint256) public collateralToMarketId;
 
     MockERC20[] internal tokens;
 
@@ -76,15 +84,14 @@ contract FuzzStorageVariables is FuzzConstants, Test {
     MockERC20 internal wethTokenMock;
     MockERC20 internal wbtcTokenMock;
     MockPyth internal mockPyth;
-    MockPythERC7412Wrapper internal pythWrapperWETH;
-    MockPythERC7412Wrapper internal pythWrapperWBTC;
+    MockPythERC7412Wrapper internal pythWrapper;
     MockRewardDistributor internal rewardWETHDistributorMock;
     MockRewardDistributor internal rewardWBTCDistributorMock;
     MockGasPriceNode internal mockGasPriceNode;
     MockVaultModule internal vaultModuleMock;
-
-    bool modifyCalled;
-    bool commitCalled;
-    address commitCaller;
+    MockLensModule internal mockLensModuleImpl;
+    // bool modifyCalled;
+    // bool commitCalled;
+    // address commitCaller;
     uint128 latestAvailableId = 4;
 }

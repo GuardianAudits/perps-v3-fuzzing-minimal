@@ -7,33 +7,25 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
     struct LiquidateMarginOnlyParams {
         address user;
         uint128 accountId;
-        uint128 marketId;
     }
 
     struct LiquidatePositionParams {
         address user;
         uint128 accountId;
-        uint128 marketId;
     }
 
     struct LiquidateFlaggedParams {
         uint numberOfAccounts;
         uint[] flaggedAccounts;
-        uint128 marketId;
-    }
-    struct LiquidateFlaggedAccountsParams {
-        uint[] initialFlaggedAccounts;
-        uint[] flaggedAccounts;
-        uint128 marketId;
     }
 
-    function liquidatePositionPreconditions(
-        uint8 flagUser
-    ) internal returns (LiquidatePositionParams memory) {
+    function liquidatePositionPreconditions() internal returns (LiquidatePositionParams memory) {
         address userToLiquidate;
         uint128 accountToLiquidate;
         // search users array for one is eligible for liquidation
         for (uint128 i; i < ACCOUNTS.length; i++) {
+            console2.log("Checking account:", i);
+
             (bool success, bytes memory returnData) = perps.call(
                 abi.encodeWithSelector(liquidationModuleImpl.canLiquidate.selector, i)
             );
@@ -42,7 +34,7 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
             bool isEligible = abi.decode(returnData, (bool));
 
             if (isEligible) {
-                accountToLiquidate = ACCOUNTS[i];
+                accountToLiquidate = i;
                 break;
             }
 
@@ -51,81 +43,79 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
             }
         }
 
-        uint128 marketId = flagUser % 2 == 0 ? 1 : 2;
         return
             LiquidatePositionParams({
                 user: accountIdToUser[accountToLiquidate],
-                accountId: accountToLiquidate,
-                marketId: marketId
+                accountId: accountToLiquidate
             });
     }
 
-    function liquidateMarginOnlyPreconditions(
-        uint8 flagUser
-    ) internal returns (LiquidateMarginOnlyParams memory) {
-        uint128 account = ACCOUNTS[flagUser % (ACCOUNTS.length - 1)];
+    function liquidateMarginOnlyPreconditions()
+        internal
+        returns (LiquidateMarginOnlyParams memory)
+    {
+        uint128 accountToLiquidate;
+        for (uint128 i; i < ACCOUNTS.length; i++) {
+            console2.log("Checking account for margin-only liquidation:", i);
 
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(liquidationModuleImpl.canLiquidateMarginOnly.selector, account)
-        );
-        assert(success);
+            (bool success, bytes memory returnData) = perps.call(
+                abi.encodeWithSelector(liquidationModuleImpl.canLiquidateMarginOnly.selector, i)
+            );
+            assert(success);
 
-        bool isEligible = abi.decode(returnData, (bool));
-        require(isEligible, "This account is not eligible for liquidation");
+            bool isEligible = abi.decode(returnData, (bool));
 
-        uint128 marketId = flagUser % 2 == 0 ? 1 : 2;
-        address user = accountIdToUser[account];
-        return LiquidateMarginOnlyParams({user: user, accountId: account, marketId: marketId});
+            if (isEligible) {
+                accountToLiquidate = i;
+                break;
+            }
+
+            if (i == ACCOUNTS.length - 1) {
+                require(false, "no flagged users to liquidate margin-only");
+            }
+        }
+
+        return
+            LiquidateMarginOnlyParams({
+                user: accountIdToUser[accountToLiquidate],
+                accountId: accountToLiquidate
+            });
     }
 
     function liquidateFlaggedPreconditions(
         uint8 maxNumberOfAccounts
     ) internal returns (LiquidateFlaggedParams memory) {
         uint numberOfAccounts = fl.clamp(maxNumberOfAccounts, 0, (ACCOUNTS.length - 1));
+        uint256 liquidatableAccountsCount = 0;
+        uint256[] memory liquidatableAccounts = new uint256[](ACCOUNTS.length);
 
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(liquidationModuleImpl.flaggedAccounts.selector)
-        );
-        assert(success);
+        for (uint128 i; i < ACCOUNTS.length; i++) {
+            console2.log("Checking account:", i);
 
-        uint256[] memory flaggedAccounts = abi.decode(returnData, (uint256[]));
+            (bool success, bytes memory returnData) = perps.call(
+                abi.encodeWithSelector(liquidationModuleImpl.canLiquidate.selector, i)
+            );
+            assert(success);
 
-        require(flaggedAccounts.length > 0, "No accounts to liquidate");
+            bool isEligible = abi.decode(returnData, (bool));
 
-        uint128 marketId = maxNumberOfAccounts % 2 == 0 ? 1 : 2;
+            if (isEligible) {
+                liquidatableAccounts[liquidatableAccountsCount] = i;
+                liquidatableAccountsCount++;
+            }
+        }
+
+        require(liquidatableAccountsCount > 0, "No accounts to liquidate");
+
+        uint256[] memory finalLiquidatableAccounts = new uint256[](liquidatableAccountsCount);
+        for (uint256 i = 0; i < liquidatableAccountsCount; i++) {
+            finalLiquidatableAccounts[i] = liquidatableAccounts[i];
+        }
 
         return
             LiquidateFlaggedParams({
-                numberOfAccounts: numberOfAccounts,
-                flaggedAccounts: flaggedAccounts,
-                marketId: marketId
-            });
-    }
-
-    function liquidateFlaggedAccountsPreconditions(
-        uint8 maxNumberOfAccounts
-    ) internal returns (LiquidateFlaggedAccountsParams memory) {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(liquidationModuleImpl.flaggedAccounts.selector)
-        );
-        assert(success);
-
-        uint256[] memory flaggedAccounts = abi.decode(returnData, (uint256[]));
-        require(flaggedAccounts.length > 0, "No accounts to liquidate");
-
-        uint newLength = fl.clamp(maxNumberOfAccounts, 1, flaggedAccounts.length);
-        uint256[] memory cutFlaggedAccounts = new uint256[](newLength);
-
-        for (uint256 i = 0; i < newLength; i++) {
-            cutFlaggedAccounts[i] = flaggedAccounts[i];
-        }
-        uint128 marketId = maxNumberOfAccounts % 2 == 0 ? 1 : 2;
-
-        return
-            LiquidateFlaggedAccountsParams({
-                initialFlaggedAccounts: flaggedAccounts,
-                flaggedAccounts: cutFlaggedAccounts,
-                marketId: marketId
+                numberOfAccounts: uint128(fl.min(numberOfAccounts, liquidatableAccountsCount)),
+                flaggedAccounts: finalLiquidatableAccounts
             });
     }
 }

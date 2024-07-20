@@ -77,10 +77,10 @@ contract MockSynthetixV3 {
         NodeOutput.Data memory wETHNode = MockOracleManager(oracleManager).process(WETHNodeId);
         console2.log("wETHNode.price", wETHNode.price);
 
-        uint256 valueSUSD = uint256(int256(sUSDBalance) * 1e18);
+        uint256 valueSUSD = uint256(int256(sUSDBalance));
         console2.log("valueSUSD", valueSUSD);
 
-        uint256 valueWETH = uint256(int256(wETHBalance) * wETHNode.price);
+        uint256 valueWETH = uint256(int256(wETHBalance) * wETHNode.price / 1e18);
         console2.log("valueWETH", valueWETH);
 
         withdrawableUsd = MathUtil.min(creditCapacity + (valueSUSD + valueWETH), type(uint128).max);

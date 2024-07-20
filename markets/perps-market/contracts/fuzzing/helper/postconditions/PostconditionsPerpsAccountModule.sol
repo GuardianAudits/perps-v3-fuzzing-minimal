@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import "./PostconditionsBase.sol";
 
 abstract contract PostconditionsPerpsAccountModule is PostconditionsBase {
+    event DebugPost(string s);
     function modifyCollateralPostconditions(
         int256 amountDelta,
         bool success,
@@ -12,21 +13,33 @@ abstract contract PostconditionsPerpsAccountModule is PostconditionsBase {
         address collateral,
         uint128 accountId
     ) internal {
+        uint collateralId = collateral == address(wethTokenMock)
+            ? 1
+            : collateral == address(wbtcTokenMock)
+                ? 2
+                : 0; //SUSD
+
         if (success) {
+            emit DebugPost("modifyCollateralPostconditions HERE#1");
             _after(actorsToUpdate);
-            modifyCalled = true;
+            emit DebugPost("modifyCollateralPostconditions HERE#2");
+
             if (amountDelta < 0) {
-                // invariant_MGN_01(accountId);
+                invariant_MGN_01(accountId);
+                invariant_MGN_12(accountId, collateralId);
             }
-            // invariant_MGN_02(accountId);
-            // invariant_MGN_03(accountId);
-            // @audit Currently fails.
-            // invariant_MGN_04(accountId);
-            // invariant_MGN_05(amountDelta, collateral);
-            // invariant_MGN_06(amountDelta, collateral);
+            emit DebugPost("modifyCollateralPostconditions HERE#3");
+            invariant_MGN_03(accountId);
+            invariant_MGN_04(accountId);
+            invariant_MGN_05(amountDelta, collateral);
+            invariant_MGN_06(amountDelta, collateral);
+            invariant_MGN_13(amountDelta, collateral);
+            emit DebugPost("modifyCollateralPostconditions HERE#MGN_13");
+
             // invariant_MGN_07();
-            // invariant_MGN_12(accountId);
+
             onSuccessInvariantsGeneral(returnData, accountId);
+            emit DebugPost("modifyCollateralPostconditions HERE#4");
         } else {
             onFailInvariantsGeneral(returnData);
         }
