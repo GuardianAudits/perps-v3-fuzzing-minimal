@@ -19,7 +19,10 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
         uint[] flaggedAccounts;
     }
 
-    function liquidatePositionPreconditions() internal returns (LiquidatePositionParams memory) {
+    function liquidatePositionPreconditions()
+        internal
+        returns (LiquidatePositionParams memory)
+    {
         address userToLiquidate;
         uint128 accountToLiquidate;
         // search users array for one is eligible for liquidation
@@ -27,7 +30,10 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
             console2.log("Checking account:", i);
 
             (bool success, bytes memory returnData) = perps.call(
-                abi.encodeWithSelector(liquidationModuleImpl.canLiquidate.selector, i)
+                abi.encodeWithSelector(
+                    liquidationModuleImpl.canLiquidate.selector,
+                    i
+                )
             );
             assert(success);
 
@@ -59,7 +65,10 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
             console2.log("Checking account for margin-only liquidation:", i);
 
             (bool success, bytes memory returnData) = perps.call(
-                abi.encodeWithSelector(liquidationModuleImpl.canLiquidateMarginOnly.selector, i)
+                abi.encodeWithSelector(
+                    liquidationModuleImpl.canLiquidateMarginOnly.selector,
+                    i
+                )
             );
             assert(success);
 
@@ -85,7 +94,11 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
     function liquidateFlaggedPreconditions(
         uint8 maxNumberOfAccounts
     ) internal returns (LiquidateFlaggedParams memory) {
-        uint numberOfAccounts = fl.clamp(maxNumberOfAccounts, 0, (ACCOUNTS.length - 1));
+        uint numberOfAccounts = fl.clamp(
+            maxNumberOfAccounts,
+            0,
+            (ACCOUNTS.length - 1)
+        );
         uint256 liquidatableAccountsCount = 0;
         uint256[] memory liquidatableAccounts = new uint256[](ACCOUNTS.length);
 
@@ -93,7 +106,10 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
             console2.log("Checking account:", i);
 
             (bool success, bytes memory returnData) = perps.call(
-                abi.encodeWithSelector(liquidationModuleImpl.canLiquidate.selector, i)
+                abi.encodeWithSelector(
+                    liquidationModuleImpl.canLiquidate.selector,
+                    i
+                )
             );
             assert(success);
 
@@ -107,14 +123,18 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
 
         require(liquidatableAccountsCount > 0, "No accounts to liquidate");
 
-        uint256[] memory finalLiquidatableAccounts = new uint256[](liquidatableAccountsCount);
+        uint256[] memory finalLiquidatableAccounts = new uint256[](
+            liquidatableAccountsCount
+        );
         for (uint256 i = 0; i < liquidatableAccountsCount; i++) {
             finalLiquidatableAccounts[i] = liquidatableAccounts[i];
         }
 
         return
             LiquidateFlaggedParams({
-                numberOfAccounts: uint128(fl.min(numberOfAccounts, liquidatableAccountsCount)),
+                numberOfAccounts: uint128(
+                    fl.min(numberOfAccounts, liquidatableAccountsCount)
+                ),
                 flaggedAccounts: finalLiquidatableAccounts
             });
     }

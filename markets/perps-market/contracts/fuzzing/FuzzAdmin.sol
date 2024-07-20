@@ -20,8 +20,14 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
     event DebugPrice(int256 p, string s);
 
     function fuzz_changeWETHPythPrice(int64 newPrice) public {
-        ChangePythPriceParams memory params = changeWETHPythPricePreconditions(newPrice);
-        fl.gt(params.newPrice, 0, "fuzz_changeWETHPythPrice AFTER CHANGED PRICE");
+        ChangePythPriceParams memory params = changeWETHPythPricePreconditions(
+            newPrice
+        );
+        fl.gt(
+            params.newPrice,
+            0,
+            "fuzz_changeWETHPythPrice AFTER CHANGED PRICE"
+        );
 
         pythWrapper.setBenchmarkPrice(WETH_FEED_ID, params.newPrice);
 
@@ -29,8 +35,14 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
     }
 
     function fuzz_changeWBTCPythPrice(int64 newPrice) public {
-        ChangePythPriceParams memory params = changeWBTCPythPricePreconditions(newPrice);
-        fl.gt(params.newPrice, 0, "fuzz_changeWBTCPythPrice AFTER CHANGED PRICE");
+        ChangePythPriceParams memory params = changeWBTCPythPricePreconditions(
+            newPrice
+        );
+        fl.gt(
+            params.newPrice,
+            0,
+            "fuzz_changeWBTCPythPrice AFTER CHANGED PRICE"
+        );
 
         pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, params.newPrice);
 
@@ -39,12 +51,19 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
 
     event OM(bytes32 node, string s);
 
-    function fuzz_changeOracleManagerPrice(uint256 nodeIndex, int256 newPrice) public {
-        (int256 newClampedPrice, bytes32 nodeId) = changeOracleManagerPricePreconditions(
-            nodeIndex,
-            newPrice
+    function fuzz_changeOracleManagerPrice(
+        uint256 nodeIndex,
+        int256 newPrice
+    ) public {
+        (
+            int256 newClampedPrice,
+            bytes32 nodeId
+        ) = changeOracleManagerPricePreconditions(nodeIndex, newPrice);
+        fl.gt(
+            newClampedPrice,
+            0,
+            "fuzz_changeOracleManagerPrice CLAMPED PRICE NEGATIVE!"
         );
-        fl.gt(newClampedPrice, 0, "fuzz_changeOracleManagerPrice CLAMPED PRICE NEGATIVE!");
 
         mockOracleManager.changePrice(nodeId, newClampedPrice);
 
@@ -62,7 +81,10 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
             uint256 clampedNewCollateralAmountD18,
             address collateralType,
             uint128 marketId
-        ) = delegateCollateralPreconditions(newCollateralAmountD18, collateralIndex);
+        ) = delegateCollateralPreconditions(
+                newCollateralAmountD18,
+                collateralIndex
+            );
 
         vaultModuleMock.delegateCollateral(
             accountId,
@@ -75,20 +97,24 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
     }
 
     function fuzz_crashWBTCPythPrice(uint loops) public {
-        loops == 0 ? loops = 1 : loops;
+        loops = fl.clamp(loops, 1, 10);
         ChangePythPriceParams memory params;
         for (uint i; i < loops; i++) {
             params = crashWBTCPythPricePreconditions();
 
             pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, params.newPrice);
         }
-        fl.gt(params.newPrice, 0, "fuzz_crashWBTCPythPrice AFTER CHANGED PRICE");
+        fl.gt(
+            params.newPrice,
+            0,
+            "fuzz_crashWBTCPythPrice AFTER CHANGED PRICE"
+        );
 
         changePythPricePostconditions(params.id, params.newPrice);
     }
 
     function fuzz_pumpWBTCPythPrice(uint loops) public {
-        loops == 0 ? loops = 1 : loops;
+        loops = fl.clamp(loops, 1, 10);
 
         ChangePythPriceParams memory params;
         for (uint i; i < loops; i++) {
@@ -96,13 +122,17 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
 
             pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, params.newPrice);
         }
-        fl.gt(params.newPrice, 0, "fuzz_crashWBTCPythPrice AFTER CHANGED PRICE");
+        fl.gt(
+            params.newPrice,
+            0,
+            "fuzz_crashWBTCPythPrice AFTER CHANGED PRICE"
+        );
 
         changePythPricePostconditions(params.id, params.newPrice);
     }
 
     function fuzz_crashWETHPythPrice(uint loops) public {
-        loops == 0 ? loops = 1 : loops;
+        loops = fl.clamp(loops, 1, 10);
 
         ChangePythPriceParams memory params;
         for (uint i; i < loops; i++) {
@@ -110,13 +140,17 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
 
             pythWrapper.setBenchmarkPrice(WETH_FEED_ID, params.newPrice);
         }
-        fl.gt(params.newPrice, 0, "fuzz_crashWETHPythPrice AFTER CHANGED PRICE");
+        fl.gt(
+            params.newPrice,
+            0,
+            "fuzz_crashWETHPythPrice AFTER CHANGED PRICE"
+        );
 
         changePythPricePostconditions(params.id, params.newPrice);
     }
 
     function fuzz_pumpWETHPythPrice(uint loops) public {
-        loops == 0 ? loops = 1 : loops;
+        loops = fl.clamp(loops, 1, 10);
 
         ChangePythPriceParams memory params;
         for (uint i; i < loops; i++) {
@@ -124,7 +158,11 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
 
             pythWrapper.setBenchmarkPrice(WETH_FEED_ID, params.newPrice);
         }
-        fl.gt(params.newPrice, 0, "fuzz_crashWETHPythPrice AFTER CHANGED PRICE");
+        fl.gt(
+            params.newPrice,
+            0,
+            "fuzz_crashWETHPythPrice AFTER CHANGED PRICE"
+        );
 
         changePythPricePostconditions(params.id, params.newPrice);
     }

@@ -33,7 +33,10 @@ contract FoundryPlayground is FuzzModules {
         vm.warp(block.timestamp + 1000000);
 
         (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(mockLensModuleImpl.isOrderExpired.selector, 1)
+            abi.encodeWithSelector(
+                mockLensModuleImpl.isOrderExpired.selector,
+                1
+            )
         );
         assert(success);
         assert(abi.decode(returnData, (bool)));
@@ -44,11 +47,17 @@ contract FoundryPlayground is FuzzModules {
         console2.log("Current Credit Capacity:", currentCreditCapacity);
 
         (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(perpsMarketFactoryModuleImpl.minimumCredit.selector, 2)
+            abi.encodeWithSelector(
+                perpsMarketFactoryModuleImpl.minimumCredit.selector,
+                2
+            )
         );
         assert(success);
         uint128 minimumMarketCreditCapacity = abi.decode(returnData, (uint128));
-        console2.log("Minimum Market Credit Capacity:", minimumMarketCreditCapacity);
+        console2.log(
+            "Minimum Market Credit Capacity:",
+            minimumMarketCreditCapacity
+        );
 
         fuzz_delegateCollateral(
             1, // uint128 accountId,
@@ -107,9 +116,16 @@ contract FoundryPlayground is FuzzModules {
         fuzz_liquidateFlaggedAccounts(100);
     }
 
-    function test_guided() public {
+    function test_createDebtWETH() public {
+        fuzz_modifyCollateral(1e18, 1);
+        fuzz_modifyCollateral(1e18, 0);
+        fuzz_createDebt(true); //isWeth
+    }
+    function test_createDebtWBTC() public {
         fuzz_modifyCollateral(1e18, 2);
-        fuzz_guided_createDebt();
+        fuzz_modifyCollateral(1e18, 0);
+
+        fuzz_createDebt(false); //isWeth
     }
 
     function test_order_liquidateMargin() public {
@@ -150,7 +166,10 @@ contract FoundryPlayground is FuzzModules {
     }
     function liquidate(uint accountId) internal {
         (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(liquidationModuleImpl.liquidate.selector, accountId)
+            abi.encodeWithSelector(
+                liquidationModuleImpl.liquidate.selector,
+                accountId
+            )
         );
         if (!success) {
             if (returnData.length > 0) {
@@ -164,7 +183,10 @@ contract FoundryPlayground is FuzzModules {
     function settle_order() internal {
         vm.prank(USER1);
         (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(AsyncOrderSettlementPythModule.settleOrder.selector, 1)
+            abi.encodeWithSelector(
+                AsyncOrderSettlementPythModule.settleOrder.selector,
+                1
+            )
         );
         if (!success) {
             if (returnData.length > 0) {
@@ -176,18 +198,22 @@ contract FoundryPlayground is FuzzModules {
         }
     }
     function commit_order() internal {
-        AsyncOrder.OrderCommitmentRequest memory commitment = AsyncOrder.OrderCommitmentRequest({
-            marketId: 2,
-            accountId: 1,
-            sizeDelta: int128(1e6),
-            settlementStrategyId: 0,
-            acceptablePrice: type(uint256).max,
-            trackingCode: bytes32(0),
-            referrer: address(0)
-        });
+        AsyncOrder.OrderCommitmentRequest memory commitment = AsyncOrder
+            .OrderCommitmentRequest({
+                marketId: 2,
+                accountId: 1,
+                sizeDelta: int128(1e6),
+                settlementStrategyId: 0,
+                acceptablePrice: type(uint256).max,
+                trackingCode: bytes32(0),
+                referrer: address(0)
+            });
         vm.prank(USER1);
         (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(asyncOrderModuleImpl.commitOrder.selector, commitment)
+            abi.encodeWithSelector(
+                asyncOrderModuleImpl.commitOrder.selector,
+                commitment
+            )
         );
         if (!success) {
             if (returnData.length > 0) {
@@ -210,7 +236,11 @@ contract FoundryPlayground is FuzzModules {
         deposit(1, 2, 1000);
         withdraw(1, 2, -100);
     }
-    function deposit(uint128 accountId, uint128 collateralId, int delta) internal {
+    function deposit(
+        uint128 accountId,
+        uint128 collateralId,
+        int delta
+    ) internal {
         address user;
         if (accountId == 1) {
             user = USER1;
@@ -237,7 +267,11 @@ contract FoundryPlayground is FuzzModules {
             }
         }
     }
-    function withdraw(uint128 accountId, uint128 collateralId, int delta) internal {
+    function withdraw(
+        uint128 accountId,
+        uint128 collateralId,
+        int delta
+    ) internal {
         address user;
         if (accountId == 1) {
             user = USER1;
