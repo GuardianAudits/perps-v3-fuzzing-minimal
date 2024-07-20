@@ -13,3 +13,9 @@ docs/
 # Dotenv file
 .env
 **/.DS_Store
+
+markets/.DS_Store
+markets/perps-markets/lib
+markets/perps-markets/cache_forge
+markets/perps-markets/crytic-export
+markets/perps-markets/echidna-corpus
