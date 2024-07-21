@@ -2,6 +2,7 @@
 
 ##Run fuzz instantaneously
 
+
 ```
 forge install perimetersec/fuzzlib@main --no-commit &&
 forge install foundry-rs/forge-std --no-commit &&

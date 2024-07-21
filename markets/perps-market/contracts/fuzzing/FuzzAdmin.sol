@@ -97,7 +97,7 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
     }
 
     function fuzz_crashWBTCPythPrice(uint loops) public {
-        loops = fl.clamp(loops, 1, 10);
+        loops = fl.clamp(loops, 1, 20);
         ChangePythPriceParams memory params;
         for (uint i; i < loops; i++) {
             params = crashWBTCPythPricePreconditions();
@@ -114,7 +114,7 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
     }
 
     function fuzz_pumpWBTCPythPrice(uint loops) public {
-        loops = fl.clamp(loops, 1, 10);
+        loops = fl.clamp(loops, 1, 20);
 
         ChangePythPriceParams memory params;
         for (uint i; i < loops; i++) {
@@ -132,7 +132,7 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
     }
 
     function fuzz_crashWETHPythPrice(uint loops) public {
-        loops = fl.clamp(loops, 1, 10);
+        loops = fl.clamp(loops, 1, 20);
 
         ChangePythPriceParams memory params;
         for (uint i; i < loops; i++) {
@@ -150,7 +150,7 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
     }
 
     function fuzz_pumpWETHPythPrice(uint loops) public {
-        loops = fl.clamp(loops, 1, 10);
+        loops = fl.clamp(loops, 1, 20);
 
         ChangePythPriceParams memory params;
         for (uint i; i < loops; i++) {

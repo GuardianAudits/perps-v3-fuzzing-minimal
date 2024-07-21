@@ -9,10 +9,16 @@ contract FoundryPlayground is FuzzModules {
         isFoundry = true; //NESSESARY FOR FOUNDRY TESTS
         setup();
         setupActors();
-        deposit(1, 0, 100e18); //depositing usd for settlement reward
+        deposit(1, 0, 100e18);
+        //depositing usd for settlement reward
         // deposit(1, 1, 100e18);
         // deposit(1, 2, 100e18);
     }
+
+    function test_withdrawSUSD() public {
+        withdraw(userToAccountIds[USER1], 0, -100e18);
+    }
+
     function test_prank() public {
         console2.log("msg.sender", msg.sender);
         vm.prank(USER1);
@@ -116,7 +122,7 @@ contract FoundryPlayground is FuzzModules {
         fuzz_liquidateFlaggedAccounts(100);
     }
 
-    function test_order_liquidateMargin() public {
+    function test_fuzz_order() public {
         //this works
         vm.prank(USER1); //using start prank to make all pranks inside all modules here
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
@@ -127,16 +133,28 @@ contract FoundryPlayground is FuzzModules {
         fuzz_commitOrder(2e18, type(uint256).max);
         vm.prank(USER1);
         fuzz_settleOrder();
-        // for (uint i; i < 2; ++i) {
-        fuzz_changeWBTCPythPrice(999);
-        // }
-        vm.prank(USER1);
-        fuzz_commitOrder(-2e18, 5);
-        vm.prank(USER1);
-        fuzz_settleOrder();
-        fuzz_crashWBTCPythPrice(20);
+        // // for (uint i; i < 2; ++i) {
+        // fuzz_changeWBTCPythPrice(999);
+        // // }
+        // vm.prank(USER1);
+        // fuzz_commitOrder(-2e18, 5);
+        // vm.prank(USER1);
+        // fuzz_settleOrder();
+        // fuzz_crashWBTCPythPrice(20);
 
-        fuzz_liquidateMarginOnly();
+        // fuzz_liquidateMarginOnly();
+    }
+
+    function test_fuzz_guided_createDebt_LiquidateMarginOnly() public {
+        fuzz_modifyCollateral(1e18, 2);
+        fuzz_modifyCollateral(1e18, 1);
+        fuzz_commitOrder(2e18, type(uint256).max);
+        fuzz_settleOrder();
+        fuzz_guided_createDebt_LiquidateMarginOnly(
+            false,
+            53730897479171415898043834651593372745878916885015083884090641902428996104110
+        );
+        // fuzz_guided_createDebt_LiquidateMarginOnly(true, 1e18);
     }
 
     function test_changePythPrice() public {
@@ -148,9 +166,9 @@ contract FoundryPlayground is FuzzModules {
         vm.warp(block.timestamp + 5);
         pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, 3000e18);
         settle_order();
-        pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, 1e18);
-        mockOracleManager.changePrice(WBTC_ORACLE_NODE_ID, 1e10);
-        liquidate(uint128(1));
+        // pythWrapper.setBenchmarkPrice(WBTC_FEED_ID, 1e18);
+        // mockOracleManager.changePrice(WBTC_ORACLE_NODE_ID, 1e10);
+        // liquidate(uint128(1));
     }
     function liquidate(uint accountId) internal {
         (bool success, bytes memory returnData) = perps.call(

@@ -3,3 +3,5 @@ markets/.DS_Store
 markets/perps-markets/lib
 markets/.DS_Store
 markets/.DS_Store
+/markets/perps-market/lib/forge-std
+/markets/perps-market/lib/fuzzlib

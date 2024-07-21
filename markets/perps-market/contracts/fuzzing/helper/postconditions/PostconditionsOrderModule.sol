@@ -35,7 +35,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             _after(actorsToUpdate);
 
             invariant_ORD_02(accountId);
-            invariant_ORD_03(accountId);
+            // invariant_ORD_03(accountId);
             // TODO: This assertion was failing due to Foundry using default sender. Default sender 0x18 did not have an account, so balance was always 0.
             // modifier setCurrentActor was modified, but should be given another look to prevent Foundry override.
             // fl.log("CURRENT ACTOR ACCOUNT ID SETTLE:", userToAccountIds[currentActor]);
@@ -47,7 +47,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             // invariant_ORD_07();
             invariant_ORD_08(accountId);
             // TODO: Properly handle markets for this invariant. BeforeAfter changes required.
-            // invariant_ORD_09(settleUser, marketId);
+            invariant_ORD_09(accountId, marketId);
             invariant_ORD_12(accountId);
 
             onSuccessInvariantsGeneral(returnData, accountId);

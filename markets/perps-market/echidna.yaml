@@ -32,3 +32,4 @@ maxValue: 100000000000000000000000000000 # 100000000000 eth
 # allows only valid orders
 maxTimeDelay: 6
 
+seed: 883771614506616433
