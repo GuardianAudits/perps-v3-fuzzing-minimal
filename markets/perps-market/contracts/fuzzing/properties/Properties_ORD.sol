@@ -7,7 +7,11 @@ import {console2} from "lib/forge-std/src/Test.sol";
 
 abstract contract Properties_ORD is PropertiesBase {
     function invariant_ORD_01(uint128 account) internal {
-        fl.t(states[0].actorStates[account].sizeDelta == 0 || states[0].actorStates[account].isOrderExpired, ORD_01);
+        fl.t(
+            states[0].actorStates[account].sizeDelta == 0 ||
+                states[0].actorStates[account].isOrderExpired,
+            ORD_01
+        );
     }
 
     function invariant_ORD_02(uint128 account) internal {
@@ -40,21 +44,36 @@ abstract contract Properties_ORD is PropertiesBase {
                 states[0].actorStates[account].wethMarket.positionSize,
                 states[1].actorStates[account].wethMarket.positionSize
             ) &&
-                MathUtil.abs(states[1].actorStates[account].wethMarket.positionSize) < //wethMarket.positionSize
-                MathUtil.abs(states[0].actorStates[account].wethMarket.positionSize);
+                MathUtil.abs(
+                    states[1].actorStates[account].wethMarket.positionSize
+                ) < //wethMarket.positionSize
+                MathUtil.abs(
+                    states[0].actorStates[account].wethMarket.positionSize
+                );
             if (!positionDecreasing) {
                 // TODO: DG review same Q abt min credit. Is it general value or per market.
-                fl.t(states[1].minimumCredit <= states[1].delegatedCollateralValueUsd, ORD_06_WETH);
+                fl.t(
+                    states[1].minimumCredit <=
+                        states[1].delegatedCollateralValueUsd,
+                    ORD_06_WETH
+                );
             }
         } else if (marketId == 2) {
             bool positionDecreasing = MathUtil.sameSide(
                 states[0].actorStates[account].wbtcMarket.positionSize,
                 states[1].actorStates[account].wbtcMarket.positionSize
             ) &&
-                MathUtil.abs(states[1].actorStates[account].wbtcMarket.positionSize) < //wethMarket.positionSize
-                MathUtil.abs(states[0].actorStates[account].wbtcMarket.positionSize);
+                MathUtil.abs(
+                    states[1].actorStates[account].wbtcMarket.positionSize
+                ) < //wethMarket.positionSize
+                MathUtil.abs(
+                    states[0].actorStates[account].wbtcMarket.positionSize
+                );
             if (!positionDecreasing) {
-                fl.t(states[1].minimumCredit <= states[1].delegatedCollateral, ORD_06_WBTC);
+                fl.t(
+                    states[1].minimumCredit <= states[1].delegatedCollateral,
+                    ORD_06_WBTC
+                );
             }
         }
     }
@@ -103,25 +122,47 @@ abstract contract Properties_ORD is PropertiesBase {
             console2.log("weth pyth oracle price", oraclePrice);
             console2.log("after skew", states[1].wethMarket.marketSkew);
             console2.log("before skew", states[0].wethMarket.marketSkew);
-            if (MathUtil.abs(int256(states[1].skew)) < MathUtil.abs(int256(states[0].skew))) {
+            if (
+                MathUtil.abs(states[1].wethMarket.skew) <
+                MathUtil.abs(states[0].wethMarket.skew)
+            ) {
                 if (isLong) {
-                    fl.lt(states[0].actorStates[account].fillPriceWETH, oraclePrice, ORD_09);
+                    fl.lt(
+                        states[0].actorStates[account].fillPriceWETH,
+                        oraclePrice,
+                        ORD_09
+                    );
                 } else {
-                    fl.gt(states[0].actorStates[account].fillPriceWETH, oraclePrice, ORD_09);
+                    fl.gt(
+                        states[0].actorStates[account].fillPriceWETH,
+                        oraclePrice,
+                        ORD_09
+                    );
                 }
             }
         } else if (marketId == 2) {
             uint256 oraclePrice = uint256(
                 pythWrapper.getBenchmarkPrice(WBTC_PYTH_PRICE_FEED_ID, 0)
             );
-            console2.log("weth pyth oracle price", oraclePrice);
-            console2.log("after skew", states[1].wethMarket.marketSkew);
-            console2.log("before skew", states[0].wethMarket.marketSkew);
-            if (MathUtil.abs(int256(states[1].skew)) < MathUtil.abs(int256(states[0].skew))) {
+            console2.log("wbtc pyth oracle price", oraclePrice);
+            console2.log("after skew", states[1].wbtcMarket.skew);
+            console2.log("before skew", states[0].wbtcMarket.skew);
+            if (
+                MathUtil.abs(states[1].wbtcMarket.skew) <
+                MathUtil.abs(states[0].wbtcMarket.skew)
+            ) {
                 if (isLong) {
-                    fl.lt(states[0].actorStates[account].fillPriceWBTC, oraclePrice, ORD_09);
+                    fl.lt(
+                        states[0].actorStates[account].fillPriceWBTC,
+                        oraclePrice,
+                        ORD_09
+                    );
                 } else {
-                    fl.gt(states[0].actorStates[account].fillPriceWBTC, oraclePrice, ORD_09);
+                    fl.gt(
+                        states[0].actorStates[account].fillPriceWBTC,
+                        oraclePrice,
+                        ORD_09
+                    );
                 }
             }
         }
@@ -137,7 +178,10 @@ abstract contract Properties_ORD is PropertiesBase {
         console2.log("reported debt", states[1].reportedDebt);
         console2.log("reportedDebtGhost", states[1].reportedDebtGhost);
 
-        if (MathUtil.abs(states[1].reportedDebt - states[1].reportedDebtGhost) > 1000) {
+        if (
+            MathUtil.abs(states[1].reportedDebt - states[1].reportedDebtGhost) >
+            1000
+        ) {
             fl.eq(states[1].reportedDebt, states[1].reportedDebtGhost, ORD_11);
         }
     }
@@ -167,4 +211,48 @@ abstract contract Properties_ORD is PropertiesBase {
     }
 
     //ORD_17 N/A no stale orders here
+
+    function invariant_ORD_18(uint128 account, uint128 marketId) internal {
+        if (states[1].actorStates[account].openPositionMarketIds.length != 0) {
+            bool containsMarketId = false;
+            for (
+                uint i = 0;
+                i < states[1].actorStates[account].openPositionMarketIds.length;
+                i++
+            ) {
+                if (
+                    states[1].actorStates[account].openPositionMarketIds[i] ==
+                    marketId
+                ) {
+                    containsMarketId = true;
+                    break;
+                }
+            }
+            fl.t(containsMarketId, ORD_18);
+        }
+    }
+
+    function invariant_ORD_19(uint128 account) internal {
+        uint128[] memory accountCollateralTypes = states[1]
+            .actorStates[account]
+            .activeCollateralTypes;
+        uint128[] memory globalCollateralTypes = states[1]
+            .globalCollateralTypes;
+
+        if (accountCollateralTypes.length != 0) {
+            for (uint i = 0; i < accountCollateralTypes.length; i++) {
+                uint128 collateralType = accountCollateralTypes[i];
+                bool found = false;
+
+                for (uint j = 0; j < globalCollateralTypes.length; j++) {
+                    if (collateralType == globalCollateralTypes[j]) {
+                        found = true;
+                        break;
+                    }
+                }
+
+                fl.t(found, ORD_19);
+            }
+        }
+    }
 }

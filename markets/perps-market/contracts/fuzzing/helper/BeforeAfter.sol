@@ -29,7 +29,8 @@ abstract contract BeforeAfter is
     }
 
     struct MarketVars {
-        uint128 marketSize;
+        int256 skew;
+        uint256 marketSize;
         uint256 liquidationCapacity;
         uint128 marketSkew;
     }
@@ -39,6 +40,8 @@ abstract contract BeforeAfter is
         mapping(uint128 => ActorStates) actorStates;
         MarketVars wethMarket;
         MarketVars wbtcMarket;
+        MarketVars hugeMarket;
+        uint128[] globalCollateralTypes;
         uint256 depositedSusdCollateral;
         uint256 depositedWethCollateral;
         uint256 depositedWbtcCollateral;
@@ -79,6 +82,8 @@ abstract contract BeforeAfter is
         uint256 marginKeeperFee; //perpsAccountModuleImpl.getRequiredMargins
         uint256 depositedWethCollateral;
         uint256 depositedSusdCollateral;
+        uint128[] activeCollateralTypes;
+        uint128[] openPositionMarketIds;
         PositionVars wethMarket; //TODO:rename to position
         PositionVars wbtcMarket;
     }
@@ -91,9 +96,9 @@ abstract contract BeforeAfter is
         int256 accruedFunding;
         int128 positionSize;
         uint256 owedInterest;
-        int128 skew;
-        uint128 marketSkew;
-        uint128 marketSize;
+        int256 skew;
+        uint256 marketSkew;
+        uint256 marketSize;
         uint256 rate;
         uint256 delegatedCollateral;
         uint256 lockedCredit;
@@ -385,6 +390,43 @@ abstract contract BeforeAfter is
     ) private {
         getOpenPosition(callNum, accountId, 1, cache);
         getOpenPosition(callNum, accountId, 2, cache);
+
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getOpenPositionMarketIds.selector,
+                accountId
+            )
+        );
+
+        assert(success);
+
+        states[callNum].actorStates[accountId].openPositionMarketIds = abi
+            .decode(returnData, (uint128[]));
+
+        (success, returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getGlobalCollateralTypes.selector,
+                accountId
+            )
+        );
+
+        assert(success);
+
+        states[callNum].actorStates[accountId].activeCollateralTypes = abi
+            .decode(returnData, (uint128[]));
+
+        (success, returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getGlobalCollateralTypes.selector
+            )
+        );
+
+        assert(success);
+        states[callNum].globalCollateralTypes = abi.decode(
+            returnData,
+            (uint128[])
+        );
+
         _logPositionInfoCoverage(
             states[callNum].actorStates[accountId].wethMarket.totalPnl,
             states[callNum].actorStates[accountId].wethMarket.accruedFunding,
@@ -453,15 +495,26 @@ abstract contract BeforeAfter is
     function getMarketInfo(uint8 callNum, StackCache memory cache) private {
         getLiquidationCapacity(callNum, 1, cache);
         getLiquidationCapacity(callNum, 2, cache);
+        getLiquidationCapacity(callNum, 3, cache);
 
         getMarketSize(callNum, 1, cache);
         getMarketSize(callNum, 2, cache);
+        getMarketSize(callNum, 3, cache);
+
+        getMarketSkew(callNum, 1, cache);
+        getMarketSkew(callNum, 2, cache);
+        getMarketSkew(callNum, 3, cache);
 
         _logMarketInfoCoverage(
             states[callNum].wethMarket.liquidationCapacity,
             states[callNum].wbtcMarket.liquidationCapacity,
+            // states[callNum].hugeMarket.liquidationCapacity, //not sure if a huge precision tokens is aplicable for the protocol
             states[callNum].wethMarket.marketSize,
             states[callNum].wbtcMarket.marketSize
+            // states[callNum].hugeMarket.marketSize,
+            // states[callNum].wbtcMarket.skew,
+            // states[callNum].wethMarket.skew
+            // states[callNum].hugeMarket.skew
         );
     }
 
@@ -501,7 +554,7 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        cache.marketSize = abi.decode(returnData, (uint128));
+        cache.marketSize = abi.decode(returnData, (uint256));
         if (marketId == 1) {
             states[callNum].wethMarket.marketSize = cache.marketSize;
         } else if (marketId == 2) {
@@ -509,6 +562,27 @@ abstract contract BeforeAfter is
         }
     }
 
+    function getMarketSkew(
+        uint8 callNum,
+        uint256 marketId,
+        StackCache memory cache
+    ) private {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsMarketModuleImpl.skew.selector,
+                marketId
+            )
+        );
+        assert(success);
+        cache.skew = abi.decode(returnData, (int256));
+        if (marketId == 1) {
+            states[callNum].wethMarket.skew = cache.skew;
+        } else if (marketId == 2) {
+            states[callNum].wbtcMarket.skew = cache.skew;
+        } else if (marketId == 3) {
+            states[callNum].hugeMarket.skew = cache.skew;
+        }
+    }
     function getGlobalCollateralValues(
         uint8 callNum,
         StackCache memory cache
@@ -526,13 +600,6 @@ abstract contract BeforeAfter is
         assert(success);
         uint256 totalCollateralValue = abi.decode(returnData, (uint256));
         states[callNum].totalCollateralValueUsd = int256(totalCollateralValue);
-
-        (success, returnData) = perps.call(
-            abi.encodeWithSelector(perpsMarketModuleImpl.skew.selector, 1)
-        );
-        assert(success);
-        cache.skew = abi.decode(returnData, (int128));
-        states[callNum].skew = cache.skew;
 
         _logGlobalCollateralValuesCoverage(
             states[callNum].depositedSusdCollateral,

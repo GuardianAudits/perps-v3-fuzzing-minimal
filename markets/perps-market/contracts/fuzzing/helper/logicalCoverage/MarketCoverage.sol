@@ -6,8 +6,8 @@ contract MarketCoverage is FuzzBase {
     function _logMarketInfoCoverage(
         uint256 wethLiquidationCapacity,
         uint256 wbtcLiquidationCapacity,
-        uint128 wethMarketSize,
-        uint128 wbtcMarketSize
+        uint256 wethMarketSize,
+        uint256 wbtcMarketSize
     ) internal {
         _logWETHMarketCoverage(wethLiquidationCapacity, wethMarketSize);
 
@@ -22,7 +22,10 @@ contract MarketCoverage is FuzzBase {
         );
     }
 
-    function _logWETHMarketCoverage(uint256 liquidationCapacity, uint128 marketSize) internal {
+    function _logWETHMarketCoverage(
+        uint256 liquidationCapacity,
+        uint256 marketSize
+    ) internal {
         // Liquidation Capacity Coverage for WETH
         if (liquidationCapacity == 0) {
             fl.log("WETH market: No liquidation capacity");
@@ -50,7 +53,10 @@ contract MarketCoverage is FuzzBase {
         }
     }
 
-    function _logWBTCMarketCoverage(uint256 liquidationCapacity, uint128 marketSize) internal {
+    function _logWBTCMarketCoverage(
+        uint256 liquidationCapacity,
+        uint256 marketSize
+    ) internal {
         // Liquidation Capacity Coverage for WBTC
         if (liquidationCapacity == 0) {
             fl.log("WBTC market: No liquidation capacity");
@@ -81,8 +87,8 @@ contract MarketCoverage is FuzzBase {
     function _logCombinedMarketAnalysis(
         uint256 wethLiquidationCapacity,
         uint256 wbtcLiquidationCapacity,
-        uint128 wethMarketSize,
-        uint128 wbtcMarketSize
+        uint256 wethMarketSize,
+        uint256 wbtcMarketSize
     ) internal {
         // Compare liquidation capacities
         if (wethLiquidationCapacity > wbtcLiquidationCapacity) {
@@ -103,7 +109,8 @@ contract MarketCoverage is FuzzBase {
         }
 
         // Analyze total market size
-        uint256 totalMarketSize = uint256(wethMarketSize) + uint256(wbtcMarketSize);
+        uint256 totalMarketSize = uint256(wethMarketSize) +
+            uint256(wbtcMarketSize);
         if (totalMarketSize == 0) {
             fl.log("Both markets are empty");
         } else if (totalMarketSize <= 10000e18) {

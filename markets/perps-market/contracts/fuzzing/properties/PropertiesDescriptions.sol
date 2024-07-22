@@ -28,7 +28,7 @@ contract PropertiesDescriptions {
     string constant MGN_12 =
         "MGN-12: User cannot withdraw more non-susd collateral than they deposited";
     string constant MGN_13 =
-        "It should never happen that a user has an amount of collateral deposited with a token > 18 decimals precision and withdrawing lead to precision loss.";
+        "MGN-13: activeCollateralTypesIt should never happen that a user has an amount of collateral deposited with a token > 18 decimals precision and withdrawing lead to precision loss.";
 
     string constant LIQ_01 = "LIQ-01: isPositionLiquidatable never reverts";
     string constant LIQ_02 =
@@ -98,4 +98,8 @@ contract PropertiesDescriptions {
         "ORD-16: Position should no be liquidatable after cancelling an order";
     string constant ORD_17 =
         "ORD-17: Position should no be liquidatable after cancelling a stale order";
+    string constant ORD_18 =
+        "ORD-18:  Open positions should always be added / removed from the openPositionMarketIds array.";
+    string constant ORD_19 =
+        "ORD-19:  All tokens in the activeCollateralTypes array from individual accounts should be included in the global activeCollateralTypes array..";
 }
