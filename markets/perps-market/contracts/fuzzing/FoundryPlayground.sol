@@ -19,7 +19,7 @@ contract FoundryPlayground is FuzzModules {
         deposit(1, 3, 500e30);
         withdraw(1, 3, 40e30);
         deposit(1, 3, 1e30);
-        withdraw(1, 3, 461e30);
+        withdraw(1, 3, -461e30);
 
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
