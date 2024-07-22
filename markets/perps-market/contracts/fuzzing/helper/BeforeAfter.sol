@@ -42,6 +42,7 @@ abstract contract BeforeAfter is
         uint256 depositedSusdCollateral;
         uint256 depositedWethCollateral;
         uint256 depositedWbtcCollateral;
+        uint depositedHUGECollateral;
         int256 totalCollateralValueUsd;
         uint256 marketSizeGhost;
         uint256 delegatedCollateralValueUsd; //get with lens
@@ -515,6 +516,7 @@ abstract contract BeforeAfter is
         getGlobalCollateralValue(callNum, 0);
         getGlobalCollateralValue(callNum, 1);
         getGlobalCollateralValue(callNum, 2);
+        getGlobalCollateralValue(callNum, 3);
 
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
@@ -536,6 +538,7 @@ abstract contract BeforeAfter is
             states[callNum].depositedSusdCollateral,
             states[callNum].depositedWethCollateral,
             states[callNum].depositedWbtcCollateral,
+            // states[callNum].depositedHUGECollateral,
             states[callNum].totalCollateralValueUsd,
             states[callNum].totalCollateralValueUsdGhost,
             states[callNum].skew
@@ -560,6 +563,8 @@ abstract contract BeforeAfter is
             states[callNum].depositedWethCollateral = collateralValue;
         } else if (collateralId == 2) {
             states[callNum].depositedWbtcCollateral = collateralValue;
+        } else if (collateralId == 3) {
+            states[callNum].depositedHUGECollateral = collateralValue;
         }
     }
 

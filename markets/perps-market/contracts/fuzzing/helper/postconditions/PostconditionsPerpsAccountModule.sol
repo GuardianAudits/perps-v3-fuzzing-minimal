@@ -27,6 +27,7 @@ abstract contract PostconditionsPerpsAccountModule is PostconditionsBase {
             if (amountDelta < 0) {
                 invariant_MGN_01(accountId);
                 invariant_MGN_12(accountId, collateralId);
+                invariant_MGN_13(amountDelta, collateral);
             }
             emit DebugPost("modifyCollateralPostconditions HERE#3");
             invariant_MGN_03(accountId);
@@ -34,6 +35,7 @@ abstract contract PostconditionsPerpsAccountModule is PostconditionsBase {
             invariant_MGN_05(amountDelta, collateral);
             invariant_MGN_06(amountDelta, collateral);
             invariant_MGN_13(amountDelta, collateral);
+
             emit DebugPost("modifyCollateralPostconditions HERE#MGN_13");
 
             // invariant_MGN_07();

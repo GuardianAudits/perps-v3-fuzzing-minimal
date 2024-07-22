@@ -70,13 +70,20 @@ abstract contract Properties_MGN is PropertiesBase {
     // }
 
     function invariant_MGN_08() internal {
-        console2.log("states[1].totalCollateralValueUsd", states[1].totalCollateralValueUsd);
+        console2.log(
+            "states[1].totalCollateralValueUsd",
+            states[1].totalCollateralValueUsd
+        );
         console2.log(
             "states[1].totalCollateralValueUsdGhost",
             states[1].totalCollateralValueUsdGhost
         );
 
-        fl.eq(states[1].totalCollateralValueUsd, states[1].totalCollateralValueUsdGhost, MGN_08);
+        fl.eq(
+            states[1].totalCollateralValueUsd,
+            states[1].totalCollateralValueUsdGhost,
+            MGN_08
+        );
     }
 
     //MGN_09 is N/A now WithdrawAll function
@@ -87,23 +94,37 @@ abstract contract Properties_MGN is PropertiesBase {
         // market collateral can only decrease by up to user's deposited weth amount value on withdrawal
         if (collateralId == 0) {
             fl.lte(
-                states[0].depositedSusdCollateral - states[1].depositedSusdCollateral,
+                states[0].depositedSusdCollateral -
+                    states[1].depositedSusdCollateral,
                 states[0].actorStates[accountId].collateralAmountSUSD,
                 MGN_12
             );
         }
         if (collateralId == 1) {
             fl.lte(
-                states[0].depositedWethCollateral - states[1].depositedWethCollateral,
+                states[0].depositedWethCollateral -
+                    states[1].depositedWethCollateral,
                 states[0].actorStates[accountId].collateralAmountWETH,
                 MGN_12
             );
         }
         if (collateralId == 2) {
             fl.lte(
-                states[0].depositedWbtcCollateral - states[1].depositedWbtcCollateral,
+                states[0].depositedWbtcCollateral -
+                    states[1].depositedWbtcCollateral,
                 states[0].actorStates[accountId].collateralAmountWBTC,
                 MGN_12
+            );
+        }
+    }
+
+    function invariant_MGN_13(uint128 accountId, uint collateralId) internal {
+        if (collateralId == 3) {
+            fl.eq(
+                states[1].actorStates[accountId].collateralAmountHUGE %
+                    (10 ** (hugePrecisionTokenMock.decimals() - 18)),
+                0,
+                MGN_13
             );
         }
     }

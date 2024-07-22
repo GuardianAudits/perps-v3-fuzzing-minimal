@@ -27,6 +27,8 @@ contract PropertiesDescriptions {
     //     "MGN-11: Market collateral should decrease by amount of collateral user had deposited before withdrawing all collateral";
     string constant MGN_12 =
         "MGN-12: User cannot withdraw more non-susd collateral than they deposited";
+    string constant MGN_13 =
+        "It should never happen that a user has an amount of collateral deposited with a token > 18 decimals precision and withdrawing lead to precision loss.";
 
     string constant LIQ_01 = "LIQ-01: isPositionLiquidatable never reverts";
     string constant LIQ_02 =
@@ -41,7 +43,8 @@ contract PropertiesDescriptions {
         "LIQ-06: The sUSD balance of a user that successfully flags a position increases less or equal to maxKeeperFee";
     string constant LIQ_07 =
         "LIQ-07:  User should not be able to gain more in keeper fees than collateral lost in liquidatePosition";
-    string constant LIQ_08 = "LIQ-08: A user can be liquidated if minimum credit is not met";
+    string constant LIQ_08 =
+        "LIQ-08: A user can be liquidated if minimum credit is not met";
     string constant LIQ_09 =
         "LIQ-09: All account margin collateral should be removed after full liquidation";
     string constant LIQ_10 =
@@ -79,7 +82,8 @@ contract PropertiesDescriptions {
         "ORD_08_WBTC: non-SUSD collateral should stay the same after profitably settling order";
     string constant ORD_09 =
         "ORD-09: Should always give premium when increasing skew and discount when decreasing skew";
-    string constant ORD_10 = "ORD-10: market.currentUtilizationAccruedComputed decreases";
+    string constant ORD_10 =
+        "ORD-10: market.currentUtilizationAccruedComputed decreases";
     string constant ORD_11 =
         "ORD-11: market.reportedDebt != positions.sum(p.collateralUsd + p.pricePnL + p.pendingFunding - p.pendingUtilization - p.debtUsd)";
     string constant ORD_12 =
@@ -88,8 +92,10 @@ contract PropertiesDescriptions {
         "ORD-13: An account should not be liquidatable by margin only after order cancelled";
     string constant ORD_14 =
         "ORD-14: Market size should always be the sum of individual position sizes";
-    string constant ORD_15 = "ORD-15: Position should no be liquidatable after committing an order";
-    string constant ORD_16 = "ORD-16: Position should no be liquidatable after cancelling an order";
+    string constant ORD_15 =
+        "ORD-15: Position should no be liquidatable after committing an order";
+    string constant ORD_16 =
+        "ORD-16: Position should no be liquidatable after cancelling an order";
     string constant ORD_17 =
         "ORD-17: Position should no be liquidatable after cancelling a stale order";
 }
