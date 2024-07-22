@@ -22,7 +22,12 @@ contract FuzzGuidedModule is
         getPendingOrders(currentActor);
         closeAllPositions(userToAccountIds[currentActor]);
         repayDebt();
-        withdrawAllCollateral(userToAccountIds[currentActor]);
+        fuzz_withdrawAllCollateral(
+            userToAccountIds[currentActor],
+            true,
+            true,
+            true
+        );
         fuzz_modifyCollateral(amountToDeposit, collateralId);
 
         (bool success, bytes memory returnData) = perps.call(
@@ -139,11 +144,29 @@ contract FuzzGuidedModule is
         }
     }
 
-    function withdrawAllCollateral(uint128 accountId) internal {
-        uint128[] memory collateralIds = new uint128[](2);
-        collateralIds[0] = 1;
-        collateralIds[1] = 2;
-        for (uint i = 0; i < collateralIds.length; i++) {
+    function fuzz_withdrawAllCollateral(
+        uint128 accountId,
+        bool weth,
+        bool wbtc,
+        bool huge
+    ) internal {
+        uint128[] memory collateralIds = new uint128[](3);
+        uint8 collateralCount = 0;
+
+        if (weth) {
+            collateralIds[collateralCount] = 1;
+            collateralCount++;
+        }
+        if (wbtc) {
+            collateralIds[collateralCount] = 2;
+            collateralCount++;
+        }
+        if (huge) {
+            collateralIds[collateralCount] = 3;
+            collateralCount++;
+        }
+
+        for (uint i = 0; i < collateralCount; i++) {
             uint128 collateralId = collateralIds[i];
             // Get collateral amount
             (bool success, bytes memory returnData) = perps.call(

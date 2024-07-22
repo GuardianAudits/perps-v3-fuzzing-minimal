@@ -15,6 +15,28 @@ contract FoundryPlayground is FuzzModules {
         // deposit(1, 2, 100e18);
     }
 
+    function test_deposit_withdraw_HUGE() public {
+        deposit(1, 3, 500e30);
+        withdraw(1, 3, 40e30);
+        deposit(1, 3, 1e30);
+        withdraw(1, 3, 461e30);
+
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.getCollateralAmount.selector,
+                1,
+                3
+            )
+        );
+        assert(success);
+        uint256 amountOfHuge = abi.decode(returnData, (uint256));
+
+        console2.log(
+            "Bool if true",
+            amountOfHuge % (10 ** (hugePrecisionTokenMock.decimals() - 18)) != 0
+        );
+    }
+
     function test_withdrawSUSD() public {
         withdraw(userToAccountIds[USER1], 0, -100e18);
     }
