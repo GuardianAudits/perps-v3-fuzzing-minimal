@@ -15,20 +15,43 @@ struct Vault {
     uint256 rewardAmount; // reward amount accumulated for a debt distribution during a liquidation event
     uint256 totalShares; // the total amount of shares that exist in the vault
 }
-
+struct Cache {
+    uint256 sUSDBalance;
+    uint256 wETHBalance;
+    uint256 wBTCBalance;
+    uint256 hugeBalance;
+    bytes32 sUSDNodeId;
+    bytes32 wETHNodeId;
+    bytes32 wBTCNodeId;
+    bytes32 hugeNodeId;
+    NodeOutput.Data sUSDNode;
+    NodeOutput.Data wETHNode;
+    NodeOutput.Data wBTCNode;
+    NodeOutput.Data hugeNode;
+    uint256 valueSUSD;
+    uint256 valueWETH;
+    uint256 valuewBTC;
+    uint256 valuehuge;
+}
 contract MockSynthetixV3 {
     address oracleManager;
     address public sUSD;
     address public wETH;
-    address public wBTC; //TODO: add elsewhere
+    address public wBTC;
+    address public huge;
     uint256 public withdrawableUSD;
     uint256 public creditCapacity;
 
     mapping(address collateralToken => Vault) public vaults;
-    mapping(address user => mapping(address collateralToken => bool deposited)) public shares; // mock implementation of vault shares where each user gets 1 share of the vault they're depositing into, independent of deposit size for simplicity, since each user gets one share, just need to know if they're deposited into a vault
+    mapping(address user => mapping(address collateralToken => bool deposited))
+        public shares; // mock implementation of vault shares where each user gets 1 share of the vault they're depositing into, independent of deposit size for simplicity, since each user gets one share, just need to know if they're deposited into a vault
 
     event DepositMarketUsd(uint128 marketId, address msgSender, uint256 amount);
-    event DepositMarketUsdAfter(uint128 marketId, address msgSender, uint256 amount);
+    event DepositMarketUsdAfter(
+        uint128 marketId,
+        address msgSender,
+        uint256 amount
+    );
 
     uint256 constant FEE_PERCENT = 0.01e18;
 
@@ -39,11 +62,17 @@ contract MockSynthetixV3 {
         return sUSD;
     }
 
-    function getAssociatedSystem(bytes32 id) external returns (address, bytes32) {
+    function getAssociatedSystem(
+        bytes32 id
+    ) external returns (address, bytes32) {
         if (id == vaults[sUSD].nodeId) {
             return (vaults[sUSD].collateralToken, "");
         } else if (id == vaults[wETH].nodeId) {
             return (vaults[wETH].collateralToken, "");
+        } else if (id == vaults[wBTC].nodeId) {
+            return (vaults[wBTC].collateralToken, "");
+        } else if (id == vaults[huge].nodeId) {
+            return (vaults[huge].collateralToken, "");
         }
     }
 
@@ -54,39 +83,92 @@ contract MockSynthetixV3 {
     function getWithdrawableMarketUsd(
         uint128 marketId
     ) external view returns (uint256 withdrawableUsd) {
-        console2.log("===== MockSynthetixV3::getWithdrawableMarketUsd START =====");
+        console2.log(
+            "===== MockSynthetixV3::getWithdrawableMarketUsd START ====="
+        );
         console2.log("marketId", marketId);
 
-        uint256 sUSDBalance = MockERC20(sUSD).balanceOf(address(this));
-        console2.log("sUSDBalance", sUSDBalance);
+        Cache memory cache;
 
-        uint256 wETHBalance = MockERC20(wETH).balanceOf(address(this));
-        console2.log("wETHBalance", wETHBalance);
+        cache.sUSDBalance = MockERC20(sUSD).balanceOf(address(this));
+        console2.log("sUSDBalance", cache.sUSDBalance);
 
-        bytes32 sUSDNodeId = vaults[sUSD].nodeId;
+        cache.wETHBalance = MockERC20(wETH).balanceOf(address(this));
+        console2.log("wETHBalance", cache.wETHBalance);
+
+        cache.wBTCBalance = MockERC20(wBTC).balanceOf(address(this));
+        console2.log("wBTCBalance", cache.wBTCBalance);
+
+        cache.hugeBalance = MockERC20(huge).balanceOf(address(this));
+        console2.log("hugeBalance", cache.hugeBalance);
+
+        cache.sUSDNodeId = vaults[sUSD].nodeId;
         console2.log("sUSDNodeId");
-        console2.logBytes32(sUSDNodeId);
+        console2.logBytes32(cache.sUSDNodeId);
 
-        bytes32 WETHNodeId = vaults[wETH].nodeId;
-        console2.log("WETHNodeId");
-        console2.logBytes32(WETHNodeId);
+        cache.wETHNodeId = vaults[wETH].nodeId;
+        console2.log("wETHNodeId");
+        console2.logBytes32(cache.wETHNodeId);
 
-        NodeOutput.Data memory sUSDNode = MockOracleManager(oracleManager).process(sUSDNodeId);
-        console2.log("sUSDNode.price", sUSDNode.price);
+        cache.wBTCNodeId = vaults[wBTC].nodeId;
+        console2.log("wBTCNodeId");
+        console2.logBytes32(cache.wBTCNodeId);
 
-        NodeOutput.Data memory wETHNode = MockOracleManager(oracleManager).process(WETHNodeId);
-        console2.log("wETHNode.price", wETHNode.price);
+        cache.hugeNodeId = vaults[huge].nodeId;
+        console2.log("hugeNodeId");
+        console2.logBytes32(cache.hugeNodeId);
 
-        uint256 valueSUSD = uint256(int256(sUSDBalance));
-        console2.log("valueSUSD", valueSUSD);
+        cache.sUSDNode = MockOracleManager(oracleManager).process(
+            cache.sUSDNodeId
+        );
+        console2.log("sUSDNode.price", cache.sUSDNode.price);
 
-        uint256 valueWETH = uint256(int256(wETHBalance) * wETHNode.price / 1e18);
-        console2.log("valueWETH", valueWETH);
+        cache.wETHNode = MockOracleManager(oracleManager).process(
+            cache.wETHNodeId
+        );
+        console2.log("wETHNode.price", cache.wETHNode.price);
 
-        withdrawableUsd = MathUtil.min(creditCapacity + (valueSUSD + valueWETH), type(uint128).max);
+        cache.wBTCNode = MockOracleManager(oracleManager).process(
+            cache.wBTCNodeId
+        );
+        console2.log("wBTCNode.price", cache.wBTCNode.price);
+
+        cache.hugeNode = MockOracleManager(oracleManager).process(
+            cache.hugeNodeId
+        );
+        console2.log("hugeNode.price", cache.hugeNode.price);
+
+        cache.valueSUSD = uint256(int256(cache.sUSDBalance));
+        console2.log("valueSUSD", cache.valueSUSD);
+
+        cache.valueWETH = uint256(
+            (int256(cache.wETHBalance) * cache.wETHNode.price) / 1e18
+        );
+        console2.log("valueWETH", cache.valueWETH);
+
+        cache.valuewBTC = uint256(
+            (int256(cache.wBTCBalance) * cache.wBTCNode.price) / 1e18
+        );
+        console2.log("valuewBTC", cache.valuewBTC);
+
+        cache.valuehuge = uint256(
+            (int256(cache.hugeBalance) * cache.hugeNode.price) / 1e18
+        );
+        console2.log("valuehuge", cache.valuehuge);
+
+        withdrawableUsd = MathUtil.min(
+            creditCapacity +
+                (cache.valueSUSD +
+                    cache.valueWETH +
+                    cache.valuewBTC +
+                    cache.valuehuge),
+            type(uint128).max
+        );
         console2.log("withdrawableUsd", withdrawableUsd);
 
-        console2.log("===== MockSynthetixV3::getWithdrawableMarketUsd END =====");
+        console2.log(
+            "===== MockSynthetixV3::getWithdrawableMarketUsd END ====="
+        );
     }
 
     event Debug(string s);
@@ -112,14 +194,18 @@ contract MockSynthetixV3 {
     /// @notice assumes that there's only one pool in the system
     /// @dev added to simplify fetching collaterals for MockRewardDistributor
     function getCollateralTypes() external view returns (address[] memory) {
-        address[] memory collateralTypes = new address[](2);
+        address[] memory collateralTypes = new address[](4);
         collateralTypes[0] = sUSD;
         collateralTypes[1] = wETH;
         collateralTypes[2] = wBTC;
+        collateralTypes[3] = huge;
         return collateralTypes;
     }
 
-    function getShares(address user, address collateral) external view returns (bool) {
+    function getShares(
+        address user,
+        address collateral
+    ) external view returns (bool) {
         return shares[user][collateral];
     }
 
@@ -141,6 +227,11 @@ contract MockSynthetixV3 {
         vaults[_wbtcToken].nodeId = _nodeId;
     }
 
+    function setHugeToken(address _hugeToken, bytes32 _nodeId) external {
+        huge = _hugeToken;
+        vaults[_hugeToken].nodeId = _nodeId;
+    }
+
     function setOracleManager(address _oracleManager) external {
         oracleManager = _oracleManager;
     }
@@ -149,7 +240,10 @@ contract MockSynthetixV3 {
         return 1;
     }
 
-    function setCollateralPrice(address collateralType, uint256 newPrice) external {
+    function setCollateralPrice(
+        address collateralType,
+        uint256 newPrice
+    ) external {
         bytes32 nodeId = vaults[collateralType].nodeId;
 
         // this needs to use the MockOracleManager to set the price for a given collateral type
@@ -157,7 +251,10 @@ contract MockSynthetixV3 {
     }
 
     /// @notice only used by MockRewardDistributor to simulate distributing reward shares
-    function updateRewardDistribution(address collateralToken, uint256 amount) external {
+    function updateRewardDistribution(
+        address collateralToken,
+        uint256 amount
+    ) external {
         vaults[collateralToken].rewardAmount += amount;
     }
 
@@ -232,7 +329,11 @@ contract MockSynthetixV3 {
         shares[msg.sender][collateralType] = true;
 
         // transfer collateral token
-        MockERC20(collateralType).transferFrom(msg.sender, address(this), tokenAmount);
+        MockERC20(collateralType).transferFrom(
+            msg.sender,
+            address(this),
+            tokenAmount
+        );
     }
 
     /// @notice allows a market to withdraw collateral that it has previously deposited.
@@ -249,7 +350,10 @@ contract MockSynthetixV3 {
         // vaults[collateralType].totalShares -= 1;
         // shares[msg.sender][collateralType] = false;
 
-        MockERC20(collateralType).transfer(ERC2771Context._msgSender(), tokenAmount);
+        MockERC20(collateralType).transfer(
+            ERC2771Context._msgSender(),
+            tokenAmount
+        );
         emit Debug("withdraw");
     }
 }

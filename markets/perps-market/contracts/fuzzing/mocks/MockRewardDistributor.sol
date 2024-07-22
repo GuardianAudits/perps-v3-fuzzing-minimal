@@ -34,7 +34,9 @@ contract MockRewardDistributor {
         // distribute a portion of debt rewards to different vaults
         // TODO: commenting out temporarily to resolve issues in LiquidationModule coverage
         // v3Mock.updateRewardDistribution(collateralType, amount);
-        console2.log("====== MockRewardDistributor::distributeRewards END ======");
+        console2.log(
+            "====== MockRewardDistributor::distributeRewards END ======"
+        );
     }
 
     /**
@@ -56,7 +58,9 @@ contract MockRewardDistributor {
 
         // calculate how much a user is owed based on their share of the vault
         // each user's deposit in a vault is 1 share for simplification
-        (, , , uint256 rewardAmount, uint256 totalShares) = v3Mock.vaults(collateralType);
+        (, , , uint256 rewardAmount, uint256 totalShares) = v3Mock.vaults(
+            collateralType
+        );
         uint256 percentOfVault = (1 * 1e18) / (totalShares * 1e18);
         uint256 amountOfRewards = percentOfVault * rewardAmount;
 
@@ -78,10 +82,17 @@ contract MockRewardDistributor {
     /// @notice Address to ERC-20 token distributed by this distributor, for display purposes only
     /// @dev Return address(0) if providing non ERC-20 rewards
     function token() external view returns (address) {
-        return collateralId == 1 ? v3Mock.wETH() : v3Mock.wBTC();
+        return
+            collateralId == 1
+                ? v3Mock.wETH()
+                : collateralId == 2
+                    ? v3Mock.wBTC()
+                    : v3Mock.huge();
     }
 
-    function supportsInterface(bytes4 interfaceId) public view virtual returns (bool) {
+    function supportsInterface(
+        bytes4 interfaceId
+    ) public view virtual returns (bool) {
         return
             interfaceId == type(IRewardDistributor).interfaceId ||
             interfaceId == this.supportsInterface.selector;

@@ -83,10 +83,12 @@ contract FuzzStorageVariables is FuzzConstants, Test {
     MockERC20 internal sUSDTokenMock;
     MockERC20 internal wethTokenMock;
     MockERC20 internal wbtcTokenMock;
+    MockERC20 internal hugePrecisionTokenMock;
     MockPyth internal mockPyth;
     MockPythERC7412Wrapper internal pythWrapper;
     MockRewardDistributor internal rewardWETHDistributorMock;
     MockRewardDistributor internal rewardWBTCDistributorMock;
+    MockRewardDistributor internal rewardHUGEDistributorMock;
     MockGasPriceNode internal mockGasPriceNode;
     MockVaultModule internal vaultModuleMock;
     MockLensModule internal mockLensModuleImpl;

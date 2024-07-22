@@ -27,11 +27,14 @@ contract MockSpotMarket {
     MockOracleManager mockOracleManager;
     address wethTokenMock;
     address wbtcTokenMock;
+    address hugeTokenMock;
 
     bytes32 WETH_ORACLE_NODE_ID;
     bytes32 WBTC_ORACLE_NODE_ID;
+    bytes32 HUGE_ORACLE_NODE_ID;
     uint WETH_MARKET_SKEW_SCALE;
     uint WBTC_MARKET_SKEW_SCALE;
+    uint HUGE_MARKET_SKEW_SCALE;
 
     constructor(
         MockSynthetixV3 _v3Mock,
@@ -40,8 +43,11 @@ contract MockSpotMarket {
         uint _wethMarketSkewScale,
         address _wbtc,
         uint _wbtcMarketSkewScale,
+        address _huge,
+        uint _hugeMarketSkewScale,
         bytes32 _wethOracleNodeId,
-        bytes32 _wbtcOracleNodeId
+        bytes32 _wbtcOracleNodeId,
+        bytes32 _hugeOracleNodeId
     ) {
         v3Mock = _v3Mock;
         mockOracleManager = _mockOracleManager;
@@ -51,8 +57,12 @@ contract MockSpotMarket {
         wbtcTokenMock = _wbtc;
         WBTC_MARKET_SKEW_SCALE = _wbtcMarketSkewScale;
 
+        hugeTokenMock = _huge;
+        HUGE_MARKET_SKEW_SCALE = _hugeMarketSkewScale;
+
         WETH_ORACLE_NODE_ID = _wethOracleNodeId;
         WBTC_ORACLE_NODE_ID = _wbtcOracleNodeId;
+        HUGE_ORACLE_NODE_ID = _hugeOracleNodeId;
     }
 
     mapping(uint128 marketId => address synthAddress) public synth;
@@ -70,16 +80,23 @@ contract MockSpotMarket {
         }
     }
 
-    function getSynth(uint128 marketId) public view returns (address synthAddress) {
+    function getSynth(
+        uint128 marketId
+    ) public view returns (address synthAddress) {
         return synth[marketId];
     }
 
-    function getMarketSkewScale(uint128 synthMarketId) external view returns (uint128 skewScale) {
+    function getMarketSkewScale(
+        uint128 synthMarketId
+    ) external view returns (uint128 skewScale) {
         if (getSynth(synthMarketId) == address(wethTokenMock)) {
             return uint128(WETH_MARKET_SKEW_SCALE);
         }
         if (getSynth(synthMarketId) == address(wbtcTokenMock)) {
             return uint128(WBTC_MARKET_SKEW_SCALE);
+        }
+        if (getSynth(synthMarketId) == address(hugeTokenMock)) {
+            return uint128(HUGE_MARKET_SKEW_SCALE);
         }
     }
 
@@ -90,7 +107,7 @@ contract MockSpotMarket {
     ) public returns (uint256) {
         bytes32 nodeid;
 
-        require(marketId <= 2, "Only 2 markets was implemented");
+        require(marketId <= 3, "Only 3 markets was implemented");
 
         TransactionType txnType = loadValidTransactionType(transactionType);
 
@@ -98,14 +115,16 @@ contract MockSpotMarket {
             nodeid = WETH_ORACLE_NODE_ID;
         } else if (marketId == 2) {
             nodeid = WBTC_ORACLE_NODE_ID;
+        } else if (marketId == 3) {
+            nodeid = HUGE_ORACLE_NODE_ID;
         }
 
         return mockOracleManager.process(nodeid).price.toUint();
-
-        // return Price.getCurrentPrice(marketId, txnType, priceTolerance);
     }
 
-    function loadValidTransactionType(uint128 txnType) internal pure returns (TransactionType) {
+    function loadValidTransactionType(
+        uint128 txnType
+    ) internal pure returns (TransactionType) {
         // solhint-disable-next-line numcast/safe-cast
         uint128 txnTypeMax = uint128(TransactionType.UNWRAP);
         if (txnType > txnTypeMax) {
