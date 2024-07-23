@@ -180,17 +180,14 @@ abstract contract Properties_ORD is PropertiesBase {
         fl.gte(states[1].utilizationRate, 0, ORD_10);
     }
 
-    function invariant_ORD_11() internal {
-        console2.log("reported debt", states[1].reportedDebt);
-        console2.log("reportedDebtGhost", states[1].reportedDebtGhost);
-
-        if (
-            MathUtil.abs(states[1].reportedDebt - states[1].reportedDebtGhost) >
-            1000
-        ) {
-            fl.eq(states[1].reportedDebt, states[1].reportedDebtGhost, ORD_11);
-        }
-    }
+    // function invariant_ORD_11() internal {
+    //     if (
+    //         MathUtil.abs(states[1].reportedDebt - states[1].reportedDebtGhost) >
+    //         1000
+    //     ) {
+    //         fl.eq(states[1].reportedDebt, states[1].reportedDebtGhost, ORD_11);
+    //     }
+    // }
 
     function invariant_ORD_12(uint128 account) internal {
         fl.t(!states[1].actorStates[account].isMarginLiquidatable, ORD_12);
@@ -264,5 +261,14 @@ abstract contract Properties_ORD is PropertiesBase {
 
     function invariant_ORD_20() internal {
         fl.eq(states[1].totalDebtCalculated, states[1].totalDebt, ORD_20);
+    }
+
+    function invariant_ORD_21() internal {
+        fl.eq(
+            states[1].wethMarket.reportedDebt +
+                states[1].wbtcMarket.reportedDebt,
+            states[1].reportedDebtGhost,
+            ORD_21
+        );
     }
 }

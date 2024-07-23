@@ -7,6 +7,7 @@ import {SettlementStrategy} from "../../storage/SettlementStrategy.sol";
 import {console2} from "lib/forge-std/src/Test.sol";
 import {PerpsAccount} from "../../storage/PerpsAccount.sol";
 import {GlobalPerpsMarket} from "../../storage/GlobalPerpsMarket.sol";
+import {PerpsMarket} from "../../storage/PerpsMarket.sol";
 
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {SafeCastI256, SafeCastU256, SafeCastU128} from "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
@@ -19,6 +20,14 @@ contract MockLensModule {
     using SafeCastI256 for int256;
     using SafeCastU128 for uint128;
     using SafeCastU256 for uint256;
+
+    function getDebtCorrectionAccumulator(
+        uint128 marketId
+    ) external returns (int256) {
+        PerpsMarket.Data storage perpsMarketData = PerpsMarket.load(marketId);
+        return perpsMarketData.debtCorrectionAccumulator;
+    }
+
     function getOpenPositionMarketIds(
         uint128 accountId
     ) external returns (uint128[] memory) {

@@ -33,6 +33,8 @@ abstract contract BeforeAfter is
         uint256 marketSize;
         uint256 liquidationCapacity;
         uint128 marketSkew;
+        uint256 reportedDebt;
+        uint256 debtCorrectionAccumulator;
     }
 
     struct State {
@@ -53,8 +55,7 @@ abstract contract BeforeAfter is
         uint256 utilizationRate; //perpsMarketFactoryModuleImpl.utilizationRate
         uint256 delegatedCollateral; //perpsMarketFactoryModuleImpl.utilizationRate
         uint256 lockedCredit; //perpsMarketFactoryModuleImpl.utilizationRate
-        int256 reportedDebt;
-        int256 reportedDebtGhost;
+        uint256 reportedDebtGhost;
         int256 totalCollateralValueUsdGhost;
         uint256 minimumCredit;
         int128 skew;
@@ -81,7 +82,7 @@ abstract contract BeforeAfter is
         int256 availableMargin; //perpsAccountModuleImpl.getAvailableMargin
         uint256 requiredInitialMargin; //perpsAccountModuleImpl.getRequiredMargins
         uint256 requiredMaintenanceMargin; //perpsAccountModuleImpl.getRequiredMargins
-        uint256 marginKeeperFee; //perpsAccountModuleImpl.getRequiredMargins
+        uint256 maxLiquidationReward; //perpsAccountModuleImpl.getRequiredMargins
         uint256 depositedWethCollateral;
         uint256 depositedSusdCollateral;
         uint128[] activeCollateralTypes;
@@ -171,7 +172,9 @@ abstract contract BeforeAfter is
         getUtilizationInfo(callNum, cache);
         getMarginInfo(callNum, accountId, cache);
         getGlobalDebt(callNum, cache);
-        calculateReportedDebtGhost(callNum, cache);
+        getMarketDebt(callNum, cache);
+        calculateReportedDebtComparison(callNum, cache);
+        // calculateReportedDebtGhost(callNum, cache);
         calculateTotalAccountsDebt(callNum, cache);
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
@@ -780,24 +783,22 @@ abstract contract BeforeAfter is
             .requiredInitialMargin;
         states[callNum].actorStates[accountId].requiredMaintenanceMargin = cache
             .requiredMaintenanceMargin;
-        states[callNum].actorStates[accountId].marginKeeperFee = cache
+        states[callNum].actorStates[accountId].maxLiquidationReward = cache
             .maxLiquidationReward;
 
         _logMarginInfoCoverage(
             states[callNum].actorStates[accountId].availableMargin,
             states[callNum].actorStates[accountId].requiredInitialMargin,
             states[callNum].actorStates[accountId].requiredMaintenanceMargin,
-            states[callNum].actorStates[accountId].marginKeeperFee
+            states[callNum].actorStates[accountId].maxLiquidationReward
         );
     }
 
-    function calculateReportedDebtGhost(
+    function calculateReportedDebtComparison(
         uint8 callNum,
         StackCache memory cache
     ) private {
         cache.reportedDebtGhost = 0;
-        cache.marketSizeGhost = 0;
-
         for (uint256 i = 0; i < USERS.length; i++) {
             cache.accountId = userToAccountIds[USERS[i]];
             (
@@ -808,66 +809,68 @@ abstract contract BeforeAfter is
                 cache.positionSizeSum
             ) = getAccountValues(callNum, cache.accountId); //sum markets
 
-            cache.userReportedDebt =
-                (cache.collateralValueUsd +
-                    cache.pricePnL +
-                    cache.pendingFunding) -
-                cache.debtUsd;
-            cache.reportedDebtGhost += cache.userReportedDebt;
-            cache.marketSizeGhost += cache.positionSizeSum;
-
-            _logReportedDebtGhostCoverage(
-                cache.reportedDebtGhost,
-                cache.marketSizeGhost
-            );
-
-            emit DebugSize(
-                int256(cache.positionSizeSum),
-                USERS[i],
-                cache.accountId,
-                "Total position size"
-            );
+            cache.userReportedDebt = (cache.collateralValueUsd +
+                cache.pricePnL +
+                cache.pendingFunding);
         }
-        /*
-        //positions.sum(p.collateralUsd + p.pricePnL + p.pendingFunding - p.pendingUtilization - p.debtUsd)";
-         int256 totalDebt = collateralValue.toInt() +
-                totalMarketDebt -
-                globalMarket.totalAccountsDebt.toInt();
+        cache.reportedDebtGhost += cache.userReportedDebt;
+        if (cache.reportedDebtGhost < 0) cache.reportedDebtGhost = 0;
 
-            */
-        if (cache.reportedDebtGhost < 0) cache.reportedDebtGhost = 0; // Reported Debt Cannot Go Negative
-
-        // Store the calculated values in the state
-        states[callNum].reportedDebtGhost = cache.reportedDebtGhost;
-        states[callNum].marketSizeGhost = cache.marketSizeGhost;
-
-        console2.log("reportedDebtGhost", states[callNum].reportedDebtGhost);
-        console2.log("marketSizeGhost", states[callNum].marketSizeGhost);
+        states[callNum].reportedDebtGhost = uint256(cache.reportedDebtGhost);
     }
 
-    function calculateTotalAccountsDebt(
-        uint8 callNum,
-        StackCache memory cache
-    ) private {
-        for (uint256 i = 0; i < USERS.length; i++) {
-            (, , , cache.accountDebt, ) = getAccountValues(
-                callNum,
-                userToAccountIds[USERS[i]]
-            );
-            states[callNum].totalDebtCalculated += cache.accountDebt;
-        }
-    }
+    // function calculateReportedDebtGhost(
+    //     uint8 callNum,
+    //     StackCache memory cache
+    // ) private {
+    //     cache.reportedDebtGhost = 0;
+    //     cache.marketSizeGhost = 0;
 
-    function getGlobalDebt(uint8 callNum, StackCache memory cache) public {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                mockLensModuleImpl.getGlobalTotalAccountsDebt.selector
-            )
-        );
-        assert(success);
-        states[callNum].totalDebt = abi.decode(returnData, (int256));
-    }
+    //     for (uint256 i = 0; i < USERS.length; i++) {
+    //         cache.accountId = userToAccountIds[USERS[i]];
+    //         (
+    //             cache.collateralValueUsd,
+    //             cache.pricePnL,
+    //             cache.pendingFunding,
+    //             cache.debtUsd,
+    //             cache.positionSizeSum
+    //         ) = getAccountValues(callNum, cache.accountId); //sum markets
 
+    //         cache.userReportedDebt =
+    //             (cache.collateralValueUsd +
+    //                 cache.pricePnL +
+    //                 cache.pendingFunding) -
+    //             cache.debtUsd;
+    //         cache.reportedDebtGhost += cache.userReportedDebt;
+    //         cache.marketSizeGhost += cache.positionSizeSum;
+
+    //         _logReportedDebtGhostCoverage(
+    //             cache.reportedDebtGhost,
+    //             cache.marketSizeGhost
+    //         );
+    //         emit DebugSize(
+    //             int256(cache.positionSizeSum),
+    //             USERS[i],
+    //             cache.accountId,
+    //             "Total position size"
+    //         );
+    //     }
+    //     /*
+    //     //positions.sum(p.collateralUsd + p.pricePnL + p.pendingFunding - p.pendingUtilization - p.debtUsd)";
+    //      int256 totalDebt = collateralValue.toInt() +
+    //             totalMarketDebt -
+    //             globalMarket.totalAccountsDebt.toInt();
+
+    //         */
+    //     if (cache.reportedDebtGhost < 0) cache.reportedDebtGhost = 0; // Reported Debt Cannot Go Negative
+
+    //     // Store the calculated values in the state
+    //     states[callNum].reportedDebtGhost = cache.reportedDebtGhost;
+    //     states[callNum].marketSizeGhost = cache.marketSizeGhost;
+
+    //     console2.log("reportedDebtGhost", states[callNum].reportedDebtGhost);
+    //     console2.log("marketSizeGhost", states[callNum].marketSizeGhost);
+    // }
     function getAccountValues(
         uint8 callNum,
         uint128 accountId
@@ -924,6 +927,82 @@ abstract contract BeforeAfter is
             debtUsd,
             positionSizeSum
         );
+    }
+    function calculateTotalAccountsDebt(
+        uint8 callNum,
+        StackCache memory cache
+    ) private {
+        for (uint256 i = 0; i < USERS.length; i++) {
+            (, , , cache.accountDebt, ) = getAccountValues(
+                callNum,
+                userToAccountIds[USERS[i]]
+            );
+            states[callNum].totalDebtCalculated += cache.accountDebt;
+        }
+    }
+
+    function getGlobalDebt(uint8 callNum, StackCache memory cache) public {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getGlobalTotalAccountsDebt.selector
+            )
+        );
+        assert(success);
+        states[callNum].totalDebt = abi.decode(returnData, (int256));
+    }
+
+    function getMarketDebt(uint8 callNum, StackCache memory cache) private {
+        getReportedDebt(callNum, 1);
+        getReportedDebt(callNum, 2);
+        getMarketDebtCorrectionAccumulator(callNum, 1);
+        getMarketDebtCorrectionAccumulator(callNum, 2);
+    }
+
+    function getReportedDebt(uint8 callNum, uint128 marketId) private {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsMarketFactoryModuleImpl.reportedDebt.selector,
+                marketId
+            )
+        );
+        assert(success);
+
+        if (marketId == 1) {
+            states[callNum].wethMarket.reportedDebt = abi.decode(
+                returnData,
+                (uint256)
+            );
+        } else if (marketId == 2) {
+            states[callNum].wbtcMarket.reportedDebt = abi.decode(
+                returnData,
+                (uint256)
+            );
+        }
+    }
+
+    function getMarketDebtCorrectionAccumulator(
+        uint8 callNum,
+        uint128 marketId
+    ) private {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getDebtCorrectionAccumulator.selector,
+                marketId
+            )
+        );
+        assert(success);
+
+        if (marketId == 1) {
+            states[callNum].wethMarket.debtCorrectionAccumulator = abi.decode(
+                returnData,
+                (uint256)
+            );
+        } else if (marketId == 2) {
+            states[callNum].wbtcMarket.debtCorrectionAccumulator = abi.decode(
+                returnData,
+                (uint256)
+            );
+        }
     }
 
     function debugBefore(address[] memory actors) internal {

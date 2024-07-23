@@ -128,4 +128,22 @@ abstract contract Properties_MGN is PropertiesBase {
             );
         }
     }
+
+    function invariant_MGN_14(uint128 accountId) public {
+        fl.gte(
+            states[1].actorStates[accountId].availableMargin,
+            int256(states[1].actorStates[accountId].requiredMaintenanceMargin) +
+                int256(states[1].actorStates[accountId].maxLiquidationReward),
+            MGN_14
+        );
+    }
+
+    function invariant_MGN_15(uint128 accountId) public {
+        fl.gte(
+            states[1].actorStates[accountId].availableMargin,
+            int256(states[1].actorStates[accountId].requiredMaintenanceMargin) +
+                int256(states[1].actorStates[accountId].maxLiquidationReward),
+            MGN_14
+        );
+    }
 }

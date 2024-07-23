@@ -7,8 +7,14 @@ import {console2} from "lib/forge-std/src/Test.sol";
 abstract contract Properties_LIQ is PropertiesBase {
     function invariant_LIQ_01(uint128 account) internal {
         fl.log("ACCOUNT LIQ_01:", account);
-        fl.t(states[0].actorStates[account].isPositionLiquidatablePassing, LIQ_01);
-        fl.t(states[1].actorStates[account].isPositionLiquidatablePassing, LIQ_01);
+        fl.t(
+            states[0].actorStates[account].isPositionLiquidatablePassing,
+            LIQ_01
+        );
+        fl.t(
+            states[1].actorStates[account].isPositionLiquidatablePassing,
+            LIQ_01
+        );
     }
 
     //LIQ_02 N/A no flaggedBy
@@ -89,7 +95,10 @@ abstract contract Properties_LIQ is PropertiesBase {
     //LIQ_07 N/A no flaggedBy
 
     function invariant_LIQ_08() internal {
-        fl.t(states[0].delegatedCollateralValueUsd >= states[0].minimumCredit, LIQ_08);
+        fl.t(
+            states[0].delegatedCollateralValueUsd >= states[0].minimumCredit,
+            LIQ_08
+        );
     }
 
     function invariant_LIQ_09(uint128 account) internal {
@@ -108,11 +117,18 @@ abstract contract Properties_LIQ is PropertiesBase {
             states[1].actorStates[account].wethMarket.positionSize == 0 &&
             states[1].actorStates[account].wbtcMarket.positionSize == 0
         ) {
-            fl.log("Margin before:", states[0].actorStates[account].availableMargin);
-            fl.log("Margin after:", states[1].actorStates[account].availableMargin);
+            fl.log(
+                "Margin before:",
+                states[0].actorStates[account].availableMargin
+            );
+            fl.log(
+                "Margin after:",
+                states[1].actorStates[account].availableMargin
+            );
             // if position was fully liquidated, market collateral should be decreased by user's margin amount
             fl.eq(
-                states[0].totalCollateralValueUsd - states[1].totalCollateralValueUsd,
+                states[0].totalCollateralValueUsd -
+                    states[1].totalCollateralValueUsd,
                 int256(states[0].actorStates[account].totalCollateralValue),
                 // int256(MathUtil.abs(states[0].actorStates[account].availableMargin)),
                 LIQ_11
@@ -128,8 +144,26 @@ abstract contract Properties_LIQ is PropertiesBase {
         fl.gte(
             states[0].actorStates[account].totalCollateralValue -
                 states[1].actorStates[account].totalCollateralValue,
-            states[0].actorStates[account].marginKeeperFee, //TODO: DG review is it maxLiquidationReward from perpsAccountModuleImpl.getRequiredMargins?
+            states[0].actorStates[account].maxLiquidationReward,
             LIQ_15
         );
+    }
+
+    function invariant_LIQ_16() internal {
+        bool wethConditionMet = (states[0]
+            .wethMarket
+            .debtCorrectionAccumulator >
+            states[1].wethMarket.debtCorrectionAccumulator) &&
+            (states[0].wethMarket.reportedDebt >
+                states[1].wethMarket.reportedDebt);
+
+        bool wbtcConditionMet = (states[0]
+            .wbtcMarket
+            .debtCorrectionAccumulator >
+            states[1].wbtcMarket.debtCorrectionAccumulator) &&
+            (states[0].wbtcMarket.reportedDebt >
+                states[1].wbtcMarket.reportedDebt);
+
+        fl.t(wethConditionMet || wbtcConditionMet, LIQ_16);
     }
 }
