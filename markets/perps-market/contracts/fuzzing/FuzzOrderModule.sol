@@ -35,7 +35,7 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
             referrer
         );
 
-        require(pendingOrder[params.accountId].accountId == uint128(0), "User has a pending order");
+        // require(pendingOrder[params.accountId].accountId == uint128(0), "User has a pending order");
 
         console.log("msg.sender", msg.sender);
 
@@ -45,7 +45,9 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
             ? states[0].actorStates[params.accountId].wethMarket.positionSize
             : states[0].actorStates[params.accountId].wbtcMarket.positionSize;
 
-        if (sizeDelta < 0 && acceptablePrice % 5 == 0 && positionSize != 0) {
+        
+        // Close position entirely.
+        if (acceptablePrice % 5 == 0 && positionSize != 0) {
             params.sizeDelta = positionSize * -1;
         }
         console2.log("===== _commitOrderCall START =====");
@@ -61,6 +63,7 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
         );
         console2.log("===== _commitOrderCall END =====");
         console2.log("===== commitOrderPostconditions START =====");
+
 
         commitOrderPostconditions(
             success,
@@ -85,11 +88,15 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
         actorsToUpdate[1] = params.settleUser;
 
         _before(actorsToUpdate);
+
         fl.log(">>>>>>CURRENT ACTOR:", currentActor);
         (bool success, bytes memory returnData) = _settleOrderCall(
             actorsToUpdate[1],
             params.accountId
         );
+        // if (success && (params.sizeDelta < 0)) {
+        //     fl.eq(params.sizeDelta, 0, "SO SIZE NEGATIVE SETTLED");
+        // }
 
         settleOrderPostconditions(
             success,

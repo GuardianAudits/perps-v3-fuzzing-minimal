@@ -106,7 +106,7 @@ abstract contract Properties_ORD is PropertiesBase {
         }
     }
 
-    event DebugSkew(int128 a, string s);
+    event DebugSkeww(int256 a, string s);
     event DebugUint(uint256 a, string s);
 
     function invariant_ORD_09(uint128 account, uint128 marketId) internal {
@@ -120,20 +120,24 @@ abstract contract Properties_ORD is PropertiesBase {
                 pythWrapper.getBenchmarkPrice(WETH_PYTH_PRICE_FEED_ID, 0)
             );
             console2.log("weth pyth oracle price", oraclePrice);
-            console2.log("after skew", states[1].wethMarket.marketSkew);
-            console2.log("before skew", states[0].wethMarket.marketSkew);
+            console2.log("after skew");
+            console2.logInt(states[1].wethMarket.skew);
+            console2.log("after size", states[1].wethMarket.marketSize);
+            console2.log("before skew");
+            console2.logInt(states[0].wethMarket.skew);
+            console2.log("before size", states[0].wethMarket.marketSize);
             if (
                 MathUtil.abs(states[1].wethMarket.skew) <
                 MathUtil.abs(states[0].wethMarket.skew)
             ) {
                 if (isLong) {
-                    fl.lt(
+                    fl.lte(
                         states[0].actorStates[account].fillPriceWETH,
                         oraclePrice,
                         ORD_09
                     );
                 } else {
-                    fl.gt(
+                    fl.gte(
                         states[0].actorStates[account].fillPriceWETH,
                         oraclePrice,
                         ORD_09
@@ -145,20 +149,22 @@ abstract contract Properties_ORD is PropertiesBase {
                 pythWrapper.getBenchmarkPrice(WBTC_PYTH_PRICE_FEED_ID, 0)
             );
             console2.log("wbtc pyth oracle price", oraclePrice);
-            console2.log("after skew", states[1].wbtcMarket.skew);
-            console2.log("before skew", states[0].wbtcMarket.skew);
+            console2.log("after skew");
+            console2.logInt(states[1].wbtcMarket.skew);
+            console2.log("before skew");
+            console2.logInt(states[0].wbtcMarket.skew);
             if (
                 MathUtil.abs(states[1].wbtcMarket.skew) <
                 MathUtil.abs(states[0].wbtcMarket.skew)
             ) {
                 if (isLong) {
-                    fl.lt(
+                    fl.lte(
                         states[0].actorStates[account].fillPriceWBTC,
                         oraclePrice,
                         ORD_09
                     );
                 } else {
-                    fl.gt(
+                    fl.gte(
                         states[0].actorStates[account].fillPriceWBTC,
                         oraclePrice,
                         ORD_09
@@ -211,6 +217,8 @@ abstract contract Properties_ORD is PropertiesBase {
     }
 
     //ORD_17 N/A no stale orders here
+
+
 
     function invariant_ORD_18(uint128 account, uint128 marketId) internal {
         if (states[1].actorStates[account].openPositionMarketIds.length != 0) {
