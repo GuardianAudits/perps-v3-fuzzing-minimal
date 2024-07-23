@@ -12,6 +12,11 @@ contract FuzzGuidedModule is
     FuzzOrderModule,
     FuzzAdmin
 {
+    function fuzz_guided_depositAndShort() public {
+        fuzz_modifyCollateral(1e18, 1);
+        fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 is weth short
+    }
+
     function fuzz_guided_createDebt_LiquidateMarginOnly(
         bool isWETH,
         int amountToDeposit
@@ -51,7 +56,9 @@ contract FuzzGuidedModule is
             isWETH ? type(uint256).max - 1 : type(uint256).max //maxprice + marketId
         );
         fuzz_settleOrder();
-        isWETH ? fuzz_crashWETHPythPrice(1) : fuzz_crashWBTCPythPrice(1);
+        isWETH
+            ? fuzz_crashWETHPythPrice(uint(amountToDeposit))
+            : fuzz_crashWBTCPythPrice(uint(amountToDeposit));
         fuzz_commitOrder((int128(uint128(amount * 2)) * -1), isWETH ? 6 : 5); //maxprice + marketId
         fuzz_settleOrder();
         isWETH ? fuzz_crashWETHPythPrice(20) : fuzz_crashWBTCPythPrice(20);

@@ -102,6 +102,17 @@ contract FoundryPlayground is FuzzModules {
         deposit(1, 2, 120e18);
     }
 
+    function test_settleOrder() public {
+        vm.prank(USER1);
+        fuzz_mintUSDToSynthetix(100_000_000_000e18);
+        vm.prank(USER1);
+        fuzz_modifyCollateral(1e18, 1);
+        vm.prank(USER1);
+        fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 will be weth market
+        vm.prank(USER1);
+        fuzz_settleOrder();
+    }
+
     function test_order_liquidatePosition() public {
         vm.prank(USER1);
         fuzz_mintUSDToSynthetix(100_000_000_000e18);

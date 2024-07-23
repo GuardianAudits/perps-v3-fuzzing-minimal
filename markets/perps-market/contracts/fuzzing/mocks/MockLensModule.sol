@@ -74,6 +74,13 @@ contract MockLensModule {
         return globalCollateralTypes;
     }
 
+    function getGlobalTotalAccountsDebt() external view returns (uint256) {
+        GlobalPerpsMarket.Data storage globalMarketData = GlobalPerpsMarket
+            .load();
+
+        return globalMarketData.totalAccountsDebt;
+    }
+
     function isOrderExpired(uint128 accountId) external view returns (bool) {
         AsyncOrder.Data storage order = AsyncOrder.load(accountId);
         console2.log(

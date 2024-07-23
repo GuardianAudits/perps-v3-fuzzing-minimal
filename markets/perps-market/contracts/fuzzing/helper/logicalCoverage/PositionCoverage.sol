@@ -109,21 +109,33 @@ contract PositionCoverage is FuzzBase {
             fl.log("WETH market: No accrued funding");
         } else if (accruedFunding > 0) {
             if (accruedFunding <= 0.01e18) {
-                fl.log("WETH market: Positive accrued funding between 0 and 0.01");
+                fl.log(
+                    "WETH market: Positive accrued funding between 0 and 0.01"
+                );
             } else if (accruedFunding <= 0.1e18) {
-                fl.log("WETH market: Positive accrued funding between 0.01 and 0.1");
+                fl.log(
+                    "WETH market: Positive accrued funding between 0.01 and 0.1"
+                );
             } else if (accruedFunding <= 1e18) {
-                fl.log("WETH market: Positive accrued funding between 0.1 and 1");
+                fl.log(
+                    "WETH market: Positive accrued funding between 0.1 and 1"
+                );
             } else {
                 fl.log("WETH market: Positive accrued funding greater than 1");
             }
         } else {
             if (accruedFunding >= -0.01e18) {
-                fl.log("WETH market: Negative accrued funding between 0 and -0.01");
+                fl.log(
+                    "WETH market: Negative accrued funding between 0 and -0.01"
+                );
             } else if (accruedFunding >= -0.1e18) {
-                fl.log("WETH market: Negative accrued funding between -0.01 and -0.1");
+                fl.log(
+                    "WETH market: Negative accrued funding between -0.01 and -0.1"
+                );
             } else if (accruedFunding >= -1e18) {
-                fl.log("WETH market: Negative accrued funding between -0.1 and -1");
+                fl.log(
+                    "WETH market: Negative accrued funding between -0.1 and -1"
+                );
             } else {
                 fl.log("WETH market: Negative accrued funding less than -1");
             }
@@ -214,21 +226,35 @@ contract PositionCoverage is FuzzBase {
             fl.log("WBTC market: No accrued funding");
         } else if (accruedFunding > 0) {
             if (accruedFunding <= 0.001e8) {
-                fl.log("WBTC market: Positive accrued funding between 0 and 0.001");
+                fl.log(
+                    "WBTC market: Positive accrued funding between 0 and 0.001"
+                );
             } else if (accruedFunding <= 0.01e8) {
-                fl.log("WBTC market: Positive accrued funding between 0.001 and 0.01");
+                fl.log(
+                    "WBTC market: Positive accrued funding between 0.001 and 0.01"
+                );
             } else if (accruedFunding <= 0.1e8) {
-                fl.log("WBTC market: Positive accrued funding between 0.01 and 0.1");
+                fl.log(
+                    "WBTC market: Positive accrued funding between 0.01 and 0.1"
+                );
             } else {
-                fl.log("WBTC market: Positive accrued funding greater than 0.1");
+                fl.log(
+                    "WBTC market: Positive accrued funding greater than 0.1"
+                );
             }
         } else {
             if (accruedFunding >= -0.001e8) {
-                fl.log("WBTC market: Negative accrued funding between 0 and -0.001");
+                fl.log(
+                    "WBTC market: Negative accrued funding between 0 and -0.001"
+                );
             } else if (accruedFunding >= -0.01e8) {
-                fl.log("WBTC market: Negative accrued funding between -0.001 and -0.01");
+                fl.log(
+                    "WBTC market: Negative accrued funding between -0.001 and -0.01"
+                );
             } else if (accruedFunding >= -0.1e8) {
-                fl.log("WBTC market: Negative accrued funding between -0.01 and -0.1");
+                fl.log(
+                    "WBTC market: Negative accrued funding between -0.01 and -0.1"
+                );
             } else {
                 fl.log("WBTC market: Negative accrued funding less than -0.1");
             }
@@ -355,7 +381,11 @@ contract PositionCoverage is FuzzBase {
         }
 
         // Overall market status
-        if (wethPositionSize == 0 && wbtcPositionSize == 0 && totalOwedInterest == 0) {
+        if (
+            wethPositionSize == 0 &&
+            wbtcPositionSize == 0 &&
+            totalOwedInterest == 0
+        ) {
             fl.log("No active positions or owed interest in either market");
         } else if (wethPositionSize != 0 || wbtcPositionSize != 0) {
             if (totalPnl > 0 && totalOwedInterest == 0) {

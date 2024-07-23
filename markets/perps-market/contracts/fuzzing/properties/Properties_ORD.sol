@@ -218,8 +218,6 @@ abstract contract Properties_ORD is PropertiesBase {
 
     //ORD_17 N/A no stale orders here
 
-
-
     function invariant_ORD_18(uint128 account, uint128 marketId) internal {
         if (states[1].actorStates[account].openPositionMarketIds.length != 0) {
             bool containsMarketId = false;
@@ -262,5 +260,9 @@ abstract contract Properties_ORD is PropertiesBase {
                 fl.t(found, ORD_19);
             }
         }
+    }
+
+    function invariant_ORD_20() internal {
+        fl.eq(states[1].totalDebtCalculated, states[1].totalDebt, ORD_20);
     }
 }

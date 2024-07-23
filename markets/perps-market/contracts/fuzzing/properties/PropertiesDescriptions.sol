@@ -101,5 +101,7 @@ contract PropertiesDescriptions {
     string constant ORD_18 =
         "ORD-18:  Open positions should always be added / removed from the openPositionMarketIds array.";
     string constant ORD_19 =
-        "ORD-19:  All tokens in the activeCollateralTypes array from individual accounts should be included in the global activeCollateralTypes array..";
+        "ORD-19:  All tokens in the activeCollateralTypes array from individual accounts should be included in the global activeCollateralTypes array.";
+    string constant ORD_20 =
+        "ORD-20:  Sum of the debt of all accounts == global debt..";
 }

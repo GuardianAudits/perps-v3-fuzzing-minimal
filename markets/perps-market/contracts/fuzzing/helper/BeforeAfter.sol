@@ -58,6 +58,8 @@ abstract contract BeforeAfter is
         int256 totalCollateralValueUsdGhost;
         uint256 minimumCredit;
         int128 skew;
+        int256 totalDebtCalculated;
+        int256 totalDebt;
     }
 
     struct ActorStates {
@@ -126,6 +128,7 @@ abstract contract BeforeAfter is
         uint256 orderFeesWBTC;
         uint256 orderFeesWETH;
         uint256 positionSizeSum;
+        int256 accountDebt;
     }
 
     event DebugSize(int size, address a, string s);
@@ -167,8 +170,9 @@ abstract contract BeforeAfter is
         calculateTotalCollateralValueGhost(callNum, cache);
         getUtilizationInfo(callNum, cache);
         getMarginInfo(callNum, accountId, cache);
+        getGlobalDebt(callNum, cache);
         calculateReportedDebtGhost(callNum, cache);
-
+        calculateTotalAccountsDebt(callNum, cache);
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
 
@@ -176,6 +180,7 @@ abstract contract BeforeAfter is
         states[callNum].totalCollateralValueUsdGhost = 0;
         states[callNum].reportedDebtGhost = 0;
         states[callNum].marketSizeGhost = 0;
+        states[callNum].totalDebtCalculated = 0;
     }
 
     function getLiquidationValues(
@@ -459,6 +464,9 @@ abstract contract BeforeAfter is
             cache.positionSize,
             cache.owedInterest
         ) = abi.decode(returnData, (int256, int256, int128, uint256));
+
+        console2.log("Debug position size", cache.positionSize);
+
         if (marketId == 1) {
             states[callNum].actorStates[accountId].wethMarket.totalPnl = cache
                 .totalPnl;
@@ -835,6 +843,29 @@ abstract contract BeforeAfter is
 
         console2.log("reportedDebtGhost", states[callNum].reportedDebtGhost);
         console2.log("marketSizeGhost", states[callNum].marketSizeGhost);
+    }
+
+    function calculateTotalAccountsDebt(
+        uint8 callNum,
+        StackCache memory cache
+    ) private {
+        for (uint256 i = 0; i < USERS.length; i++) {
+            (, , , cache.accountDebt, ) = getAccountValues(
+                callNum,
+                userToAccountIds[USERS[i]]
+            );
+            states[callNum].totalDebtCalculated += cache.accountDebt;
+        }
+    }
+
+    function getGlobalDebt(uint8 callNum, StackCache memory cache) public {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getGlobalTotalAccountsDebt.selector
+            )
+        );
+        assert(success);
+        states[callNum].totalDebt = abi.decode(returnData, (int256));
     }
 
     function getAccountValues(

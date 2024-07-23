@@ -32,7 +32,9 @@ abstract contract PreconditionsOrderModule is PreconditionsBase {
         bytes32 trackingCode,
         address referrer
     ) internal returns (CommitOrderParams memory) {
-        console2.log("===== PreconditionsOrderModule:commitOrderPreconditions START =====");
+        console2.log(
+            "===== PreconditionsOrderModule:commitOrderPreconditions START ====="
+        );
 
         uint128 settlementStrategyId = 0; //@coverage:limiter currently employing only one settlement strategy
         console2.log("===== uint128 account  START =====");
@@ -54,8 +56,12 @@ abstract contract PreconditionsOrderModule is PreconditionsBase {
         int128 clampedSizeDelta = int128(
             fl.clamp(
                 sizeDelta,
-                -int128(marketId == 1 ? WETH_MAX_MARKET_SIZE : WBTC_MAX_MARKET_SIZE),
-                int128(marketId == 1 ? WETH_MAX_MARKET_SIZE : WBTC_MAX_MARKET_SIZE)
+                -int128(
+                    marketId == 1 ? WETH_MAX_MARKET_SIZE : WBTC_MAX_MARKET_SIZE
+                ),
+                int128(
+                    marketId == 1 ? WETH_MAX_MARKET_SIZE : WBTC_MAX_MARKET_SIZE
+                )
             )
         );
         console2.log("clampedSizeDelta", clampedSizeDelta);
@@ -65,39 +71,66 @@ abstract contract PreconditionsOrderModule is PreconditionsBase {
 
         console2.log("acceptablePrice", acceptablePrice);
         console2.log("===== Constructing CommitOrderParams END =====");
+        sizeDelta = int128(
+            fl.clamp(
+                sizeDelta,
+                -int128(
+                    marketId == 1 ? WETH_MAX_MARKET_SIZE : WBTC_MAX_MARKET_SIZE
+                ),
+                int128(
+                    marketId == 1 ? WETH_MAX_MARKET_SIZE : WBTC_MAX_MARKET_SIZE
+                )
+            )
+        );
+        console2.log("Commit size delta", sizeDelta);
+        console2.log(
+            "Commit acceptable price",
+            sizeDelta > 0 ? acceptablePrice = type(uint256).max : 0
+        );
 
         return
             CommitOrderParams({
                 accountId: account,
                 marketId: marketId,
-                sizeDelta: int128(
-                    fl.clamp(
-                        sizeDelta,
-                        -int128(marketId == 1 ? WETH_MAX_MARKET_SIZE : WBTC_MAX_MARKET_SIZE),
-                        int128(marketId == 1 ? WETH_MAX_MARKET_SIZE : WBTC_MAX_MARKET_SIZE)
-                    )
-                ),
-                acceptablePrice: acceptablePrice,
+                sizeDelta: sizeDelta,
+                acceptablePrice: sizeDelta > 0
+                    ? acceptablePrice = type(uint256).max
+                    : 0,
                 settlementStrategyId: settlementStrategyId,
                 trackingCode: trackingCode,
                 referrer: referrer
             });
-        console2.log("===== PreconditionsOrderModule:commitOrderPreconditions END =====");
+        console2.log(
+            "===== PreconditionsOrderModule:commitOrderPreconditions END ====="
+        );
     }
 
-    function settleOrderPreconditions() internal returns (SettleOrderParams memory) {
+    function settleOrderPreconditions()
+        internal
+        returns (SettleOrderParams memory)
+    {
         for (uint256 i = 0; i < USERS.length; i++) {
             address settelUser = USERS[i];
             uint128 account = userToAccountIds[settelUser];
 
             (bool success, bytes memory returnData) = perps.call(
-                abi.encodeWithSelector(asyncOrderModuleImpl.getOrder.selector, account)
+                abi.encodeWithSelector(
+                    asyncOrderModuleImpl.getOrder.selector,
+                    account
+                )
             );
             assert(success);
 
-            AsyncOrder.Data memory order = abi.decode(returnData, (AsyncOrder.Data));
+            AsyncOrder.Data memory order = abi.decode(
+                returnData,
+                (AsyncOrder.Data)
+            );
             if (order.commitmentTime != 0) {
-                return SettleOrderParams({settleUser: settelUser, accountId: account});
+                return
+                    SettleOrderParams({
+                        settleUser: settelUser,
+                        accountId: account
+                    });
             }
         }
 
