@@ -166,7 +166,11 @@ abstract contract Properties_LIQ is PropertiesBase {
             (states[0].wbtcMarket.reportedDebt >
                 states[1].wbtcMarket.reportedDebt);
 
-        fl.t(wethConditionMet || wbtcConditionMet, LIQ_16);
+        fl.t(
+            (wethConditionMet || wbtcConditionMet) ||
+                (wethConditionMet && wbtcConditionMet),
+            LIQ_16
+        );
     }
 
     function invariant_LIQ_17(uint128 account) internal {
