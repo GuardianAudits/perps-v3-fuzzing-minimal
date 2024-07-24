@@ -36,6 +36,14 @@ contract MockLensModule {
         int128 positionSize;
     }
 
+    function isAccountLiquidatable(
+        uint128 accountId
+    ) external view returns (bool) {
+        GlobalPerpsMarket.Data storage globalMarketData = GlobalPerpsMarket
+            .load();
+        return globalMarketData.liquidatableAccounts.contains(accountId);
+    }
+
     function getPositionData(
         uint128 accountId,
         uint128 marketId

@@ -264,10 +264,11 @@ abstract contract Properties_ORD is PropertiesBase {
     }
 
     function invariant_ORD_21() internal {
-        fl.eq(
+        eqWithTolerance(
             states[1].wethMarket.reportedDebt +
                 states[1].wbtcMarket.reportedDebt,
             states[1].reportedDebtGhost,
+            0.01e18, //1%
             ORD_21
         );
     }

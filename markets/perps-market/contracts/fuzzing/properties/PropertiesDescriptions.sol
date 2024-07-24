@@ -31,6 +31,8 @@ contract PropertiesDescriptions {
         "MGN-13: activeCollateralTypesIt should never happen that a user has an amount of collateral deposited with a token > 18 decimals precision and withdrawing lead to precision loss.";
     string constant MGN_14 =
         "MGN-14:  After modifying collateral, a trader should not be immediately liquidatable.";
+    string constant MGN_16 =
+        "MGN-16:  The sum of collateral amounts from all accounts should always equal the global collateral amount.";
 
     string constant LIQ_01 = "LIQ-01: isPositionLiquidatable never reverts";
     string constant LIQ_02 =
@@ -63,6 +65,8 @@ contract PropertiesDescriptions {
         "LIQ-15: User should not be able to gain more in keeper fees than collateral lost in liquidateMarginOnly";
     string constant LIQ_16 =
         "LIQ-16: After liquidation, debtCorrectionAccumulator and reportedDebt is strictly decreasing in one of the markets";
+    string constant LIQ_17 =
+        "LIQ-17: If an account is flagged for liquidations the account is not allowed to have collateral or debt.";
 
     string constant ORD_01 =
         "ORD-01: If an account has an order commited that is unexpired, a subsequent commit order call will always revert";

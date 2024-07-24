@@ -47,6 +47,9 @@ abstract contract BeforeAfter is
         uint256 depositedSusdCollateral;
         uint256 depositedWethCollateral;
         uint256 depositedWbtcCollateral;
+        int256 collateralValueAllUsersSUSDCalculated;
+        int256 collateralValueAllUsersWETHCalculated;
+        int256 collateralValueAllUsersWBTCCalculated;
         uint depositedHUGECollateral;
         int256 totalCollateralValueUsd;
         uint256 marketSizeGhost;
@@ -69,7 +72,7 @@ abstract contract BeforeAfter is
         bool isMarginLiquidatable;
         uint128 debt;
         uint256[] collateralIds; //perpsAccountModuleImpl.getAccountCollateralIds
-        uint256 collateralAmountSUSD; //perpsAccountModuleImpl.getCollateralAmount
+        uint256 collateralAmountSUSD;
         uint256 collateralAmountWETH; //perpsAccountModuleImpl.getCollateralAmount
         uint256 collateralAmountWBTC; //perpsAccountModuleImpl.getCollateralAmount
         uint256 collateralAmountHUGE; //perpsAccountModuleImpl.getCollateralAmount
@@ -89,6 +92,7 @@ abstract contract BeforeAfter is
         uint128[] openPositionMarketIds;
         PositionVars wethMarket; //TODO:rename to position
         PositionVars wbtcMarket;
+        bool isAccountLiquidatable;
     }
 
     struct StackCache {
@@ -130,6 +134,7 @@ abstract contract BeforeAfter is
         uint256 orderFeesWETH;
         uint256 positionSizeSum;
         int256 accountDebt;
+        int256 CollateralValueForTokenGhost;
     }
 
     event DebugSize(int size, address a, string s);
@@ -173,9 +178,12 @@ abstract contract BeforeAfter is
         getMarginInfo(callNum, accountId, cache);
         getGlobalDebt(callNum, cache);
         getMarketDebt(callNum, cache);
+
         calculateReportedDebtComparison(callNum, cache);
         // calculateReportedDebtGhost(callNum, cache);
         calculateTotalAccountsDebt(callNum, cache);
+        checkIfAccountLiquidatable(callNum, accountId);
+        calculateCollateralValueForEveryToken(callNum, cache);
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
 
@@ -601,7 +609,6 @@ abstract contract BeforeAfter is
         getGlobalCollateralValue(callNum, 0);
         getGlobalCollateralValue(callNum, 1);
         getGlobalCollateralValue(callNum, 2);
-        getGlobalCollateralValue(callNum, 3);
 
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
@@ -641,8 +648,6 @@ abstract contract BeforeAfter is
             states[callNum].depositedWethCollateral = collateralValue;
         } else if (collateralId == 2) {
             states[callNum].depositedWbtcCollateral = collateralValue;
-        } else if (collateralId == 3) {
-            states[callNum].depositedHUGECollateral = collateralValue;
         }
     }
 
@@ -662,6 +667,14 @@ abstract contract BeforeAfter is
         }
         states[callNum].totalCollateralValueUsdGhost = cache
             .totalCollateralValueUsdGhost;
+        console2.log(
+            "calculateTotalCollateralValueGhost::totalCollateralValueUsdGhost",
+            states[callNum].totalCollateralValueUsdGhost
+        );
+        console2.log(
+            "comparing with totalCollateralValue of system report::totalCollateralValueUsd",
+            states[callNum].totalCollateralValueUsd
+        );
     }
 
     function calculateCollateralValueForAccount(
@@ -691,6 +704,7 @@ abstract contract BeforeAfter is
             pythWrapper.getBenchmarkPrice(WBTC_FEED_ID, 0),
             cache
         );
+
         return totalValue;
     }
 
@@ -716,6 +730,70 @@ abstract contract BeforeAfter is
             );
         }
         return (price * amount) / 1e18;
+    }
+
+    function calculateCollateralValueForEveryToken(
+        uint8 callNum,
+        StackCache memory cache
+    ) private {
+        states[callNum]
+            .collateralValueAllUsersSUSDCalculated = calculateCollateralValueForTokenAllUsers(
+            callNum,
+            0,
+            cache
+        );
+        states[callNum]
+            .collateralValueAllUsersWETHCalculated = calculateCollateralValueForTokenAllUsers(
+            callNum,
+            1,
+            cache
+        );
+        states[callNum]
+            .collateralValueAllUsersWBTCCalculated = calculateCollateralValueForTokenAllUsers(
+            callNum,
+            2,
+            cache
+        );
+    }
+
+    function calculateCollateralValueForTokenAllUsers(
+        uint8 callNum,
+        uint128 collateralId,
+        StackCache memory cache
+    ) private returns (int256) {
+        cache.CollateralValueForTokenGhost = 0;
+
+        int256 price;
+
+        for (uint256 i = 0; i < USERS.length; i++) {
+            cache.accountId = userToAccountIds[USERS[i]];
+
+            if (collateralId == 0) {
+                cache.CollateralValueForTokenGhost += int256(
+                    states[callNum]
+                        .actorStates[cache.accountId]
+                        .collateralAmountSUSD
+                );
+            } else if (collateralId == 1) {
+                cache.CollateralValueForTokenGhost += int256(
+                    states[callNum]
+                        .actorStates[cache.accountId]
+                        .collateralAmountWETH
+                );
+            } else if (collateralId == 2) {
+                cache.CollateralValueForTokenGhost += int256(
+                    states[callNum]
+                        .actorStates[cache.accountId]
+                        .collateralAmountWBTC
+                );
+            }
+
+            console2.log(
+                " cache .CollateralValueForTokenGhost",
+                cache.CollateralValueForTokenGhost
+            );
+        }
+        return cache.CollateralValueForTokenGhost;
     }
 
     function getUtilizationInfo(
@@ -1037,7 +1115,7 @@ abstract contract BeforeAfter is
         }
     }
 
-    function getGlobalDebt(uint8 callNum, StackCache memory cache) public {
+    function getGlobalDebt(uint8 callNum, StackCache memory cache) private {
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 mockLensModuleImpl.getGlobalTotalAccountsDebt.selector
@@ -1099,6 +1177,21 @@ abstract contract BeforeAfter is
                 (uint256)
             );
         }
+    }
+
+    function checkIfAccountLiquidatable(
+        uint8 callNum,
+        uint128 accountId
+    ) private {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.isAccountLiquidatable.selector,
+                accountId
+            )
+        );
+        assert(success);
+        states[callNum].actorStates[accountId].isAccountLiquidatable = abi
+            .decode(returnData, (bool));
     }
 
     function debugBefore(address[] memory actors) internal {

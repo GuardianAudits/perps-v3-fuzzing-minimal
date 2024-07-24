@@ -6,7 +6,11 @@ import "../helper/FuzzStorageVariables.sol";
 import {AsyncOrder} from "../../storage/AsyncOrder.sol";
 
 contract FunctionCalls is FuzzBase, FuzzStorageVariables {
-    event ModifyCollateralCall(uint128 accountId, uint128 collateralId, int256 amountDelta);
+    event ModifyCollateralCall(
+        uint128 accountId,
+        uint128 collateralId,
+        int256 amountDelta
+    );
     event PayDebtCall(uint128 accountId, uint128 amount);
     event SettleOrderCall(address settleUser, uint128 accountId);
     event CancelOrderCall(address settleUser, uint128 accountId);
@@ -50,7 +54,11 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
 
         vm.prank(currentActor);
         (success, returnData) = perps.call(
-            abi.encodeWithSelector(perpsAccountModuleImpl.payDebt.selector, accountId, amount)
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.payDebt.selector,
+                accountId,
+                amount
+            )
         );
     }
 
@@ -73,19 +81,23 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
             referrer
         );
 
-        AsyncOrder.OrderCommitmentRequest memory commitment = AsyncOrder.OrderCommitmentRequest({
-            marketId: marketId,
-            accountId: accountId,
-            sizeDelta: sizeDelta,
-            settlementStrategyId: settlementStrategyId,
-            acceptablePrice: acceptablePrice,
-            trackingCode: trackingCode,
-            referrer: referrer
-        });
+        AsyncOrder.OrderCommitmentRequest memory commitment = AsyncOrder
+            .OrderCommitmentRequest({
+                marketId: marketId,
+                accountId: accountId,
+                sizeDelta: sizeDelta,
+                settlementStrategyId: settlementStrategyId,
+                acceptablePrice: acceptablePrice,
+                trackingCode: trackingCode,
+                referrer: referrer
+            });
 
         vm.prank(currentActor);
         (success, returnData) = perps.call(
-            abi.encodeWithSelector(asyncOrderModuleImpl.commitOrder.selector, commitment)
+            abi.encodeWithSelector(
+                asyncOrderModuleImpl.commitOrder.selector,
+                commitment
+            )
         );
     }
     function _settleOrderCall(
@@ -111,7 +123,10 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
 
         vm.prank(currentActor);
         (success, returnData) = perps.call(
-            abi.encodeWithSelector(asyncOrderCancelModuleImpl.cancelOrder.selector, accountId)
+            abi.encodeWithSelector(
+                asyncOrderCancelModuleImpl.cancelOrder.selector,
+                accountId
+            )
         );
     }
 
@@ -122,7 +137,10 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
 
         vm.prank(currentActor);
         (success, returnData) = perps.call(
-            abi.encodeWithSelector(liquidationModuleImpl.liquidate.selector, accountId)
+            abi.encodeWithSelector(
+                liquidationModuleImpl.liquidate.selector,
+                accountId
+            )
         );
     }
 
@@ -133,7 +151,10 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
 
         vm.prank(currentActor);
         (success, returnData) = perps.call(
-            abi.encodeWithSelector(liquidationModuleImpl.liquidateMarginOnly.selector, accountId)
+            abi.encodeWithSelector(
+                liquidationModuleImpl.liquidateMarginOnly.selector,
+                accountId
+            )
         );
     }
 

@@ -146,4 +146,24 @@ abstract contract Properties_MGN is PropertiesBase {
             MGN_14
         );
     }
+
+    function invariant_MGN_16() public {
+        fl.eq(
+            states[1].depositedSusdCollateral,
+            uint(states[1].collateralValueAllUsersSUSDCalculated),
+            MGN_16
+        );
+
+        fl.eq(
+            states[1].depositedWethCollateral,
+            uint(states[1].collateralValueAllUsersWETHCalculated),
+            MGN_16
+        );
+
+        fl.eq(
+            states[1].depositedWbtcCollateral,
+            uint(states[1].collateralValueAllUsersWBTCCalculated),
+            MGN_16
+        );
+    }
 }

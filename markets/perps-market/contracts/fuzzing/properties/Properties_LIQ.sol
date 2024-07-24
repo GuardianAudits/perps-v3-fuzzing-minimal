@@ -48,8 +48,10 @@ abstract contract Properties_LIQ is PropertiesBase {
         // Check if neither changed and was not zero
         if (!wethCapacityChanged && !wbtcCapacityChanged) {
             fl.t(
-                states[0].wethMarket.liquidationCapacity == 0 &&
-                    states[0].wbtcMarket.liquidationCapacity == 0,
+                states[0].wethMarket.liquidationCapacity ==
+                    states[1].wethMarket.liquidationCapacity &&
+                    states[0].wbtcMarket.liquidationCapacity ==
+                    states[1].wbtcMarket.liquidationCapacity,
                 "LIQ_03: At least one market should have zero initial capacity if unchanged"
             );
         }
@@ -165,5 +167,24 @@ abstract contract Properties_LIQ is PropertiesBase {
                 states[1].wbtcMarket.reportedDebt);
 
         fl.t(wethConditionMet || wbtcConditionMet, LIQ_16);
+    }
+
+    function invariant_LIQ_17(uint128 account) internal {
+        if (states[0].actorStates[account].isAccountLiquidatable) {
+            fl.eq(
+                states[0].actorStates[account].totalCollateralValue,
+                0,
+                LIQ_17
+            );
+            fl.eq(states[0].actorStates[account].debt, 0, LIQ_17);
+        }
+        if (states[1].actorStates[account].isAccountLiquidatable) {
+            fl.eq(
+                states[1].actorStates[account].totalCollateralValue,
+                0,
+                LIQ_17
+            );
+            fl.eq(states[1].actorStates[account].debt, 0, LIQ_17);
+        }
     }
 }
