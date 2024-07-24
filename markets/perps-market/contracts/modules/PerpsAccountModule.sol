@@ -60,12 +60,14 @@ contract PerpsAccountModule is IPerpsAccountModule {
         if (amountDelta == 0) revert InvalidAmountDelta(amountDelta);
 
         console2.log("Before perpsMarketFactory");
-        PerpsMarketFactory.Data storage perpsMarketFactory = PerpsMarketFactory.load();
+        PerpsMarketFactory.Data storage perpsMarketFactory = PerpsMarketFactory
+            .load();
         console2.log("After perpsMarketFactory");
 
         console2.log("Before globalPerpsMarket");
 
-        GlobalPerpsMarket.Data storage globalPerpsMarket = GlobalPerpsMarket.load();
+        GlobalPerpsMarket.Data storage globalPerpsMarket = GlobalPerpsMarket
+            .load();
         console2.log("After globalPerpsMarket");
 
         globalPerpsMarket.validateCollateralAmount(collateralId, amountDelta);
@@ -79,7 +81,12 @@ contract PerpsAccountModule is IPerpsAccountModule {
         AsyncOrder.checkPendingOrder(account.id);
 
         if (amountDelta > 0) {
-            _depositMargin(perpsMarketFactory, perpsMarketId, collateralId, amountDelta.toUint());
+            _depositMargin(
+                perpsMarketFactory,
+                perpsMarketId,
+                collateralId,
+                amountDelta.toUint()
+            );
         } else {
             uint256 amountAbs = MathUtil.abs(amountDelta);
             // removing collateral
@@ -88,17 +95,29 @@ contract PerpsAccountModule is IPerpsAccountModule {
                 amountAbs,
                 perpsMarketFactory.spotMarket
             );
-            _withdrawMargin(perpsMarketFactory, perpsMarketId, collateralId, amountAbs);
+            _withdrawMargin(
+                perpsMarketFactory,
+                perpsMarketId,
+                collateralId,
+                amountAbs
+            );
         }
 
         // accounting
         account.updateCollateralAmount(collateralId, amountDelta);
 
-        emit CollateralModified(accountId, collateralId, amountDelta, ERC2771Context._msgSender());
+        emit CollateralModified(
+            accountId,
+            collateralId,
+            amountDelta,
+            ERC2771Context._msgSender()
+        );
         console2.log("===== PerpsAccountModule::modifyCollateral END =====");
     }
 
-    function debt(uint128 accountId) external view override returns (uint256 accountDebt) {
+    function debt(
+        uint128 accountId
+    ) external view override returns (uint256 accountDebt) {
         Account.exists(accountId);
         PerpsAccount.Data storage account = PerpsAccount.load(accountId);
 
@@ -120,7 +139,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
     /**
      * @inheritdoc IPerpsAccountModule
      */
-    function totalCollateralValue(uint128 accountId) external view override returns (uint256) {
+    function totalCollateralValue(
+        uint128 accountId
+    ) external view override returns (uint256) {
         return
             PerpsAccount.load(accountId).getTotalCollateralValue(
                 PerpsPrice.Tolerance.DEFAULT,
@@ -131,7 +152,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
     /**
      * @inheritdoc IPerpsAccountModule
      */
-    function totalAccountOpenInterest(uint128 accountId) external view override returns (uint256) {
+    function totalAccountOpenInterest(
+        uint128 accountId
+    ) external view override returns (uint256) {
         return PerpsAccount.load(accountId).getTotalNotionalOpenInterest();
     }
 
@@ -145,15 +168,31 @@ contract PerpsAccountModule is IPerpsAccountModule {
         external
         view
         override
-        returns (int256 totalPnl, int256 accruedFunding, int128 positionSize, uint256 owedInterest)
+        returns (
+            int256 totalPnl,
+            int256 accruedFunding,
+            int128 positionSize,
+            uint256 owedInterest
+        )
     {
         PerpsMarket.Data storage perpsMarket = PerpsMarket.loadValid(marketId);
 
         Position.Data storage position = perpsMarket.positions[accountId];
 
-        (, totalPnl, , owedInterest, accruedFunding, , ) = position.getPositionData(
+        (
+            ,
+            totalPnl, //pricePnl
+            ,
+            owedInterest,
+            accruedFunding,
+            ,
+
+        ) = position.getPositionData(
             PerpsPrice.getCurrentPrice(marketId, PerpsPrice.Tolerance.DEFAULT)
         );
+        console2.log("PepsAccountModule::totalPnl", totalPnl);
+        console2.log("PepsAccountModule::owedInterest", owedInterest);
+        console2.log("PepsAccountModule::positionSize", position.size);
         return (totalPnl, accruedFunding, position.size, owedInterest);
     }
 
@@ -187,7 +226,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
         uint128 accountId
     ) external view override returns (int256 withdrawableMargin) {
         PerpsAccount.Data storage account = PerpsAccount.load(accountId);
-        withdrawableMargin = account.getWithdrawableMargin(PerpsPrice.Tolerance.DEFAULT);
+        withdrawableMargin = account.getWithdrawableMargin(
+            PerpsPrice.Tolerance.DEFAULT
+        );
     }
 
     /**
@@ -210,8 +251,11 @@ contract PerpsAccountModule is IPerpsAccountModule {
             return (0, 0, 0);
         }
 
-        (requiredInitialMargin, requiredMaintenanceMargin, maxLiquidationReward) = account
-            .getAccountRequiredMargins(PerpsPrice.Tolerance.DEFAULT);
+        (
+            requiredInitialMargin,
+            requiredMaintenanceMargin,
+            maxLiquidationReward
+        ) = account.getAccountRequiredMargins(PerpsPrice.Tolerance.DEFAULT);
 
         // Include liquidation rewards to required initial margin and required maintenance margin
         requiredInitialMargin += maxLiquidationReward;
@@ -260,8 +304,14 @@ contract PerpsAccountModule is IPerpsAccountModule {
                 amount
             );
         } else {
-            ITokenModule synth = ITokenModule(perpsMarketFactory.spotMarket.getSynth(collateralId));
-            synth.transferFrom(ERC2771Context._msgSender(), address(this), amount);
+            ITokenModule synth = ITokenModule(
+                perpsMarketFactory.spotMarket.getSynth(collateralId)
+            );
+            synth.transferFrom(
+                ERC2771Context._msgSender(),
+                address(this),
+                amount
+            );
             // depositing into a synth market
             perpsMarketFactory.depositMarketCollateral(synth, amount);
         }
@@ -281,7 +331,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
                 amount
             );
         } else {
-            ITokenModule synth = ITokenModule(perpsMarketFactory.spotMarket.getSynth(collateralId));
+            ITokenModule synth = ITokenModule(
+                perpsMarketFactory.spotMarket.getSynth(collateralId)
+            );
             // withdrawing from a synth market
             perpsMarketFactory.synthetix.withdrawMarketCollateral(
                 perpsMarketId,

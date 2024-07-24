@@ -807,18 +807,172 @@ abstract contract BeforeAfter is
                 cache.pendingFunding,
                 cache.debtUsd,
                 cache.positionSizeSum
-            ) = getAccountValues(callNum, cache.accountId); //sum markets
+            ) = getAccountValues(callNum, cache); //sum markets
 
+            if (callNum > 0) {
+                console2.log("USERS.length, cache.accountId", cache.accountId);
+                console2.log("collateralValueUsd", cache.collateralValueUsd);
+                console2.log("pricePnL", cache.pricePnL);
+                console2.log("pendingFunding", cache.pendingFunding);
+                console2.log("debtUsd", cache.debtUsd);
+                console2.log("positionSizeSum", cache.positionSizeSum);
+            }
+
+            console2.log("User", i);
+            console2.log("userReportedDebt before", cache.userReportedDebt);
             cache.userReportedDebt = (cache.collateralValueUsd +
                 cache.pricePnL +
-                cache.pendingFunding);
+                cache.pendingFunding); //-interest
+            console2.log("userReportedDebt after", cache.userReportedDebt);
+            console2.log("reportedDebtGhost before", cache.reportedDebtGhost);
+            cache.reportedDebtGhost += cache.userReportedDebt;
+            console2.log("reportedDebtGhost after", cache.reportedDebtGhost);
         }
-        cache.reportedDebtGhost += cache.userReportedDebt;
         if (cache.reportedDebtGhost < 0) cache.reportedDebtGhost = 0;
 
         states[callNum].reportedDebtGhost = uint256(cache.reportedDebtGhost);
     }
 
+    function getPositionData(
+        uint128 accountId,
+        uint128 marketId
+    )
+        private
+        returns (
+            uint256, //notionalValue,
+            int256, //totalPnl
+            int256, //pricePnl
+            uint256, //chargedInterest
+            int256, //accruedFunding
+            int256, //netFundingPerUnit
+            int256, //nextFunding
+            int128 //positionSize
+        )
+    {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getPositionData.selector,
+                accountId,
+                marketId
+            )
+        );
+        assert(success);
+
+        return
+            abi.decode(
+                returnData,
+                (
+                    uint256,
+                    int256,
+                    int256,
+                    uint256,
+                    int256,
+                    int256,
+                    int256,
+                    int128
+                )
+            );
+    }
+
+    function getAccountValues(
+        uint8 callNum,
+        StackCache memory cache
+    ) private returns (int256, int256, int256, int256, uint256) {
+        int256 collateralValueUsd = getCollateralValue(cache.accountId);
+        (
+            int256 pricePnL,
+            int256 pendingFunding,
+            uint256 positionSizeSum
+        ) = getPositionValues(callNum, cache);
+        int256 debtUsd = getDebtValue(cache.accountId);
+
+        return (
+            collateralValueUsd,
+            pricePnL,
+            pendingFunding,
+            debtUsd,
+            positionSizeSum
+        );
+    }
+
+    function getCollateralValue(uint256 accountId) private returns (int256) {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.totalCollateralValue.selector,
+                accountId
+            )
+        );
+        assert(success);
+        return int256(abi.decode(returnData, (uint256)));
+    }
+
+    function getPositionValues(
+        uint8 callNum,
+        StackCache memory cache
+    ) private returns (int256, int256, uint256) {
+        int256 pricePnL = 0;
+        int256 pendingFunding = 0;
+        uint256 positionSizeSum = 0;
+
+        for (uint128 marketId = 1; marketId <= 2; marketId++) {
+            (
+                ,
+                //using price pnl instead
+                int256 accruedFunding,
+                int128 positionSize,
+
+            ) = getOpenPosition(cache.accountId, marketId);
+            (, , pricePnL, , , , , ) = getPositionData(
+                cache.accountId,
+                marketId
+            ); ////pricePnl
+            if (callNum > 0) {
+                logPositionDetails(pricePnL, accruedFunding, positionSize);
+            }
+            pricePnL += pricePnL;
+            pendingFunding += accruedFunding;
+            positionSizeSum += uint256(MathUtil.abs(positionSize));
+        }
+        console2.log("getPositionValues::pricePnL TOTAL", pricePnL);
+
+        return (pricePnL, pendingFunding, positionSizeSum);
+    }
+
+    function getOpenPosition(
+        uint256 accountId,
+        uint128 marketId
+    ) private returns (int256, int256, int128, uint256) {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.getOpenPosition.selector,
+                accountId,
+                marketId
+            )
+        );
+        assert(success);
+        return abi.decode(returnData, (int256, int256, int128, uint256));
+    }
+
+    function logPositionDetails(
+        int256 totalPnl,
+        int256 accruedFunding,
+        int128 positionSize
+    ) private {
+        console2.log("totalPnl", totalPnl);
+        console2.log("accruedFunding", accruedFunding);
+        console2.log("positionSize", positionSize);
+    }
+
+    function getDebtValue(uint256 accountId) private returns (int256) {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.debt.selector,
+                accountId
+            )
+        );
+        assert(success);
+        return abi.decode(returnData, (int256));
+    }
     // function calculateReportedDebtGhost(
     //     uint8 callNum,
     //     StackCache memory cache
@@ -871,72 +1025,14 @@ abstract contract BeforeAfter is
     //     console2.log("reportedDebtGhost", states[callNum].reportedDebtGhost);
     //     console2.log("marketSizeGhost", states[callNum].marketSizeGhost);
     // }
-    function getAccountValues(
-        uint8 callNum,
-        uint128 accountId
-    ) private returns (int256, int256, int256, int256, uint256) {
-        int256 collateralValueUsd;
-        int256 pricePnL = 0;
-        int256 pendingFunding = 0;
-        int256 debtUsd;
-        uint256 positionSizeSum = 0;
 
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.totalCollateralValue.selector,
-                accountId
-            )
-        );
-        assert(success);
-        collateralValueUsd = int256(abi.decode(returnData, (uint256)));
-
-        for (uint128 marketId = 1; marketId <= 2; marketId++) {
-            (success, returnData) = perps.call(
-                abi.encodeWithSelector(
-                    perpsAccountModuleImpl.getOpenPosition.selector,
-                    accountId,
-                    marketId
-                )
-            );
-            assert(success);
-            (
-                int256 totalPnl,
-                int256 accruedFunding,
-                int128 positionSize,
-
-            ) = abi.decode(returnData, (int256, int256, int128, uint256));
-
-            pricePnL += totalPnl;
-            pendingFunding += accruedFunding;
-            positionSizeSum += uint256(MathUtil.abs(positionSize));
-        }
-
-        (success, returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.debt.selector,
-                accountId
-            )
-        );
-        assert(success);
-        debtUsd = abi.decode(returnData, (int256));
-
-        return (
-            collateralValueUsd,
-            pricePnL,
-            pendingFunding,
-            debtUsd,
-            positionSizeSum
-        );
-    }
     function calculateTotalAccountsDebt(
         uint8 callNum,
         StackCache memory cache
     ) private {
         for (uint256 i = 0; i < USERS.length; i++) {
-            (, , , cache.accountDebt, ) = getAccountValues(
-                callNum,
-                userToAccountIds[USERS[i]]
-            );
+            cache.accountId = userToAccountIds[USERS[i]];
+            (, , , cache.accountDebt, ) = getAccountValues(callNum, cache);
             states[callNum].totalDebtCalculated += cache.accountDebt;
         }
     }

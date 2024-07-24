@@ -1270,6 +1270,14 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
             )
         );
         assert(success);
+        (success, ) = perps.call(
+            abi.encodeWithSelector(
+                router.addFunctionAndImplementation.selector,
+                mockLensModuleImpl.getPositionData.selector,
+                address(mockLensModuleImpl)
+            )
+        );
+        assert(success);
     }
 
     function enableAllFeatureFlags() private {

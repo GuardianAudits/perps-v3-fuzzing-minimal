@@ -8,6 +8,8 @@ import {console2} from "lib/forge-std/src/Test.sol";
 import {PerpsAccount} from "../../storage/PerpsAccount.sol";
 import {GlobalPerpsMarket} from "../../storage/GlobalPerpsMarket.sol";
 import {PerpsMarket} from "../../storage/PerpsMarket.sol";
+import {PerpsPrice} from "../../storage/PerpsPrice.sol";
+import {Position} from "../../storage/Position.sol";
 
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {SafeCastI256, SafeCastU256, SafeCastU128} from "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
@@ -16,11 +18,75 @@ contract MockLensModule {
     using AsyncOrder for AsyncOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
     using GlobalPerpsMarket for GlobalPerpsMarket.Data;
+    using Position for Position.Data;
     using SetUtil for SetUtil.UintSet;
     using SafeCastI256 for int256;
     using SafeCastU128 for uint128;
     using SafeCastU256 for uint256;
 
+    struct StackCache {
+        uint256 currentPrice;
+        uint256 notionalValue;
+        int256 totalPnl;
+        int256 pricePnl;
+        uint256 chargedInterest;
+        int256 accruedFunding;
+        int256 netFundingPerUnit;
+        int256 nextFunding;
+        int128 positionSize;
+    }
+
+    function getPositionData(
+        uint128 accountId,
+        uint128 marketId
+    )
+        external
+        view
+        returns (
+            uint256 notionalValue,
+            int256 totalPnl,
+            int256 pricePnl,
+            uint256 chargedInterest,
+            int256 accruedFunding,
+            int256 netFundingPerUnit,
+            int256 nextFunding,
+            int128 positionSize
+        )
+    {
+        StackCache memory cache;
+
+        Position.Data storage position = PerpsMarket.load(marketId).positions[
+            accountId
+        ];
+
+        cache.currentPrice = PerpsPrice.getCurrentPrice(
+            marketId,
+            PerpsPrice.Tolerance.DEFAULT
+        );
+
+        (
+            cache.notionalValue,
+            cache.totalPnl,
+            cache.pricePnl,
+            cache.chargedInterest,
+            cache.accruedFunding,
+            cache.netFundingPerUnit,
+            cache.nextFunding
+        ) = Position.getPositionData(position, cache.currentPrice);
+
+        cache.positionSize = position.size;
+
+        return (
+            cache.notionalValue,
+            cache.totalPnl,
+            cache.pricePnl,
+            cache.chargedInterest,
+            cache.accruedFunding,
+            cache.netFundingPerUnit,
+            cache.nextFunding,
+            cache.positionSize
+        );
+    }
     function getDebtCorrectionAccumulator(
         uint128 marketId
     ) external returns (int256) {

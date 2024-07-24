@@ -50,6 +50,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             invariant_ORD_09(accountId, marketId);
             invariant_ORD_12(accountId);
             // invariant_ORD_18(accountId, marketId); //TODO:
+            invariant_ORD_21();
 
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
@@ -70,6 +71,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
                 // @audit This assertion fails.
                 invariant_ORD_05(userToAccountIds[currentActor]);
             }
+
             // @audit ORD-16 assertion fails. Looks like valid break.
             // invariant_ORD_16(userToAccountIds[cancelUser]);
             onSuccessInvariantsGeneral(returnData, accountId);

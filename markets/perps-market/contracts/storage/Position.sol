@@ -78,7 +78,9 @@ library Position {
             int256 nextFunding
         )
     {
-        nextFunding = PerpsMarket.load(self.marketId).calculateNextFunding(price);
+        nextFunding = PerpsMarket.load(self.marketId).calculateNextFunding(
+            price
+        );
         netFundingPerUnit = nextFunding - self.latestInteractionFunding;
         accruedFunding = self.size.mulDecimal(netFundingPerUnit);
 
@@ -94,11 +96,16 @@ library Position {
         Data storage self,
         uint256 price
     ) internal view returns (uint256 chargedInterest) {
-        uint256 nextInterestAccrued = InterestRate.load().calculateNextInterest();
-        uint256 netInterestPerDollar = nextInterestAccrued - self.latestInterestAccrued;
+        uint256 nextInterestAccrued = InterestRate
+            .load()
+            .calculateNextInterest();
+        uint256 netInterestPerDollar = nextInterestAccrued -
+            self.latestInterestAccrued;
 
         // The interest is charged pro-rata on this position's contribution to the locked OI requirement
-        chargedInterest = getLockedNotionalValue(self, price).mulDecimal(netInterestPerDollar);
+        chargedInterest = getLockedNotionalValue(self, price).mulDecimal(
+            netInterestPerDollar
+        );
     }
 
     function getLockedNotionalValue(
@@ -111,7 +118,10 @@ library Position {
             );
     }
 
-    function getNotionalValue(Data storage self, uint256 price) internal view returns (uint256) {
+    function getNotionalValue(
+        Data storage self,
+        uint256 price
+    ) internal view returns (uint256) {
         return MathUtil.abs(self.size).mulDecimal(price);
     }
 }

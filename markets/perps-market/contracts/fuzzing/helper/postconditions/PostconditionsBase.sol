@@ -15,7 +15,6 @@ abstract contract PostconditionsBase is Properties {
         // invariant_MGN_08(); //TODO: percEq
         invariant_ORD_19(account);
         // invariant_ORD_20();
-        // invariant_ORD_21();
     }
 
     function onFailInvariantsGeneral(bytes memory returnData) internal {}
