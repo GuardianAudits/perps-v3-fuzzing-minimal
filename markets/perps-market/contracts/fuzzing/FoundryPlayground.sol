@@ -345,4 +345,153 @@ contract FoundryPlayground is FuzzModules {
             1014
         );
     }
+
+    function test_MGN_14() public {
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 43180);
+        try this.fuzz_crashWBTCPythPrice(60368187887740273779520851036367321390742330372111243410017965485225816409222) {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 59552);
+        try this.targetInterfaces() {} catch {}
+
+        try this.fuzz_pumpWETHPythPrice(10400920) {} catch {}
+
+        try this.fuzz_settleOrder() {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 5952);
+        try this.failed() {} catch {}
+
+        try this.fuzz_liquidateFlaggedAccounts(54) {} catch {}
+
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 590);
+        try this.fuzz_liquidateMarginOnly() {} catch {}
+
+        try this.fuzz_modifyCollateral(7363886252298912951297268819470124426459998075572683640558215609191109221168,36060378883672883844) {} catch {}
+
+        try this.targetSenders() {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 32776);
+        try this.failed() {} catch {}
+
+        try this.repayDebt() {} catch {}
+
+        try this.pendingOrder(254864682208477713788650096748232259748) {} catch {}
+
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 225);
+        try this.repayDebt() {} catch {}
+
+        try this.fuzz_liquidateFlagged(16) {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 53349);
+        try this.fuzz_changeWETHPythPrice(1285495787) {} catch {}
+
+        try this.excludeContracts() {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 49415);
+        try this.fuzz_crashWBTCPythPrice(40734345885457213119587725476776602361710619297559342637786566930942934196174) {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 35248);
+        // try this.collateralToMarketId(0xffffffff) {} catch {}
+
+        try this.fuzz_commitOrder(45527665955789711570906065755761038313,0) {} catch {}
+
+        try this.excludeSelectors() {} catch {}
+
+        vm.warp(block.timestamp + 2);
+        vm.roll(block.number + 38350);
+        try this.fuzz_changeWETHPythPrice(164129134689884637) {} catch {}
+
+        try this.targetSelectors() {} catch {}
+
+        try this.fuzz_changeWBTCPythPrice(703) {} catch {}
+
+        try this.fuzz_settleOrder() {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 23275);
+        try this.failed() {} catch {}
+
+        try this.IS_TEST() {} catch {}
+
+        try this.targetSenders() {} catch {}
+
+        try this.fuzz_settleOrder() {} catch {}
+
+        try this.fuzz_liquidatePosition() {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 2512);
+        // try this.collateralToMarketId(0xffffffff) {} catch {}
+
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 59981);
+        try this.fuzz_burnUSDFromSynthetix(69440312566769276623656011396831292783790727085490337084095597749272364534186) {} catch {}
+
+        try this.fuzz_crashWBTCPythPrice(33474750363803198344703969225256527259022938577339749068987358902924311968844) {} catch {}
+
+        try this.fuzz_payDebt(328273681046912410412101207159872402337) {} catch {}
+
+        try this.fuzz_commitOrder(86168858261284524850319675772111529712,2423707) {} catch {}
+
+        try this.repayDebt() {} catch {}
+
+        try this.fuzz_modifyCollateral(15430920056894041623138793344739737515016944957914741277770872442158975318435,36060378883672883844) {} catch {}
+
+        try this.fuzz_modifyCollateral(15430920056894041623138793344739737515016944957914741277770872442158975318435,36060378883672883844) {} catch {}
+
+        try this.fuzz_crashWBTCPythPrice(104728133708937779018501638906324747851300398287592565595978335268451929896653) {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 45819);
+        try this.fuzz_pumpWETHPythPrice(256332019) {} catch {}
+
+        try this.fuzz_modifyCollateral(35,13161757840859343235923202888453968634670567318907731003551582133953012971661) {} catch {}
+
+        try this.fuzz_modifyCollateral(22866954023517326881472454420837192006879627097854062968841109005214028865838,21758050889834850033820492102659170992600571097412026316956767264376619351359) {} catch {}
+
+        vm.warp(block.timestamp + 2);
+        vm.roll(block.number + 31318);
+        try this.excludeArtifacts() {} catch {}
+
+        try this.fuzz_pumpWETHPythPrice(1524785992) {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 15368);
+        try this.targetInterfaces() {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 24311);
+        try this.fuzz_settleOrder() {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 3708);
+        try this.fuzz_changeOracleManagerPrice(0,7519350156025721105513033945595310101117735264990167366435493668905295328501) {} catch {}
+
+        // try this.collateralToMarketId(0x0) {} catch {}
+
+        try this.fuzz_delegateCollateral(74925526633849638937062738874433663672,314018504,78785864899989875006334211634987353900540908220055761376259547605655821385692,27430329213400711167317844260663557624057715998269514346455789332778464393757,5948350862628443382883182303845845051077729108099372676306581706617715600343) {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 4462);
+        try this.targetSenders() {} catch {}
+
+        try this.failed() {} catch {}
+
+        try this.targetArtifacts() {} catch {}
+
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 27608);
+        try this.fuzz_pumpWBTCPythPrice(1524785993) {} catch {}
+
+        fuzz_guided_createDebt_LiquidateMarginOnly(false,10254914090907667362931365709060444715882551265141187039062566737611087896158);
+
+    }
 }
