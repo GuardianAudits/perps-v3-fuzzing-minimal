@@ -143,7 +143,7 @@ abstract contract Properties_MGN is PropertiesBase {
             states[1].actorStates[accountId].availableMargin,
             int256(states[1].actorStates[accountId].requiredMaintenanceMargin) +
                 int256(states[1].actorStates[accountId].maxLiquidationReward),
-            MGN_14
+            MGN_15
         );
     }
 

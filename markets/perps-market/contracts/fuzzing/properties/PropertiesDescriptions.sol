@@ -31,6 +31,8 @@ contract PropertiesDescriptions {
         "MGN-13: activeCollateralTypesIt should never happen that a user has an amount of collateral deposited with a token > 18 decimals precision and withdrawing lead to precision loss.";
     string constant MGN_14 =
         "MGN-14:  After modifying collateral, a trader should not be immediately liquidatable.";
+    string constant MGN_15 =
+        "MGN-15:  After paying debt, a trader should not be immediately liquidatable.";
     string constant MGN_16 =
         "MGN-16:  The sum of collateral amounts from all accounts should always equal the global collateral amount.";
 
