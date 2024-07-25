@@ -43,7 +43,7 @@ contract FoundryPlayground is FuzzModules {
 
     function test_prank() public {
         console2.log("msg.sender", msg.sender);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         wethTokenMock.mint(USER1, 111);
         console2.log("msg.sender", msg.sender);
         assert(false);
@@ -53,9 +53,9 @@ contract FoundryPlayground is FuzzModules {
     }
 
     function test_testLensOrderExpired() public {
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 2);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_commitOrder(2e18, type(uint256).max);
 
         vm.warp(block.timestamp + 1000000);
@@ -103,75 +103,75 @@ contract FoundryPlayground is FuzzModules {
     }
 
     function test_settleOrder() public {
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 1);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 will be weth market
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_settleOrder();
     }
 
     function test_order_liquidatePosition() public {
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 2);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_commitOrder(2e18, type(uint256).max); //TODO: margin ratio recheck
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_settleOrder();
         fuzz_crashWBTCPythPrice(20);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_liquidatePosition();
     }
 
     function test_order_liquidateFlagged() public {
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 2);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_commitOrder(2e18, type(uint256).max);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_settleOrder();
         fuzz_crashWBTCPythPrice(20);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_liquidateFlagged(100);
     }
 
     function test_order_liquidateFlaggedAccounts() public {
-        vm.prank(USER1); //using start prank to make all pranks inside all modules here
+        // vm.prank(USER1); //using start prank to make all pranks inside all modules here
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 2);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_commitOrder(2e18, type(uint256).max);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_settleOrder();
         //fuzz_crashWBTCPythPrice();
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_liquidateFlaggedAccounts(100);
     }
 
     function test_fuzz_order() public {
         //this works
-        vm.prank(USER1); //using start prank to make all pranks inside all modules here
+        // vm.prank(USER1); //using start prank to make all pranks inside all modules here
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
 
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 2);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_commitOrder(2e18, type(uint256).max);
-        vm.prank(USER1);
+        // vm.prank(USER1);
         fuzz_settleOrder();
         // // for (uint i; i < 2; ++i) {
         // fuzz_changeWBTCPythPrice(999);
         // // }
-        // vm.prank(USER1);
+        // // vm.prank(USER1);
         // fuzz_commitOrder(-2e18, 5);
-        // vm.prank(USER1);
+        // // vm.prank(USER1);
         // fuzz_settleOrder();
         // fuzz_crashWBTCPythPrice(20);
 
@@ -220,7 +220,7 @@ contract FoundryPlayground is FuzzModules {
         }
     }
     function settle_order() internal {
-        vm.prank(USER1);
+        // vm.prank(USER1);
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 AsyncOrderSettlementPythModule.settleOrder.selector,
@@ -247,7 +247,7 @@ contract FoundryPlayground is FuzzModules {
                 trackingCode: bytes32(0),
                 referrer: address(0)
             });
-        vm.prank(USER1);
+        // vm.prank(USER1);
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 asyncOrderModuleImpl.commitOrder.selector,
@@ -288,7 +288,7 @@ contract FoundryPlayground is FuzzModules {
         } else {
             user = USER3;
         }
-        vm.prank(user);
+        // vm.prank(user);
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsAccountModuleImpl.modifyCollateral.selector,
@@ -319,7 +319,7 @@ contract FoundryPlayground is FuzzModules {
         } else {
             user = USER3;
         }
-        vm.prank(user);
+        // vm.prank(user);
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsAccountModuleImpl.modifyCollateral.selector,
@@ -339,7 +339,7 @@ contract FoundryPlayground is FuzzModules {
     }
 
     function test_falsified_1() public {
-        vm.prank(USER3);
+        // vm.prank(USER3);
         fuzz_modifyCollateral(
             41375159011652481857230801695092970356520661981917901182765302721749,
             1014
@@ -494,4 +494,369 @@ contract FoundryPlayground is FuzzModules {
         fuzz_guided_createDebt_LiquidateMarginOnly(false,10254914090907667362931365709060444715882551265141187039062566737611087896158);
 
     }
+
+    function test_MGN_15() public {
+    // vm.prank(0x0000000000000000000000000000000000010000);
+    // try this.collateralToMarketId(0x1fffffffe) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 34272);
+        try this.fuzz_burnUSDFromSynthetix(45000205579593422793971688701070747844673326857311391567008757040412281816834) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        vm.warp(block.timestamp + 4);
+        vm.roll(block.number + 11064);
+        try this.fuzz_crashWETHPythPrice(1524785991) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_liquidateMarginOnly() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_liquidateMarginOnly() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 32147);
+        try this.repayDebt() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 60248);
+        try this.targetArtifactSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.targetSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 4896);
+        try this.fuzz_mintUSDToSynthetix(0) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.targetSenders() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 13250);
+        try this.targetSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 2526);
+        try this.targetArtifactSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 11905);
+        try this.fuzz_delegateCollateral(36828625693275696640120913861754809315,73245070668037295087441342590085061706,33783191400100172597863373117419391094053153243159976520254267842424207912643,112075327461987802550655256594673494575300711805717915312458092882191714386119,0) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_liquidateFlagged(169) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_crashWETHPythPrice(0) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_mintUSDToSynthetix(105801033546897551406530986109799743100112340916191615231272548264611594088362) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_crashWETHPythPrice(1524785992) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 32147);
+        try this.targetArtifacts() {} catch {}
+
+        console2.log("111HEREEEE");
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 23403);
+        try this.fuzz_modifyCollateral(26290151398335042387584962512529249871203077404871763965134854535792069774266,80108504713470209914278951554916148943418012408393476250048930893710949609029) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.fuzz_modifyCollateral(4370001,115792089237316195423570985008687907853269984665640564039457584007913129639932) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 4223);
+        try this.fuzz_pumpWBTCPythPrice(115792089237316195423570985008687907853269984665640564039457584007913129639934) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 30042);
+        try this.fuzz_liquidatePosition() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 740);
+        try this.failed() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        vm.warp(block.timestamp + 4);
+        vm.roll(block.number + 32767);
+        try this.fuzz_burnUSDFromSynthetix(49813101531550216653332734469256659982470549350278407082068826429681070746900) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 134);
+        try this.excludeSenders() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_liquidateFlaggedAccounts(168) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.excludeArtifacts() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.pendingOrder(266016537906820860850809730220579711148) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 9920);
+        try this.fuzz_payDebt(30970891527207320847500865352762569102) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 57086);
+        try this.fuzz_crashWETHPythPrice(77275034715495547752772962276639361295404132448683641556340984031581954863903) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 45852);
+        try this.fuzz_mintUSDToSynthetix(33146731348473438563520614482308509989229457387041916782028583601242359215163) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.repayDebt() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 55538);
+        try this.fuzz_cancelOrder(22) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_liquidatePosition() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.targetArtifacts() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 2);
+        vm.roll(block.number + 28541);
+        try this.targetArtifactSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 8447);
+        try this.fuzz_modifyCollateral(31341995297815370267175638658422425120244910099266197972292868266856641310131,94684470418779396919350158519226463755402058532465052869684989328848394048684) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_burnUSDFromSynthetix(58789454961237064847440741021415772932101969288821307333169837999726616708072) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.fuzz_liquidatePosition() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 50499);
+        try this.fuzz_changeOracleManagerPrice(115762427260727798208690557192022021927864149519498486708240255418676164598250,4369999) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 42101);
+        try this.fuzz_crashWBTCPythPrice(54269568995447413382124210873534963627508767645902639017203379785952909532480) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 53349);
+        try this.fuzz_payDebt(73757399643513383729588220264614614358) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 45852);
+        try this.targetInterfaces() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.fuzz_mintUSDToSynthetix(45572122890315286371217406677681471238042636456163181523436037216757192057208) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 13618);
+        try this.fuzz_commitOrder(127704448971332881237578559069068356573,95322973884720292370317183118268634231737990320981720582307741081757144152871) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 54155);
+        try this.targetContracts() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 23653);
+        try this.IS_TEST() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.fuzz_pumpWBTCPythPrice(4369999) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.excludeArtifacts() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 6);
+        vm.roll(block.number + 37725);
+        try this.IS_TEST() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 42595);
+        try this.fuzz_changeWETHPythPrice(5356475) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.targetArtifactSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        // try this.collateralToMarketId(0x2fffffffd) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.pendingOrder(0) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_liquidatePosition() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.fuzz_burnUSDFromSynthetix(58789454961237064847440741021415772932101969288821307333169837999726616708072) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 38100);
+        try this.fuzz_liquidatePosition() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.fuzz_changeWETHPythPrice(391779850034471797) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.failed() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 30011);
+        try this.IS_TEST() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 11905);
+        // try this.collateralToMarketId(0x13fbd0351503fbea7a59a6ad2d65b9ec61435a5c) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 42595);
+        try this.targetSenders() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 4);
+        vm.roll(block.number + 7323);
+        try this.targetSenders() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_settleOrder() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 58302);
+        try this.targetArtifactSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 6);
+        vm.roll(block.number + 30784);
+        try this.failed() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        try this.fuzz_mintUSDToSynthetix(104377844713112429794676960515618392400013305950017995254558655826380442538697) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 45261);
+        try this.targetSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_delegateCollateral(47,2206704,4369999,115792089237316195423570985008687907853269984665640564039457584007913129639935,4370000) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 11942);
+        try this.fuzz_changeWBTCPythPrice(1524785993) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 58783);
+        try this.fuzz_cancelOrder(46) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.targetArtifactSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 2);
+        vm.roll(block.number + 16089);
+        try this.fuzz_guided_createDebt_LiquidateMarginOnly(false,14819910726712391989948254493261783883223370044539668440567400733936624935966) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 53011);
+        try this.fuzz_delegateCollateral(1524785992,1524785991,115792089237316195423570985008687907853269984665640564039457584007913129639935,67588973153477190165880986117772338943086972654623411984221504480324212478346,62793409920333674322019637477378748203176706303444023314516059109468465661766) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        // try this.collateralToMarketId(0xd5f051401ca478b34c80d0b5a119e437dc6d9df5) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 35200);
+        try this.fuzz_guided_createDebt_LiquidateMarginOnly(false,1524785992) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 15369);
+        try this.fuzz_liquidateFlagged(255) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_crashWBTCPythPrice(4370001) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 20398);
+        // try this.collateralToMarketId(0x0) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 27724);
+        try this.fuzz_changeWBTCPythPrice(203278) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000020000);
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 59981);
+        try this.fuzz_liquidateMarginOnly() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        try this.fuzz_crashWETHPythPrice(674) {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 30784);
+        try this.targetArtifacts() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 32737);
+        try this.targetArtifactSelectors() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 2497);
+        try this.targetInterfaces() {} catch {}
+
+        vm.prank(0x0000000000000000000000000000000000010000);
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 561);
+        fuzz_payDebt(884059082);
+    }
+
 }

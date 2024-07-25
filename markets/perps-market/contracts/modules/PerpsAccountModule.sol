@@ -81,6 +81,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         AsyncOrder.checkPendingOrder(account.id);
 
         if (amountDelta > 0) {
+            console2.log("DEPOSIT MARGIN");
             _depositMargin(
                 perpsMarketFactory,
                 perpsMarketId,
@@ -95,6 +96,8 @@ contract PerpsAccountModule is IPerpsAccountModule {
                 amountAbs,
                 perpsMarketFactory.spotMarket
             );
+            console2.log("WITHDRAW MARGIN");
+
             _withdrawMargin(
                 perpsMarketFactory,
                 perpsMarketId,

@@ -35,7 +35,8 @@ abstract contract PostconditionsPerpsAccountModule is PostconditionsBase {
             invariant_MGN_05(amountDelta, collateral);
             invariant_MGN_06(amountDelta, collateral);
             invariant_MGN_13(amountDelta, collateral);
-            invariant_MGN_14(accountId);
+            // @audit Fails.
+            invariant_MGN_14(accountId, amountDelta);
             invariant_MGN_16();
             emit DebugPost("modifyCollateralPostconditions HERE#MGN_13");
 
