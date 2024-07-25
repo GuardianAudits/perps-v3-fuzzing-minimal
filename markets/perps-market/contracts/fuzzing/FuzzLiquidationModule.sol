@@ -56,7 +56,7 @@ contract FuzzLiquidationModule is PreconditionsLiquidationModule, Postconditions
         );
     }
 
-    function fuzz_liquidateFlagged(uint8 maxNumberOfAccounts) public {
+    function fuzz_liquidateFlagged(uint8 maxNumberOfAccounts) public setCurrentActor {
         LiquidateFlaggedParams memory params = liquidateFlaggedPreconditions(maxNumberOfAccounts);
 
         address[] memory actorsToUpdate = new address[](2);
@@ -69,7 +69,7 @@ contract FuzzLiquidationModule is PreconditionsLiquidationModule, Postconditions
         liquidateFlaggedPostconditions(success, returnData, actorsToUpdate, params.flaggedAccounts);
     }
 
-    function fuzz_liquidateFlaggedAccounts(uint8 maxNumberOfAccounts) public {
+    function fuzz_liquidateFlaggedAccounts(uint8 maxNumberOfAccounts) public setCurrentActor {
         LiquidateFlaggedParams memory params = liquidateFlaggedPreconditions(maxNumberOfAccounts);
 
         address[] memory actorsToUpdate = new address[](2);
