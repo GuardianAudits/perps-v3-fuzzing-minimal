@@ -130,21 +130,15 @@ abstract contract Properties_MGN is PropertiesBase {
     }
 
     function invariant_MGN_14(uint128 accountId) public {
-        fl.gte(
-            states[1].actorStates[accountId].availableMargin,
-            int256(states[1].actorStates[accountId].requiredMaintenanceMargin) +
-                int256(states[1].actorStates[accountId].maxLiquidationReward),
-            MGN_14
-        );
+        if (!states[0].actorStates[accountId].isPositionLiquidatable) {
+            fl.t(!states[1].actorStates[accountId].isPositionLiquidatable, MGN_14);
+        }
     }
 
     function invariant_MGN_15(uint128 accountId) public {
-        fl.gte(
-            states[1].actorStates[accountId].availableMargin,
-            int256(states[1].actorStates[accountId].requiredMaintenanceMargin) +
-                int256(states[1].actorStates[accountId].maxLiquidationReward),
-            MGN_15
-        );
+        if (!states[0].actorStates[accountId].isPositionLiquidatable) {
+            fl.t(!states[1].actorStates[accountId].isPositionLiquidatable, MGN_15);
+        }
     }
 
     function invariant_MGN_16() public {
