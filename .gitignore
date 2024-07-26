@@ -5,3 +5,9 @@ markets/.DS_Store
 markets/.DS_Store
 /markets/perps-market/lib/forge-std
 /markets/perps-market/lib/fuzzlib
+echidna-corpus/
+brand-new-corpus/
+new/
+echidna-corpus-old/
+crytic-export/
+cache_forge/
