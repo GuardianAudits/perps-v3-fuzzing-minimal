@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import "./PropertiesBase.sol";
 import {console2} from "lib/forge-std/src/Test.sol";
+import {MathUtil} from "../../utils/MathUtil.sol";
 
 abstract contract Properties_LIQ is PropertiesBase {
     function invariant_LIQ_01(uint128 account) internal {
@@ -152,12 +153,46 @@ abstract contract Properties_LIQ is PropertiesBase {
     }
 
     function invariant_LIQ_16() internal {
+        fl.log(
+            "states[0].wethMarket.debtCorrectionAccumulator",
+            states[0].wethMarket.debtCorrectionAccumulator
+        );
+        fl.log(
+            "states[1].wethMarket.debtCorrectionAccumulator",
+            states[1].wethMarket.debtCorrectionAccumulator
+        );
+        fl.log(
+            "states[0].wethMarket.reportedDebt",
+            states[0].wethMarket.reportedDebt
+        );
+        fl.log(
+            "states[1].wethMarket.reportedDebt",
+            states[1].wethMarket.reportedDebt
+        );
+
         bool wethConditionMet = (states[0]
             .wethMarket
             .debtCorrectionAccumulator >
             states[1].wethMarket.debtCorrectionAccumulator) &&
             (states[0].wethMarket.reportedDebt >
                 states[1].wethMarket.reportedDebt);
+
+        fl.log(
+            "states[0].wbtcMarket.debtCorrectionAccumulator",
+            states[0].wbtcMarket.debtCorrectionAccumulator
+        );
+        fl.log(
+            "states[1].wbtcMarket.debtCorrectionAccumulator",
+            states[1].wbtcMarket.debtCorrectionAccumulator
+        );
+        fl.log(
+            "states[0].wbtcMarket.reportedDebt",
+            states[0].wbtcMarket.reportedDebt
+        );
+        fl.log(
+            "states[1].wbtcMarket.reportedDebt",
+            states[1].wbtcMarket.reportedDebt
+        );
 
         bool wbtcConditionMet = (states[0]
             .wbtcMarket
@@ -189,6 +224,98 @@ abstract contract Properties_LIQ is PropertiesBase {
                 LIQ_17
             );
             fl.eq(states[1].actorStates[account].debt, 0, LIQ_17);
+        }
+    }
+
+    function invariant_LIQ_18(uint128 account) internal {
+        console2.log("account", account);
+
+        if (
+            states[0].actorStates[account].wethMarket.maxLiquidatableAmount > 0
+        ) {
+            console2.log(
+                "states[0].actorStates[account].wethMarket.maxLiquidatableAmount",
+                states[0].actorStates[account].wethMarket.maxLiquidatableAmount
+            );
+            console2.log(
+                "states[0].actorStates[account].wethMarket.positionSize",
+                states[0].actorStates[account].wethMarket.positionSize
+            );
+            fl.lte(
+                states[0].actorStates[account].wethMarket.maxLiquidatableAmount,
+                uint256(
+                    MathUtil.abs(
+                        states[0].actorStates[account].wethMarket.positionSize
+                    )
+                ),
+                LIQ_18
+            );
+        }
+
+        if (
+            states[1].actorStates[account].wethMarket.maxLiquidatableAmount > 0
+        ) {
+            console2.log(
+                "states[1].actorStates[account].wethMarket.maxLiquidatableAmount",
+                states[1].actorStates[account].wethMarket.maxLiquidatableAmount
+            );
+            console2.log(
+                "states[1].actorStates[account].wethMarket.positionSize",
+                states[1].actorStates[account].wethMarket.positionSize
+            );
+            fl.lte(
+                states[1].actorStates[account].wethMarket.maxLiquidatableAmount,
+                uint256(
+                    MathUtil.abs(
+                        states[1].actorStates[account].wethMarket.positionSize
+                    )
+                ),
+                LIQ_18
+            );
+        }
+
+        if (
+            states[0].actorStates[account].wbtcMarket.maxLiquidatableAmount > 0
+        ) {
+            console2.log(
+                "states[0].actorStates[account].wbtcMarket.maxLiquidatableAmount",
+                states[0].actorStates[account].wbtcMarket.maxLiquidatableAmount
+            );
+            console2.log(
+                "states[0].actorStates[account].wbtcMarket.positionSize",
+                states[0].actorStates[account].wbtcMarket.positionSize
+            );
+            fl.lte(
+                states[0].actorStates[account].wbtcMarket.maxLiquidatableAmount,
+                uint256(
+                    MathUtil.abs(
+                        states[0].actorStates[account].wbtcMarket.positionSize
+                    )
+                ),
+                LIQ_18
+            );
+        }
+
+        if (
+            states[1].actorStates[account].wbtcMarket.maxLiquidatableAmount > 0
+        ) {
+            console2.log(
+                "states[1].actorStates[account].wbtcMarket.maxLiquidatableAmount",
+                states[1].actorStates[account].wbtcMarket.maxLiquidatableAmount
+            );
+            console2.log(
+                "states[1].actorStates[account].wbtcMarket.positionSize",
+                states[1].actorStates[account].wbtcMarket.positionSize
+            );
+            fl.lte(
+                states[1].actorStates[account].wbtcMarket.maxLiquidatableAmount,
+                uint256(
+                    MathUtil.abs(
+                        states[1].actorStates[account].wbtcMarket.positionSize
+                    )
+                ),
+                LIQ_18
+            );
         }
     }
 }

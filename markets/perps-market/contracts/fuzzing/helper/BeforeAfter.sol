@@ -26,6 +26,7 @@ abstract contract BeforeAfter is
         int256 accruedFunding;
         int128 positionSize;
         uint256 owedInterest;
+        uint256 maxLiquidatableAmount;
     }
 
     struct MarketVars {
@@ -64,6 +65,7 @@ abstract contract BeforeAfter is
         int128 skew;
         int256 totalDebtCalculated;
         int256 totalDebt;
+        bool calculateFillPricePassing;
     }
 
     struct ActorStates {
@@ -93,6 +95,10 @@ abstract contract BeforeAfter is
         PositionVars wethMarket; //TODO:rename to position
         PositionVars wbtcMarket;
         bool isAccountLiquidatable;
+        bool isPreviousPositionInLoss;
+        int256 latestPositionPnl;
+        bool isPreviousTradePositionInLoss;
+        int256 previousTradePositionPnl;
     }
 
     struct StackCache {
@@ -180,10 +186,10 @@ abstract contract BeforeAfter is
         getMarketDebt(callNum, cache);
 
         calculateReportedDebtComparison(callNum, cache);
-        // calculateReportedDebtGhost(callNum, cache);
         calculateTotalAccountsDebt(callNum, cache);
         checkIfAccountLiquidatable(callNum, accountId);
         calculateCollateralValueForEveryToken(callNum, cache);
+        checkIfPositionWasProifitable(callNum, accountId);
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
 
@@ -387,7 +393,7 @@ abstract contract BeforeAfter is
                 pythWrapper.getBenchmarkPrice(priceFeedId, 0)
             )
         );
-        assert(success);
+        states[callNum].calculateFillPricePassing = success;
         (uint256 orderFees, uint256 fillPrice) = abi.decode(
             returnData,
             (uint256, uint256)
@@ -443,6 +449,29 @@ abstract contract BeforeAfter is
             (uint128[])
         );
 
+        if (
+            states[callNum].actorStates[accountId].wethMarket.positionSize != 0
+        ) {
+            states[callNum]
+                .actorStates[accountId]
+                .wethMarket
+                .maxLiquidatableAmount = getMaxLiquidatableAmount(
+                1,
+                states[callNum].actorStates[accountId].wethMarket.positionSize
+            );
+        }
+        if (
+            states[callNum].actorStates[accountId].wbtcMarket.positionSize != 0
+        ) {
+            states[callNum]
+                .actorStates[accountId]
+                .wbtcMarket
+                .maxLiquidatableAmount = getMaxLiquidatableAmount(
+                2,
+                states[callNum].actorStates[accountId].wbtcMarket.positionSize
+            );
+        }
+
         _logPositionInfoCoverage(
             states[callNum].actorStates[accountId].wethMarket.totalPnl,
             states[callNum].actorStates[accountId].wethMarket.accruedFunding,
@@ -453,6 +482,25 @@ abstract contract BeforeAfter is
             states[callNum].actorStates[accountId].wbtcMarket.positionSize,
             states[callNum].actorStates[accountId].wbtcMarket.owedInterest
         );
+    }
+
+    function getMaxLiquidatableAmount(
+        uint128 marketId,
+        int128 positionSize
+    ) private returns (uint128) {
+        if (positionSize < 0) {
+            positionSize = positionSize * -1;
+        }
+        uint128 absPositionSize = uint128(positionSize);
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getMaxLiquidatableAmount.selector,
+                marketId,
+                positionSize
+            )
+        );
+        assert(success);
+        return abi.decode(returnData, (uint128));
     }
 
     function getOpenPosition(
@@ -900,7 +948,8 @@ abstract contract BeforeAfter is
             console2.log("userReportedDebt before", cache.userReportedDebt);
             cache.userReportedDebt = (cache.collateralValueUsd +
                 cache.pricePnL +
-                cache.pendingFunding); //-interest
+                cache.pendingFunding -
+                cache.debtUsd); // need to subtract debt
             console2.log("userReportedDebt after", cache.userReportedDebt);
             console2.log("reportedDebtGhost before", cache.reportedDebtGhost);
             cache.reportedDebtGhost += cache.userReportedDebt;
@@ -1051,58 +1100,6 @@ abstract contract BeforeAfter is
         assert(success);
         return abi.decode(returnData, (int256));
     }
-    // function calculateReportedDebtGhost(
-    //     uint8 callNum,
-    //     StackCache memory cache
-    // ) private {
-    //     cache.reportedDebtGhost = 0;
-    //     cache.marketSizeGhost = 0;
-
-    //     for (uint256 i = 0; i < USERS.length; i++) {
-    //         cache.accountId = userToAccountIds[USERS[i]];
-    //         (
-    //             cache.collateralValueUsd,
-    //             cache.pricePnL,
-    //             cache.pendingFunding,
-    //             cache.debtUsd,
-    //             cache.positionSizeSum
-    //         ) = getAccountValues(callNum, cache.accountId); //sum markets
-
-    //         cache.userReportedDebt =
-    //             (cache.collateralValueUsd +
-    //                 cache.pricePnL +
-    //                 cache.pendingFunding) -
-    //             cache.debtUsd;
-    //         cache.reportedDebtGhost += cache.userReportedDebt;
-    //         cache.marketSizeGhost += cache.positionSizeSum;
-
-    //         _logReportedDebtGhostCoverage(
-    //             cache.reportedDebtGhost,
-    //             cache.marketSizeGhost
-    //         );
-    //         emit DebugSize(
-    //             int256(cache.positionSizeSum),
-    //             USERS[i],
-    //             cache.accountId,
-    //             "Total position size"
-    //         );
-    //     }
-    //     /*
-    //     //positions.sum(p.collateralUsd + p.pricePnL + p.pendingFunding - p.pendingUtilization - p.debtUsd)";
-    //      int256 totalDebt = collateralValue.toInt() +
-    //             totalMarketDebt -
-    //             globalMarket.totalAccountsDebt.toInt();
-
-    //         */
-    //     if (cache.reportedDebtGhost < 0) cache.reportedDebtGhost = 0; // Reported Debt Cannot Go Negative
-
-    //     // Store the calculated values in the state
-    //     states[callNum].reportedDebtGhost = cache.reportedDebtGhost;
-    //     states[callNum].marketSizeGhost = cache.marketSizeGhost;
-
-    //     console2.log("reportedDebtGhost", states[callNum].reportedDebtGhost);
-    //     console2.log("marketSizeGhost", states[callNum].marketSizeGhost);
-    // }
 
     function calculateTotalAccountsDebt(
         uint8 callNum,
@@ -1192,6 +1189,103 @@ abstract contract BeforeAfter is
         assert(success);
         states[callNum].actorStates[accountId].isAccountLiquidatable = abi
             .decode(returnData, (bool));
+    }
+
+    function checkIfPositionWasProifitable(
+        uint8 callNum,
+        uint128 accountId
+    ) internal {
+        console2.log("checkIfPositionWasProifitable::callNum", callNum);
+        console2.log("checkIfPositionWasProifitable::accountId", accountId);
+
+        if (callNum == 1) {
+            console2.log(
+                "checkIfPositionWasProifitable::Inside callNum == 1 condition"
+            );
+
+            int256 totalPnl = states[callNum]
+                .actorStates[accountId]
+                .wethMarket
+                .totalPnl +
+                states[callNum].actorStates[accountId].wbtcMarket.totalPnl;
+            console2.log("checkIfPositionWasProifitable::totalPnl", totalPnl);
+
+            bool isPositionClosed = states[callNum]
+                .actorStates[accountId]
+                .wethMarket
+                .positionSize ==
+                0 &&
+                states[callNum]
+                    .actorStates[accountId]
+                    .wbtcMarket
+                    .positionSize ==
+                0;
+            console2.log(
+                "checkIfPositionWasProifitable::isPositionClosed",
+                isPositionClosed
+            );
+
+            bool wasPreviousPositionOpen = states[0]
+                .actorStates[accountId]
+                .wethMarket
+                .positionSize !=
+                0 ||
+                states[0].actorStates[accountId].wbtcMarket.positionSize != 0;
+            console2.log(
+                "checkIfPositionWasProifitable::wasPreviousPositionOpen",
+                wasPreviousPositionOpen
+            );
+
+            if (isPositionClosed && wasPreviousPositionOpen) {
+                console2.log(
+                    "checkIfPositionWasProifitable::Inside isPositionClosed && wasPreviousPositionOpen condition"
+                );
+
+                // Save the current trade's information as the previous trade
+                states[callNum]
+                    .actorStates[accountId]
+                    .isPreviousTradePositionInLoss = states[callNum]
+                    .actorStates[accountId]
+                    .isPreviousPositionInLoss;
+                states[callNum]
+                    .actorStates[accountId]
+                    .previousTradePositionPnl = states[callNum]
+                    .actorStates[accountId]
+                    .latestPositionPnl;
+
+                // Update the current trade's information
+                states[callNum]
+                    .actorStates[accountId]
+                    .isPreviousPositionInLoss = totalPnl < 0;
+                console2.log(
+                    "checkIfPositionWasProifitable::isPreviousPositionInLoss",
+                    states[callNum]
+                        .actorStates[accountId]
+                        .isPreviousPositionInLoss
+                );
+
+                states[callNum]
+                    .actorStates[accountId]
+                    .latestPositionPnl = totalPnl;
+                console2.log(
+                    "checkIfPositionWasProifitable::latestPositionPnl",
+                    states[callNum].actorStates[accountId].latestPositionPnl
+                );
+
+                console2.log(
+                    "checkIfPositionWasProifitable::isPreviousTradePositionInLoss",
+                    states[callNum]
+                        .actorStates[accountId]
+                        .isPreviousTradePositionInLoss
+                );
+                console2.log(
+                    "checkIfPositionWasProifitable::previousTradePositionPnl",
+                    states[callNum]
+                        .actorStates[accountId]
+                        .previousTradePositionPnl
+                );
+            }
+        }
     }
 
     function debugBefore(address[] memory actors) internal {

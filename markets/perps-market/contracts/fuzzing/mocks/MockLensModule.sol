@@ -18,6 +18,7 @@ contract MockLensModule {
     using AsyncOrder for AsyncOrder.Data;
     using PerpsAccount for PerpsAccount.Data;
     using GlobalPerpsMarket for GlobalPerpsMarket.Data;
+    using PerpsMarket for PerpsMarket.Data;
     using Position for Position.Data;
     using SetUtil for SetUtil.UintSet;
     using SafeCastI256 for int256;
@@ -209,12 +210,15 @@ contract MockLensModule {
         return AsyncOrder.calculateFillPrice(skew, skewScale, sizeDelta, price);
     }
 
-    // function calculateOrderFee(
-    //     int128 sizeDelta,
-    //     uint256 fillPrice,
-    //     int256 marketSkew,
-    //     AsyncOrder.OrderFee storage orderFeeData //marketConfig.orderFees
-    // ) external view returns (uint256) {
-    //     return AsyncOrder.calculateOrderFee(sizeDelta, fillPrice, marketSkew, orderFeeData);
-    // }
+    function getMaxLiquidatableAmount(
+        uint128 marketId,
+        uint128 requestedLiquidationAmount
+    ) external returns (uint128 liquidatableAmount) {
+        PerpsMarket.Data storage market = PerpsMarket.load(marketId);
+
+        liquidatableAmount = PerpsMarket.maxLiquidatableAmount(
+            market,
+            requestedLiquidationAmount
+        );
+    }
 }

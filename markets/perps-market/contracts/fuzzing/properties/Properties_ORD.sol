@@ -272,4 +272,76 @@ abstract contract Properties_ORD is PropertiesBase {
             ORD_21
         );
     }
+    function debug_invariant_ORD_22(uint128 accountId) public {
+        console2.log("debug_invariant_ORD_22::accountId", accountId);
+
+        bool condition1 = states[1]
+            .actorStates[accountId]
+            .wethMarket
+            .positionSize == 0;
+        console2.log("debug_invariant_ORD_22::condition1", condition1);
+
+        bool condition2 = states[1]
+            .actorStates[accountId]
+            .wbtcMarket
+            .positionSize == 0;
+        console2.log("debug_invariant_ORD_22::condition2", condition2);
+
+        bool condition3 = states[0]
+            .actorStates[accountId]
+            .wethMarket
+            .positionSize != 0;
+        console2.log("debug_invariant_ORD_22::condition3", condition3);
+
+        bool condition4 = states[0]
+            .actorStates[accountId]
+            .wbtcMarket
+            .positionSize != 0;
+        console2.log("debug_invariant_ORD_22::condition4", condition4);
+
+        if (condition1 && condition2 && (condition3 || condition4)) {
+            console2.log("debug_invariant_ORD_22::Inside main condition");
+
+            fl.log(
+                "Current Position closed. Was it profitable?",
+                states[1].actorStates[accountId].isPreviousPositionInLoss
+            );
+            console2.log(
+                "debug_invariant_ORD_22::isPreviousPositionInLoss",
+                states[1].actorStates[accountId].isPreviousPositionInLoss
+            );
+
+            fl.log(
+                "Current Position closed. What's the PnL?",
+                states[1].actorStates[accountId].latestPositionPnl
+            );
+            console2.log(
+                "debug_invariant_ORD_22::latestPositionPnl",
+                states[1].actorStates[accountId].latestPositionPnl
+            );
+
+            fl.log(
+                "Previous Trade Position. Was it profitable?",
+                states[1].actorStates[accountId].isPreviousTradePositionInLoss
+            );
+            console2.log(
+                "debug_invariant_ORD_22::isPreviousTradePositionInLoss",
+                states[1].actorStates[accountId].isPreviousTradePositionInLoss
+            );
+
+            fl.log(
+                "Previous Trade Position. What was the PnL?",
+                states[1].actorStates[accountId].previousTradePositionPnl
+            );
+            console2.log(
+                "debug_invariant_ORD_22::previousTradePositionPnl",
+                states[1].actorStates[accountId].previousTradePositionPnl
+            );
+        }
+    }
+
+    function invariant_ORD_23() internal {
+        fl.t(states[0].calculateFillPricePassing, ORD_23);
+        fl.t(states[1].calculateFillPricePassing, ORD_23);
+    }
 }

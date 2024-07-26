@@ -67,6 +67,8 @@ contract PropertiesDescriptions {
         "LIQ-16: After liquidation, debtCorrectionAccumulator and reportedDebt is strictly decreasing in one of the markets";
     string constant LIQ_17 =
         "LIQ-17: If an account is flagged for liquidations the account is not allowed to have collateral or debt.";
+    string constant LIQ_18 =
+        "LIQ-18: maxLiquidatableAmount can never return a value greater than requestedLiquidationAmount.";
 
     string constant ORD_01 =
         "ORD-01: If an account has an order commited that is unexpired, a subsequent commit order call will always revert";
@@ -114,4 +116,6 @@ contract PropertiesDescriptions {
         "ORD-20:  Sum of the debt of all accounts == global debt..";
     string constant ORD_21 =
         "ORD-21: ReportedDebt == traders' collateral + traders' PnL.";
+    string constant ORD_23 =
+        "ORD-23: AsyncOrder.calculateFillPrice() should never revert.";
 }

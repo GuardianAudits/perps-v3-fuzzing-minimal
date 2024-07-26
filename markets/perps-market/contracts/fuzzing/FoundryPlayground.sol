@@ -113,6 +113,44 @@ contract FoundryPlayground is FuzzModules {
         fuzz_settleOrder();
     }
 
+    function test_openAndClose() public {
+        vm.prank(USER1);
+        fuzz_mintUSDToSynthetix(100_000_000_000e18);
+        vm.prank(USER1);
+        fuzz_modifyCollateral(1e18, 1);
+        vm.prank(USER1);
+        fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 will be weth market
+        vm.prank(USER1);
+        fuzz_settleOrder();
+        vm.prank(USER1);
+        fuzz_commitOrder(2e18, type(uint256).max - 1); //-1 will be weth market
+        vm.prank(USER1);
+        fuzz_settleOrder();
+    }
+
+    function test_openAndCloseTwoPositionsWIthLoss() public {
+        //loss comes form fees
+
+        fuzz_mintUSDToSynthetix(100_000_000_000e18);
+
+        fuzz_modifyCollateral(11110e18, 0);
+
+        fuzz_commitOrder(2.22e18, type(uint256).max - 1); //-1 will be weth market
+        fuzz_settleOrder();
+        fuzz_crashWETHPythPrice(uint(1));
+
+        fuzz_commitOrder(-2.22e18, type(uint256).max - 1); //-1 will be weth market
+        fuzz_settleOrder();
+
+        fuzz_modifyCollateral(10100e18, 0);
+
+        fuzz_commitOrder(2.33e18, type(uint256).max); //wbtc
+        fuzz_settleOrder();
+
+        fuzz_commitOrder(-2.33e18, type(uint256).max); //wbtc
+        fuzz_settleOrder();
+    }
+
     function test_order_liquidatePosition() public {
         vm.prank(USER1);
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
@@ -127,13 +165,13 @@ contract FoundryPlayground is FuzzModules {
         fuzz_liquidatePosition();
     }
 
-    function test_order_liquidateFlagged() public {
+    function test_order_liquidateFlaggedFunction() public {
         vm.prank(USER1);
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
         vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 2);
         vm.prank(USER1);
-        fuzz_commitOrder(2e18, type(uint256).max);
+        fuzz_commitOrder(20e18, type(uint256).max);
         vm.prank(USER1);
         fuzz_settleOrder();
         fuzz_crashWBTCPythPrice(20);
