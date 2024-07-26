@@ -20,7 +20,9 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             invariant_LIQ_09(accountIds);
             invariant_LIQ_11(accountIds);
             // invariant_LIQ_16();
-            // invariant_ORD_21();
+            fl.log("0");
+
+            invariant_ORD_21();
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountIds);
         } else {
@@ -38,7 +40,9 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
         if (success) {
             _after(actorsToUpdate);
             // invariant_LIQ_16();
-            // invariant_ORD_21();
+            fl.log("1");
+
+            invariant_ORD_21();
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
@@ -56,7 +60,9 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             _after(actorsToUpdate);
             for (uint i = 0; i < flaggedAccounts.length; i++) {
                 // invariant_LIQ_16();
-                // invariant_ORD_21();
+                fl.log("2");
+
+                invariant_ORD_21();
                 invariant_MGN_16();
                 onSuccessInvariantsGeneral(
                     returnData,
@@ -78,7 +84,8 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             _after(actorsToUpdate);
             for (uint i = 0; i < flaggedAccounts.length; i++) {
                 // invariant_LIQ_16();
-                // invariant_ORD_21();
+                fl.log("3");
+                invariant_ORD_21();
                 invariant_MGN_16();
                 onSuccessInvariantsGeneral(
                     returnData,
