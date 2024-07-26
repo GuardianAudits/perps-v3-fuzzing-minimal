@@ -26,13 +26,13 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
         address userToLiquidate;
         uint128 accountToLiquidate;
         // search users array for one is eligible for liquidation
-        for (uint128 i; i < ACCOUNTS.length; i++) {
-            console2.log("Checking account:", i);
+        for (uint128 i; i < USERS.length; i++) {
+            console2.log("Checking account:", userToAccountIds[USERS[i]]);
 
             (bool success, bytes memory returnData) = perps.call(
                 abi.encodeWithSelector(
                     liquidationModuleImpl.canLiquidate.selector,
-                    i
+                    userToAccountIds[USERS[i]]
                 )
             );
             assert(success);
@@ -40,11 +40,11 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
             bool isEligible = abi.decode(returnData, (bool));
 
             if (isEligible) {
-                accountToLiquidate = i;
+                accountToLiquidate = userToAccountIds[USERS[i]];
                 break;
             }
 
-            if (i == ACCOUNTS.length - 1) {
+            if (i == USERS.length - 1) {
                 require(false, "no flagged users to liquidate");
             }
         }
@@ -61,13 +61,13 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
         returns (LiquidateMarginOnlyParams memory)
     {
         uint128 accountToLiquidate;
-        for (uint128 i; i < ACCOUNTS.length; i++) {
+        for (uint128 i; i < USERS.length; i++) {
             console2.log("Checking account for margin-only liquidation:", i);
 
             (bool success, bytes memory returnData) = perps.call(
                 abi.encodeWithSelector(
                     liquidationModuleImpl.canLiquidateMarginOnly.selector,
-                    i
+                    userToAccountIds[USERS[i]]
                 )
             );
             assert(success);
@@ -75,11 +75,11 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
             bool isEligible = abi.decode(returnData, (bool));
 
             if (isEligible) {
-                accountToLiquidate = i;
+                accountToLiquidate = userToAccountIds[USERS[i]];
                 break;
             }
 
-            if (i == ACCOUNTS.length - 1) {
+            if (i == USERS.length - 1) {
                 require(false, "no flagged users to liquidate margin-only");
             }
         }

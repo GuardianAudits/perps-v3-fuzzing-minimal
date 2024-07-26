@@ -11,12 +11,16 @@ import "./util/FunctionCalls.sol";
  * @author 0xScourgedev
  * @notice Fuzz handlers for LiquidationModule
  */
-contract FuzzLiquidationModule is PreconditionsLiquidationModule, PostconditionsLiquidationModule {
+contract FuzzLiquidationModule is
+    PreconditionsLiquidationModule,
+    PostconditionsLiquidationModule
+{
     event Debug(string s);
     event LogBytes(bytes data);
 
     function fuzz_liquidatePosition() public setCurrentActor {
-        LiquidatePositionParams memory params = liquidatePositionPreconditions();
+        LiquidatePositionParams
+            memory params = liquidatePositionPreconditions();
 
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor; //This is liquidator
@@ -24,7 +28,9 @@ contract FuzzLiquidationModule is PreconditionsLiquidationModule, Postconditions
 
         _before(actorsToUpdate);
 
-        (bool success, bytes memory returnData) = _liquidatePositionCall(params.accountId);
+        (bool success, bytes memory returnData) = _liquidatePositionCall(
+            params.accountId
+        );
 
         liquidatePositionPostconditions(
             success,
@@ -37,7 +43,8 @@ contract FuzzLiquidationModule is PreconditionsLiquidationModule, Postconditions
     }
 
     function fuzz_liquidateMarginOnly() public setCurrentActor {
-        LiquidateMarginOnlyParams memory params = liquidateMarginOnlyPreconditions();
+        LiquidateMarginOnlyParams
+            memory params = liquidateMarginOnlyPreconditions();
 
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor; //This is liquidator
@@ -45,7 +52,9 @@ contract FuzzLiquidationModule is PreconditionsLiquidationModule, Postconditions
 
         _before(actorsToUpdate);
 
-        (bool success, bytes memory returnData) = _liquidateMarginOnlyCall(params.accountId);
+        (bool success, bytes memory returnData) = _liquidateMarginOnlyCall(
+            params.accountId
+        );
 
         liquidateMarginOnlyPostconditions(
             success,
@@ -56,21 +65,36 @@ contract FuzzLiquidationModule is PreconditionsLiquidationModule, Postconditions
         );
     }
 
-    function fuzz_liquidateFlagged(uint8 maxNumberOfAccounts) public setCurrentActor {
-        LiquidateFlaggedParams memory params = liquidateFlaggedPreconditions(maxNumberOfAccounts);
+    function fuzz_liquidateFlagged(
+        uint8 maxNumberOfAccounts
+    ) public setCurrentActor {
+        LiquidateFlaggedParams memory params = liquidateFlaggedPreconditions(
+            maxNumberOfAccounts
+        );
 
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor; //This is liquidator
 
         _before(actorsToUpdate);
 
-        (bool success, bytes memory returnData) = _liquidateFlaggedCall(params.numberOfAccounts);
+        (bool success, bytes memory returnData) = _liquidateFlaggedCall(
+            params.numberOfAccounts
+        );
 
-        liquidateFlaggedPostconditions(success, returnData, actorsToUpdate, params.flaggedAccounts);
+        liquidateFlaggedPostconditions(
+            success,
+            returnData,
+            actorsToUpdate,
+            params.flaggedAccounts
+        );
     }
 
-    function fuzz_liquidateFlaggedAccounts(uint8 maxNumberOfAccounts) public setCurrentActor {
-        LiquidateFlaggedParams memory params = liquidateFlaggedPreconditions(maxNumberOfAccounts);
+    function fuzz_liquidateFlaggedAccounts(
+        uint8 maxNumberOfAccounts
+    ) public setCurrentActor {
+        LiquidateFlaggedParams memory params = liquidateFlaggedPreconditions(
+            maxNumberOfAccounts
+        );
 
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor; //This is liquidator

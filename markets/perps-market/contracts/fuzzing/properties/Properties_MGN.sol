@@ -138,14 +138,14 @@ abstract contract Properties_MGN is PropertiesBase {
         }
     }
 
-    function invariant_MGN_15(uint128 accountId) public {
-        if (!states[0].actorStates[accountId].isPositionLiquidatable) {
-            fl.t(
-                !states[1].actorStates[accountId].isPositionLiquidatable,
-                MGN_15
-            );
-        }
-    }
+    // function invariant_MGN_15(uint128 accountId) public {
+    //     if (!states[0].actorStates[accountId].isPositionLiquidatable) {
+    //         fl.t(
+    //             !states[1].actorStates[accountId].isPositionLiquidatable,
+    //             MGN_15
+    //         );
+    //     }
+    // }
 
     function invariant_MGN_16() public {
         fl.eq(

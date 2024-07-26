@@ -21,8 +21,7 @@ abstract contract PreconditionsBase is FunctionCalls, BeforeAfter {
             // require(guidedDone);
             currentActor = USERS[block.timestamp % (USERS.length)];
             // currentActor = msg.sender;
-            fl.log("================================");
-            fl.log("CURRENT MSG>SENDRR:", msg.sender);
+
             vm.prank(currentActor);
         }
         // }

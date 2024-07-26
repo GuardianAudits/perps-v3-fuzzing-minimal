@@ -50,8 +50,16 @@ contract FuzzPerpsAccountModule is
 
         _before(actorsToUpdate);
 
-        (bool success, bytes memory returnData) = _payDebtCall(params.accountId, params.amount);
+        (bool success, bytes memory returnData) = _payDebtCall(
+            params.accountId,
+            params.amount
+        );
 
-        payDebtPostconditions(success, returnData, actorsToUpdate, params.accountId);
+        payDebtPostconditions(
+            success,
+            returnData,
+            actorsToUpdate,
+            params.accountId
+        );
     }
 }

@@ -118,6 +118,8 @@ contract PropertiesDescriptions {
         "ORD-20:  Sum of the debt of all accounts == global debt..";
     string constant ORD_21 =
         "ORD-21: ReportedDebt == traders' collateral + traders' PnL.";
+    string constant ORD_22 =
+        "ORD-22: Debt should not vanish after settle another order.";
     string constant ORD_23 =
         "ORD-23: AsyncOrder.calculateFillPrice() should never revert.";
 }

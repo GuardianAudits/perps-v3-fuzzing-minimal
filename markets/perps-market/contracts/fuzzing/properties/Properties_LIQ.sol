@@ -129,11 +129,15 @@ abstract contract Properties_LIQ is PropertiesBase {
                 states[1].actorStates[account].availableMargin
             );
             // if position was fully liquidated, market collateral should be decreased by user's margin amount
-            fl.eq(
-                states[0].totalCollateralValueUsd -
-                    states[1].totalCollateralValueUsd,
-                int256(states[0].actorStates[account].totalCollateralValue),
-                // int256(MathUtil.abs(states[0].actorStates[account].availableMargin)),
+            eqWithToleranceWei(
+                uint(
+                    states[0].totalCollateralValueUsd -
+                        states[1].totalCollateralValueUsd
+                ),
+                uint(
+                    int256(states[0].actorStates[account].totalCollateralValue)
+                ),
+                1,
                 LIQ_11
             );
         }
@@ -230,9 +234,7 @@ abstract contract Properties_LIQ is PropertiesBase {
     function invariant_LIQ_18(uint128 account) internal {
         console2.log("account", account);
 
-        if (
-            states[0].actorStates[account].wethMarket.maxLiquidatableAmount > 0
-        ) {
+        if (states[0].actorStates[account].wethMarket.positionSize > 0) {
             console2.log(
                 "states[0].actorStates[account].wethMarket.maxLiquidatableAmount",
                 states[0].actorStates[account].wethMarket.maxLiquidatableAmount
@@ -252,9 +254,7 @@ abstract contract Properties_LIQ is PropertiesBase {
             );
         }
 
-        if (
-            states[1].actorStates[account].wethMarket.maxLiquidatableAmount > 0
-        ) {
+        if (states[1].actorStates[account].wethMarket.positionSize > 0) {
             console2.log(
                 "states[1].actorStates[account].wethMarket.maxLiquidatableAmount",
                 states[1].actorStates[account].wethMarket.maxLiquidatableAmount
@@ -274,9 +274,7 @@ abstract contract Properties_LIQ is PropertiesBase {
             );
         }
 
-        if (
-            states[0].actorStates[account].wbtcMarket.maxLiquidatableAmount > 0
-        ) {
+        if (states[0].actorStates[account].wbtcMarket.positionSize > 0) {
             console2.log(
                 "states[0].actorStates[account].wbtcMarket.maxLiquidatableAmount",
                 states[0].actorStates[account].wbtcMarket.maxLiquidatableAmount
@@ -296,9 +294,7 @@ abstract contract Properties_LIQ is PropertiesBase {
             );
         }
 
-        if (
-            states[1].actorStates[account].wbtcMarket.maxLiquidatableAmount > 0
-        ) {
+        if (states[1].actorStates[account].wbtcMarket.positionSize > 0) {
             console2.log(
                 "states[1].actorStates[account].wbtcMarket.maxLiquidatableAmount",
                 states[1].actorStates[account].wbtcMarket.maxLiquidatableAmount

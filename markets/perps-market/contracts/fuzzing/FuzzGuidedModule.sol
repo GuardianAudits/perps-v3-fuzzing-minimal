@@ -33,6 +33,9 @@ contract FuzzGuidedModule is
             true,
             true
         );
+
+        //Make sure it is zero @giraffe
+        //pump here $50k
         fuzz_modifyCollateral(amountToDeposit, collateralId);
 
         (bool success, bytes memory returnData) = perps.call(
@@ -51,6 +54,8 @@ contract FuzzGuidedModule is
 
         require(amount > 0, "User needs some collateral");
 
+        //make sure we are on high enough price @giraffe
+
         fuzz_commitOrder(
             int128(uint128(amount) * 2),
             isWETH ? type(uint256).max - 1 : type(uint256).max //maxprice + marketId
@@ -58,10 +63,10 @@ contract FuzzGuidedModule is
         fuzz_settleOrder();
         isWETH
             ? fuzz_crashWETHPythPrice(uint(amountToDeposit))
-            : fuzz_crashWBTCPythPrice(uint(amountToDeposit));
+            : fuzz_crashWBTCPythPrice(uint(amountToDeposit)); //20% lower
         fuzz_commitOrder((int128(uint128(amount * 2)) * -1), isWETH ? 6 : 5); //maxprice + marketId
         fuzz_settleOrder();
-        isWETH ? fuzz_crashWETHPythPrice(20) : fuzz_crashWBTCPythPrice(20);
+        isWETH ? fuzz_crashWETHPythPrice(20) : fuzz_crashWBTCPythPrice(20); //
         fuzz_liquidateMarginOnly();
     }
 

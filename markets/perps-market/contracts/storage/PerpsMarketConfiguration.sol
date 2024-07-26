@@ -6,13 +6,18 @@ import {SafeCastI128} from "@synthetixio/core-contracts/contracts/utils/SafeCast
 import {OrderFee} from "./OrderFee.sol";
 import {SettlementStrategy} from "./SettlementStrategy.sol";
 import {MathUtil} from "../utils/MathUtil.sol";
+import {console2} from "lib/forge-std/src/Test.sol";
 
 library PerpsMarketConfiguration {
     using DecimalMath for int256;
     using DecimalMath for uint256;
     using SafeCastI128 for int128;
 
-    error MaxOpenInterestReached(uint128 marketId, uint256 maxMarketSize, int256 newSideSize);
+    error MaxOpenInterestReached(
+        uint128 marketId,
+        uint256 maxMarketSize,
+        int256 newSideSize
+    );
 
     error MaxUSDOpenInterestReached(
         uint128 marketId,
@@ -83,26 +88,36 @@ library PerpsMarketConfiguration {
 
     function load(uint128 marketId) internal pure returns (Data storage store) {
         bytes32 s = keccak256(
-            abi.encode("io.synthetix.perps-market.PerpsMarketConfiguration", marketId)
+            abi.encode(
+                "io.synthetix.perps-market.PerpsMarketConfiguration",
+                marketId
+            )
         );
         assembly {
             store.slot := s
         }
     }
 
-    function maxLiquidationAmountInWindow(Data storage self) internal view returns (uint256) {
+    function maxLiquidationAmountInWindow(
+        Data storage self
+    ) internal view returns (uint256) {
         OrderFee.Data storage orderFeeData = self.orderFees;
         return
-            (orderFeeData.makerFee + orderFeeData.takerFee).mulDecimal(self.skewScale).mulDecimal(
-                self.maxLiquidationLimitAccumulationMultiplier
-            ) * self.maxSecondsInLiquidationWindow;
+            (orderFeeData.makerFee + orderFeeData.takerFee)
+                .mulDecimal(self.skewScale)
+                .mulDecimal(self.maxLiquidationLimitAccumulationMultiplier) *
+            self.maxSecondsInLiquidationWindow;
     }
 
     function numberOfLiquidationWindows(
         Data storage self,
         uint256 positionSize
     ) internal view returns (uint256) {
-        return MathUtil.ceilDivide(positionSize, maxLiquidationAmountInWindow(self));
+        return
+            MathUtil.ceilDivide(
+                positionSize,
+                maxLiquidationAmountInWindow(self)
+            );
     }
 
     function calculateFlagReward(
@@ -112,6 +127,44 @@ library PerpsMarketConfiguration {
         return notionalValue.mulDecimal(self.flagRewardRatioD18);
     }
 
+    // function calculateRequiredMargins(
+    //     Data storage self,
+    //     int128 size,
+    //     uint256 price
+    // )
+    //     internal
+    //     view
+    //     returns (
+    //         uint256 initialMarginRatio,
+    //         uint256 maintenanceMarginRatio,
+    //         uint256 initialMargin,
+    //         uint256 maintenanceMargin
+    //     )
+    // {
+    //     if (size == 0) {
+    //         return (0, 0, 0, 0);
+    //     }
+    //     uint256 sizeAbs = MathUtil.abs(size.to256());
+    //     uint256 impactOnSkew = self.skewScale == 0
+    //         ? 0
+    //         : sizeAbs.divDecimal(self.skewScale);
+
+    //     initialMarginRatio =
+    //         impactOnSkew.mulDecimal(self.initialMarginRatioD18) +
+    //         self.minimumInitialMarginRatioD18;
+    //     maintenanceMarginRatio = initialMarginRatio.mulDecimal(
+    //         self.maintenanceMarginScalarD18
+    //     );
+
+    //     uint256 notional = sizeAbs.mulDecimal(price);
+
+    //     initialMargin =
+    //         notional.mulDecimal(initialMarginRatio) +
+    //         self.minimumPositionMargin;
+    //     maintenanceMargin =
+    //         notional.mulDecimal(maintenanceMarginRatio) +
+    //         self.minimumPositionMargin;
+    // }
     function calculateRequiredMargins(
         Data storage self,
         int128 size,
@@ -126,25 +179,61 @@ library PerpsMarketConfiguration {
             uint256 maintenanceMargin
         )
     {
+        console2.log("size", int256(size));
+        console2.log("price", price);
+
         if (size == 0) {
+            console2.log("size is 0, returning all zeros");
             return (0, 0, 0, 0);
         }
-        uint256 sizeAbs = MathUtil.abs(size.to256());
-        uint256 impactOnSkew = self.skewScale == 0 ? 0 : sizeAbs.divDecimal(self.skewScale);
 
+        uint256 sizeAbs = MathUtil.abs(size.to256());
+        console2.log("sizeAbs", sizeAbs);
+
+        console2.log("self.skewScale", self.skewScale);
+        uint256 impactOnSkew = self.skewScale == 0
+            ? 0
+            : sizeAbs.divDecimal(self.skewScale);
+        console2.log("impactOnSkew", impactOnSkew);
+
+        console2.log("self.initialMarginRatioD18", self.initialMarginRatioD18);
+        console2.log(
+            "self.minimumInitialMarginRatioD18",
+            self.minimumInitialMarginRatioD18
+        );
         initialMarginRatio =
             impactOnSkew.mulDecimal(self.initialMarginRatioD18) +
             self.minimumInitialMarginRatioD18;
-        maintenanceMarginRatio = initialMarginRatio.mulDecimal(self.maintenanceMarginScalarD18);
+        console2.log("initialMarginRatio", initialMarginRatio);
+
+        console2.log(
+            "self.maintenanceMarginScalarD18",
+            self.maintenanceMarginScalarD18
+        );
+        maintenanceMarginRatio = initialMarginRatio.mulDecimal(
+            self.maintenanceMarginScalarD18
+        );
+        console2.log("maintenanceMarginRatio", maintenanceMarginRatio);
 
         uint256 notional = sizeAbs.mulDecimal(price);
+        console2.log("notional", notional);
 
-        initialMargin = notional.mulDecimal(initialMarginRatio) + self.minimumPositionMargin;
+        console2.log("self.minimumPositionMargin", self.minimumPositionMargin);
+        initialMargin =
+            notional.mulDecimal(initialMarginRatio) +
+            self.minimumPositionMargin;
+        console2.log("initialMargin", initialMargin);
+
         maintenanceMargin =
             notional.mulDecimal(maintenanceMarginRatio) +
             self.minimumPositionMargin;
-    }
+        console2.log("maintenanceMargin", maintenanceMargin);
 
+        console2.log("Final initialMarginRatio", initialMarginRatio);
+        console2.log("Final maintenanceMarginRatio", maintenanceMarginRatio);
+        console2.log("Final initialMargin", initialMargin);
+        console2.log("Final maintenanceMargin", maintenanceMargin);
+    }
     /**
      * @notice given a strategy id, returns the entire settlement strategy struct
      */

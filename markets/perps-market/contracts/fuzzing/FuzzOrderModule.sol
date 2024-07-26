@@ -7,10 +7,16 @@ import "./helper/postconditions/PostconditionsOrderModule.sol";
 import "./util/FunctionCalls.sol";
 import "../storage/Position.sol";
 
-contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule {
+contract FuzzOrderModule is
+    PreconditionsOrderModule,
+    PostconditionsOrderModule
+{
     mapping(uint128 accountId => CommitOrderParams params) public pendingOrder;
 
-    function fuzz_commitOrder(int128 sizeDelta, uint256 acceptablePrice) public setCurrentActor {
+    function fuzz_commitOrder(
+        int128 sizeDelta,
+        uint256 acceptablePrice
+    ) public setCurrentActor {
         console2.log("===== FuzzOrderModule::fuzz_commitOrder START =====");
 
         address[] memory actorsToUpdate = new address[](1);
@@ -45,7 +51,6 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
             ? states[0].actorStates[params.accountId].wethMarket.positionSize
             : states[0].actorStates[params.accountId].wbtcMarket.positionSize;
 
-        
         // Close position entirely.
         if (acceptablePrice % 5 == 0 && positionSize != 0) {
             params.sizeDelta = positionSize * -1;
@@ -63,7 +68,6 @@ contract FuzzOrderModule is PreconditionsOrderModule, PostconditionsOrderModule 
         );
         console2.log("===== _commitOrderCall END =====");
         console2.log("===== commitOrderPostconditions START =====");
-
 
         commitOrderPostconditions(
             success,

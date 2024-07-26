@@ -41,4 +41,31 @@ abstract contract PropertiesBase is
             fl.log("Percentage difference: ", percentDiff);
         }
     }
+
+    function eqWithToleranceWei(
+        uint256 a,
+        uint256 b,
+        uint256 maxWeiDiff,
+        string memory reason
+    ) internal {
+        if (a == b) return;
+
+        uint256 diff;
+        if (a > b) {
+            diff = a - b;
+        } else {
+            diff = b - a;
+        }
+
+        if (diff > maxWeiDiff) {
+            fl.log("a: ", a);
+            fl.log("b: ", b);
+            fl.log("Difference in wei is bigger than expected", diff);
+            fl.t(false, reason);
+        } else {
+            fl.t(true, "Invariant ok, checked for: ");
+            fl.log(reason);
+            fl.log("Difference in wei: ", diff);
+        }
+    }
 }

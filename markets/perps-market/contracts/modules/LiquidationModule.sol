@@ -56,7 +56,13 @@ contract LiquidationModule is ILiquidationModule, IMarketEvents {
                 uint256 requiredMaintenaceMargin,
                 uint256 expectedLiquidationReward
             ) = account.isEligibleForLiquidation(PerpsPrice.Tolerance.STRICT);
-
+            console2.log("isEligible", isEligible);
+            console2.log("availableMargin", availableMargin);
+            console2.log("requiredMaintenanceMargin", requiredMaintenaceMargin);
+            console2.log(
+                "expectedLiquidationReward",
+                expectedLiquidationReward
+            );
             if (isEligible) {
                 (uint256 flagCost, uint256 seizedMarginValue) = account
                     .flagForLiquidation();
