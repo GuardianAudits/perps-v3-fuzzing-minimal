@@ -345,4 +345,14 @@ contract FoundryPlayground is FuzzModules {
             1014
         );
     }
+
+    function test_ORD_21() public {
+        vm.roll(block.number + 45852);
+        vm.warp(block.timestamp + 1);
+        fuzz_cancelOrder(255); 
+        vm.roll(block.number + 11826);
+        vm.warp(block.timestamp + 5);
+        fuzz_guided_createDebt_LiquidateMarginOnly(true,32340893082257289989694766967862054800338950119547607012085591980478505381479);
+
+    }
 }
