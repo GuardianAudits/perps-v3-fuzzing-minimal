@@ -7,18 +7,23 @@ contract GlobalCoverage is FuzzBase {
         uint256 depositedSusdCollateral,
         uint256 depositedWethCollateral,
         uint256 depositedWbtcCollateral,
-        int256 totalCollateralValueUsd,
-        int256 totalCollateralValueUsdGhost,
+        uint256 totalCollateralValueUsd,
+        uint256 totalCollateralValueUsdGhost,
         int128 skew
     ) internal {
         _logSusdCollateralCoverage(depositedSusdCollateral);
         _logWethCollateralCoverage(depositedWethCollateral);
         _logWbtcCollateralCoverage(depositedWbtcCollateral);
-        _logTotalCollateralValueCoverage(totalCollateralValueUsd, totalCollateralValueUsdGhost);
+        _logTotalCollateralValueCoverage(
+            totalCollateralValueUsd,
+            totalCollateralValueUsdGhost
+        );
         _logSkewCoverage(skew);
     }
 
-    function _logSusdCollateralCoverage(uint256 depositedSusdCollateral) internal {
+    function _logSusdCollateralCoverage(
+        uint256 depositedSusdCollateral
+    ) internal {
         if (depositedSusdCollateral == 0) {
             fl.log("No SUSD collateral deposited");
         } else if (depositedSusdCollateral <= 1000e18) {
@@ -32,7 +37,9 @@ contract GlobalCoverage is FuzzBase {
         }
     }
 
-    function _logWethCollateralCoverage(uint256 depositedWethCollateral) internal {
+    function _logWethCollateralCoverage(
+        uint256 depositedWethCollateral
+    ) internal {
         if (depositedWethCollateral == 0) {
             fl.log("No WETH collateral deposited");
         } else if (depositedWethCollateral <= 10e18) {
@@ -46,7 +53,9 @@ contract GlobalCoverage is FuzzBase {
         }
     }
 
-    function _logWbtcCollateralCoverage(uint256 depositedWbtcCollateral) internal {
+    function _logWbtcCollateralCoverage(
+        uint256 depositedWbtcCollateral
+    ) internal {
         if (depositedWbtcCollateral == 0) {
             fl.log("No WBTC collateral deposited");
         } else if (depositedWbtcCollateral <= 1e8) {
@@ -61,8 +70,8 @@ contract GlobalCoverage is FuzzBase {
     }
 
     function _logTotalCollateralValueCoverage(
-        int256 totalCollateralValueUsd,
-        int256 totalCollateralValueUsdGhost
+        uint256 totalCollateralValueUsd,
+        uint256 totalCollateralValueUsdGhost
     ) internal {
         if (totalCollateralValueUsd == 0) {
             fl.log("No total collateral value");
@@ -82,17 +91,6 @@ contract GlobalCoverage is FuzzBase {
             fl.log("Total collateral value higher than ghost value");
         } else {
             fl.log("Total collateral value lower than ghost value");
-        }
-
-        int256 difference = totalCollateralValueUsd - totalCollateralValueUsdGhost;
-        if (difference == 0) {
-            fl.log("No difference between total and ghost collateral values");
-        } else if (abs(difference) <= 100e18) {
-            fl.log("Small difference between total and ghost collateral values (0-100)");
-        } else if (abs(difference) <= 1000e18) {
-            fl.log("Medium difference between total and ghost collateral values (100-1000)");
-        } else {
-            fl.log("Large difference between total and ghost collateral values (>1000)");
         }
     }
 
@@ -282,7 +280,9 @@ contract GlobalCoverage is FuzzBase {
         if (abs(reportedDebtGhost) > int256(marketSizeGhost)) {
             fl.log("Absolute reported debt ghost exceeds market size ghost");
         } else {
-            fl.log("Market size ghost exceeds or equals absolute reported debt ghost");
+            fl.log(
+                "Market size ghost exceeds or equals absolute reported debt ghost"
+            );
         }
     }
     // Helper function to get absolute value of int256

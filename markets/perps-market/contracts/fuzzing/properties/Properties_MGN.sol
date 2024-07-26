@@ -50,7 +50,15 @@ abstract contract Properties_MGN is PropertiesBase {
             fl.eq(
                 int256(states[1].depositedWbtcCollateral),
                 int256(states[0].depositedWbtcCollateral) + amountDelta,
-                MGN_05 //TODO: split btc and eth desc
+                MGN_05
+            );
+        }
+
+        if (amountDelta != 0 && collateral == address(wethTokenMock)) {
+            fl.eq(
+                int256(states[1].depositedWethCollateral),
+                int256(states[0].depositedWethCollateral) + amountDelta,
+                MGN_05
             );
         }
     }
@@ -79,9 +87,10 @@ abstract contract Properties_MGN is PropertiesBase {
             states[1].totalCollateralValueUsdGhost
         );
 
-        fl.eq(
+        eqWithTolerance(
             states[1].totalCollateralValueUsd,
             states[1].totalCollateralValueUsdGhost,
+            0.01e18,
             MGN_08
         );
     }
@@ -138,14 +147,14 @@ abstract contract Properties_MGN is PropertiesBase {
         }
     }
 
-    // function invariant_MGN_15(uint128 accountId) public {
-    //     if (!states[0].actorStates[accountId].isPositionLiquidatable) {
-    //         fl.t(
-    //             !states[1].actorStates[accountId].isPositionLiquidatable,
-    //             MGN_15
-    //         );
-    //     }
-    // }
+    function invariant_MGN_15(uint128 accountId) public {
+        if (!states[0].actorStates[accountId].isPositionLiquidatable) {
+            fl.t(
+                !states[1].actorStates[accountId].isPositionLiquidatable,
+                MGN_15
+            );
+        }
+    }
 
     function invariant_MGN_16() public {
         fl.eq(

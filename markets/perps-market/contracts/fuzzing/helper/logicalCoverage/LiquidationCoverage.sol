@@ -3,6 +3,21 @@ pragma solidity ^0.8.0;
 import "@perimetersec/fuzzlib/src/FuzzBase.sol";
 
 contract LiquidationCoverage is FuzzBase {
+    function _logLiquidateMarginOnlyCoverage(
+        uint lcov_liquidateMarginOnlyCovered
+    ) internal {
+        if (lcov_liquidateMarginOnlyCovered == 1) {
+            fl.log("Hit MarginOnly once");
+        } else if (
+            lcov_liquidateMarginOnlyCovered > 1 &&
+            lcov_liquidateMarginOnlyCovered < 10
+        ) {
+            fl.log("Hit MarginOnly up to 10 times");
+        } else if (lcov_liquidateMarginOnlyCovered > 10) {
+            fl.log("Hit MarginOnly more than 10 times");
+        }
+    }
+
     function _logLiquidatableCoverage(
         bool isPositionLiquidatable,
         bool isMarginLiquidatable
@@ -18,7 +33,9 @@ contract LiquidationCoverage is FuzzBase {
         }
     }
 
-    function _logCollateralIdsCoverage(uint256[] memory collateralIds) internal {
+    function _logCollateralIdsCoverage(
+        uint256[] memory collateralIds
+    ) internal {
         if (collateralIds.length == 0) {
             fl.log("No collateral IDs");
         } else if (collateralIds.length == 1) {

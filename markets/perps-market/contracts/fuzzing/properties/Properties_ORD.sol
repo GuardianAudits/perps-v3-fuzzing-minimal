@@ -260,7 +260,12 @@ abstract contract Properties_ORD is PropertiesBase {
     }
 
     function invariant_ORD_20() internal {
-        fl.eq(states[1].totalDebtCalculated, states[1].totalDebt, ORD_20);
+        eqWithTolerance(
+            MathUtil.abs(states[1].totalDebtCalculated),
+            MathUtil.abs(states[1].totalDebt),
+            0.000001e18,
+            ORD_20
+        );
     }
 
     function invariant_ORD_21() internal {

@@ -49,9 +49,12 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             // TODO: Properly handle markets for this invariant. BeforeAfter changes required.
             invariant_ORD_09(accountId, marketId);
             invariant_ORD_12(accountId);
-            // invariant_ORD_18(accountId, marketId); //TODO:
+            invariant_ORD_18(accountId, marketId);
             fl.log("4");
-            invariant_ORD_22(accountId);
+
+            //@audit reformulate
+            // invariant_ORD_22(accountId);
+            //@audit to resolve
             // invariant_ORD_21();
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountId);

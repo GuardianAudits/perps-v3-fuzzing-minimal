@@ -20,6 +20,8 @@ abstract contract BeforeAfter is
     GlobalCoverage
 {
     mapping(uint8 => State) states;
+    uint lcov_liquidateMarginOnlyCovered;
+
     struct PositionVars {
         // Position.Data position; getting separately instead
         int256 totalPnl;
@@ -52,7 +54,7 @@ abstract contract BeforeAfter is
         int256 collateralValueAllUsersWETHCalculated;
         int256 collateralValueAllUsersWBTCCalculated;
         uint depositedHUGECollateral;
-        int256 totalCollateralValueUsd;
+        uint256 totalCollateralValueUsd;
         uint256 marketSizeGhost;
         uint256 delegatedCollateralValueUsd; //get with lens
         uint128 currentUtilizationAccruedComputed; //get with lens
@@ -60,7 +62,7 @@ abstract contract BeforeAfter is
         uint256 delegatedCollateral; //perpsMarketFactoryModuleImpl.utilizationRate
         uint256 lockedCredit; //perpsMarketFactoryModuleImpl.utilizationRate
         uint256 reportedDebtGhost;
-        int256 totalCollateralValueUsdGhost;
+        uint256 totalCollateralValueUsdGhost;
         uint256 minimumCredit;
         int128 skew;
         int256 totalDebtCalculated;
@@ -125,7 +127,7 @@ abstract contract BeforeAfter is
         bytes32 nodeId;
         int256 price;
         int256 value;
-        int256 totalCollateralValueUsdGhost;
+        uint256 totalCollateralValueUsdGhost;
         uint128 accountId;
         int256 collateralValueUsd;
         int256 pricePnL;
@@ -157,6 +159,13 @@ abstract contract BeforeAfter is
 
         if (DEBUG) debugAfter(actors);
     }
+
+    function _checkLCov(bool lcov) internal {
+        lcov
+            ? lcov_liquidateMarginOnlyCovered += 1
+            : lcov_liquidateMarginOnlyCovered;
+    }
+
     function _setStates(uint8 callNum, address[] memory actors) internal {
         for (uint256 i = 0; i < ACCOUNTS.length; i++) {
             _setActorState(callNum, ACCOUNTS[i], accountIdToUser[ACCOUNTS[i]]);
@@ -235,6 +244,8 @@ abstract contract BeforeAfter is
             states[callNum].actorStates[accountId].isPositionLiquidatable,
             states[callNum].actorStates[accountId].isMarginLiquidatable
         );
+
+        _logLiquidateMarginOnlyCoverage(lcov_liquidateMarginOnlyCovered);
     }
 
     function getCollateralInfo(
@@ -665,7 +676,7 @@ abstract contract BeforeAfter is
         );
         assert(success);
         uint256 totalCollateralValue = abi.decode(returnData, (uint256));
-        states[callNum].totalCollateralValueUsd = int256(totalCollateralValue);
+        states[callNum].totalCollateralValueUsd = totalCollateralValue;
 
         _logGlobalCollateralValuesCoverage(
             states[callNum].depositedSusdCollateral,
@@ -729,8 +740,8 @@ abstract contract BeforeAfter is
         uint8 callNum,
         uint128 accountId,
         StackCache memory cache
-    ) private view returns (int256) {
-        int256 totalValue = 0;
+    ) private view returns (uint256) {
+        uint256 totalValue = 0;
         totalValue += calculateCollateralValueForToken(
             callNum,
             accountId,
@@ -762,22 +773,22 @@ abstract contract BeforeAfter is
         uint256 collateralId,
         int256 price,
         StackCache memory cache
-    ) private view returns (int256) {
-        int256 amount;
+    ) private view returns (uint256) {
+        uint256 amount;
         if (collateralId == 0) {
-            amount = int256(
-                states[callNum].actorStates[accountId].collateralAmountSUSD
-            );
+            amount = states[callNum]
+                .actorStates[accountId]
+                .collateralAmountSUSD;
         } else if (collateralId == 1) {
-            amount = int256(
-                states[callNum].actorStates[accountId].collateralAmountWETH
-            );
+            amount = states[callNum]
+                .actorStates[accountId]
+                .collateralAmountWETH;
         } else if (collateralId == 2) {
-            amount = int256(
-                states[callNum].actorStates[accountId].collateralAmountWBTC
-            );
+            amount = states[callNum]
+                .actorStates[accountId]
+                .collateralAmountWBTC;
         }
-        return (price * amount) / 1e18;
+        return (uint256(price) * amount) / 1e18;
     }
 
     function calculateCollateralValueForEveryToken(

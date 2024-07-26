@@ -57,7 +57,7 @@ abstract contract PostconditionsPerpsAccountModule is PostconditionsBase {
     ) internal {
         if (success) {
             _after(actorsToUpdate);
-            invariant_MGN_14(accountId);
+            invariant_MGN_15(accountId);
             // invariant_MGN_07();
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountId);

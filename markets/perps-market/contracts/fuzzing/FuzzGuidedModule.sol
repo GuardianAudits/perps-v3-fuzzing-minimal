@@ -36,6 +36,8 @@ contract FuzzGuidedModule is
 
         //Make sure it is zero @giraffe
         //pump here $50k
+        isWETH ? fuzz_pumpWETHPythPrice(20) : fuzz_pumpWBTCPythPrice(20);
+
         fuzz_modifyCollateral(amountToDeposit, collateralId);
 
         (bool success, bytes memory returnData) = perps.call(

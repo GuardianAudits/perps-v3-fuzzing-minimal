@@ -15,17 +15,27 @@ abstract contract PostconditionsAdmin is PostconditionsBase {
         bool isIncrease = newPrice % 2 == 0;
 
         // only change the chainlink oracle price for index tokens
-        // if (chainlinkNodeId != bytes32(0)) {
-        //     int256 newPriceWithVariance;
-        //     int256 priceDivergenceBps = fl.clamp(newPrice, 0, PRICE_DIVERGENCE_BPS_256);
-        //     if (isIncrease) {
-        //         newPriceWithVariance = (newPrice * (priceDivergenceBps + INT_ONE_HUNDRED_BP)) / INT_ONE_HUNDRED_BP;
-        //     }
-        //     else {
-        //         newPriceWithVariance = (newPrice * (INT_ONE_HUNDRED_BP - priceDivergenceBps)) / INT_ONE_HUNDRED_BP;
-        //     }
-        mockOracleManager.changePrice(nodeId, newPrice); // mockOracleManager.changePrice(chainlinkNodeId, newPriceWithVariance);
-        // }
+        if (chainlinkNodeId != bytes32(0)) {
+            int256 newPriceWithVariance;
+            int256 priceDivergenceBps = fl.clamp(
+                newPrice,
+                0,
+                PRICE_DIVERGENCE_BPS_256
+            );
+            if (isIncrease) {
+                newPriceWithVariance =
+                    (newPrice * (priceDivergenceBps + INT_ONE_HUNDRED_BP)) /
+                    INT_ONE_HUNDRED_BP;
+            } else {
+                newPriceWithVariance =
+                    (newPrice * (INT_ONE_HUNDRED_BP - priceDivergenceBps)) /
+                    INT_ONE_HUNDRED_BP;
+            }
+            mockOracleManager.changePrice(
+                chainlinkNodeId,
+                newPriceWithVariance
+            );
+        }
     }
 
     /// @notice changes pyth price to correspond to chainlink price
