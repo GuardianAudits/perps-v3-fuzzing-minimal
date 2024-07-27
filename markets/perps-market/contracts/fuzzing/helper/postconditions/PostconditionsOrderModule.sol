@@ -50,7 +50,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             invariant_ORD_09(accountId, marketId);
             invariant_ORD_12(accountId);
             // @audit Invalid assertion formulation.
-            // invariant_ORD_18(accountId, marketId);
+            invariant_ORD_18(accountId, marketId);
             fl.log("4");
 
             //@audit reformulate
