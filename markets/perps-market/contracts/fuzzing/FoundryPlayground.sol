@@ -10,13 +10,13 @@ contract FoundryPlayground is FuzzModules {
         setup();
         setupActors();
         // vm.prank(USER1);
-        deposit(1, 0, 100e18);
+        // deposit(1, 0, 100e18);
         //depositing usd for settlement reward
         // vm.prank(USER1);
-        deposit(1, 1, 100e18);
+        // deposit(1, 1, 100e18);
         // vm.prank(USER1);
-        deposit(1, 2, 100e18);
-        vm.warp(block.timestamp + 100); //@giraffe solution on beforeafter underflow
+        // deposit(1, 2, 100e18);
+        vm.warp(1524785992); //@giraffe solution on beforeafter underflow
     }
 
     function test_deposit_withdraw_HUGE() public {
@@ -973,5 +973,14 @@ contract FoundryPlayground is FuzzModules {
         fuzz_payDebt(884059082);
 
         console2.log("======== HERE1");
+    }
+
+    function test_ORD_18() public {
+        //  *wait* Time delay: 2 seconds Block delay: 3
+        vm.warp(block.timestamp + 2);
+        vm.roll(block.number + 3);
+        fuzz_guided_depositAndShort();
+        fuzz_cancelOrder(0);
+        fuzz_settleOrder();
     }
 }
