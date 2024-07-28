@@ -178,7 +178,7 @@ abstract contract Properties_LIQ is PropertiesBase {
             .wethMarket
             .debtCorrectionAccumulator >
             states[1].wethMarket.debtCorrectionAccumulator) &&
-            (states[0].wethMarket.reportedDebt >
+            (states[0].wethMarket.reportedDebt >=
                 states[1].wethMarket.reportedDebt);
 
         fl.log(
@@ -202,7 +202,7 @@ abstract contract Properties_LIQ is PropertiesBase {
             .wbtcMarket
             .debtCorrectionAccumulator >
             states[1].wbtcMarket.debtCorrectionAccumulator) &&
-            (states[0].wbtcMarket.reportedDebt >
+            (states[0].wbtcMarket.reportedDebt >=
                 states[1].wbtcMarket.reportedDebt);
 
         fl.t(

@@ -88,10 +88,10 @@ contract FuzzGuidedModule is
             ? fuzz_crashWETHPythPrice(uint(1))
             : fuzz_crashWBTCPythPrice(uint(1)); //20% lower
 
-        (bool success, bytes memory returnData) = perps.call(
+        (success, returnData) = perps.call(
             abi.encodeWithSelector(
                 liquidationModuleImpl.canLiquidate.selector,
-                accountId
+                userToAccountIds[currentActor]
             )
         );
         assert(success);

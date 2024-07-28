@@ -97,18 +97,18 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
         uint numberOfAccounts = fl.clamp(
             maxNumberOfAccounts,
             0,
-            (ACCOUNTS.length - 1)
+            (USERS.length - 1)
         );
         uint256 liquidatableAccountsCount = 0;
-        uint256[] memory liquidatableAccounts = new uint256[](ACCOUNTS.length);
+        uint256[] memory liquidatableAccounts = new uint256[](USERS.length);
 
-        for (uint128 i; i < ACCOUNTS.length; i++) {
-            console2.log("Checking account:", i);
+        for (uint128 i; i < USERS.length; i++) {
+            console2.log("Checking account:", userToAccountIds[USERS[i]]);
 
             (bool success, bytes memory returnData) = perps.call(
                 abi.encodeWithSelector(
                     liquidationModuleImpl.canLiquidate.selector,
-                    i
+                    userToAccountIds[USERS[i]]
                 )
             );
             assert(success);
@@ -116,7 +116,9 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
             bool isEligible = abi.decode(returnData, (bool));
 
             if (isEligible) {
-                liquidatableAccounts[liquidatableAccountsCount] = i;
+                liquidatableAccounts[
+                    liquidatableAccountsCount
+                ] = userToAccountIds[USERS[i]];
                 liquidatableAccountsCount++;
             }
         }

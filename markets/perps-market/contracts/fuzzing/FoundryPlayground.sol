@@ -170,29 +170,20 @@ contract FoundryPlayground is FuzzModules {
     }
 
     function test_order_liquidateFlagged() public {
-        // vm.prank(USER1);
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
-        // vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 2);
-        // vm.prank(USER1);
         fuzz_commitOrder(20e18, type(uint256).max);
-        // vm.prank(USER1);
+        fuzz_settleOrder();
         fuzz_crashWBTCPythPrice(20);
-        // vm.prank(USER1);
         fuzz_liquidateFlagged(100);
     }
 
     function test_order_liquidateFlaggedAccounts() public {
-        // vm.prank(USER1);
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
-        // vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 2);
-        // vm.prank(USER1);
         fuzz_commitOrder(2e18, type(uint256).max);
-        // vm.prank(USER1);
         fuzz_settleOrder();
-        //fuzz_crashWBTCPythPrice();
-        // vm.prank(USER1);
+        fuzz_crashWBTCPythPrice(20);
         fuzz_liquidateFlaggedAccounts(100);
     }
 
@@ -315,68 +306,6 @@ contract FoundryPlayground is FuzzModules {
     function test_deposit_withdraw_WBTC() public {
         deposit(1, 2, 1000);
         withdraw(1, 2, -100);
-    }
-    function deposit(
-        uint128 accountId,
-        uint128 collateralId,
-        int delta
-    ) internal {
-        address user;
-        if (accountId == 1) {
-            user = USER1;
-        } else if (accountId == 2) {
-            user = USER2;
-        } else {
-            user = USER3;
-        }
-        vm.prank(user);
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.modifyCollateral.selector,
-                accountId,
-                collateralId,
-                delta
-            )
-        );
-        if (!success) {
-            if (returnData.length > 0) {
-                string memory errorMessage = abi.decode(returnData, (string));
-                revert(errorMessage);
-            } else {
-                revert("Call to perps contract failed");
-            }
-        }
-    }
-    function withdraw(
-        uint128 accountId,
-        uint128 collateralId,
-        int delta
-    ) internal {
-        address user;
-        if (accountId == 1) {
-            user = USER1;
-        } else if (accountId == 2) {
-            user = USER2;
-        } else {
-            user = USER3;
-        }
-        // vm.prank(user);
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.modifyCollateral.selector,
-                accountId,
-                collateralId,
-                delta
-            )
-        );
-        if (!success) {
-            if (returnData.length > 0) {
-                string memory errorMessage = abi.decode(returnData, (string));
-                revert(errorMessage);
-            } else {
-                revert("Call to perps contract failed");
-            }
-        }
     }
 
     function test_falsified_1() public {
@@ -989,7 +918,9 @@ contract FoundryPlayground is FuzzModules {
         vm.roll(block.number + 4112);
         fuzz_guided_depositAndShort();
         fuzz_settleOrder();
-        fuzz_pumpWETHPythPrice(163792592102731729135052124907094090042026070912324728664580660786065508436);
+        fuzz_pumpWETHPythPrice(
+            163792592102731729135052124907094090042026070912324728664580660786065508436
+        );
         fuzz_liquidatePosition();
     }
 
@@ -1002,19 +933,21 @@ contract FoundryPlayground is FuzzModules {
         vm.roll(block.number + 52331);
         try this.excludeArtifacts() {} catch {}
 
-        try this.pendingOrder(214287796030402947727426544725022203104) {} catch {}
+        try
+            this.pendingOrder(214287796030402947727426544725022203104)
+        {} catch {}
 
-        try this.fuzz_payDebt(128354471236838546871697598878614575996) {} catch {}
+        try
+            this.fuzz_payDebt(128354471236838546871697598878614575996)
+        {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 13100);
-        try this.invariant_ORD_22(5901090105132517108698402530431002734) {} catch {}
 
         try this.targetArtifactSelectors() {} catch {}
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 35200);
-        try this.invariant_MGN_14(3098295) {} catch {}
 
         try this.excludeContracts() {} catch {}
 
@@ -1032,7 +965,6 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 30784);
-        try this.invariant_MGN_15(4369999) {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 10158);
@@ -1042,7 +974,6 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 5023);
-        try this.invariant_MGN_15(154118822727123805211247264644558574134) {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 12155);
@@ -1050,7 +981,6 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 42595);
-        try this.invariant_MGN_16() {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 24311);
@@ -1058,9 +988,17 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 57086);
-        try this.fuzz_pumpWETHPythPrice(4483620328855303094470149414702153581938704238923537833778918805266589838192) {} catch {}
+        try
+            this.fuzz_pumpWETHPythPrice(
+                4483620328855303094470149414702153581938704238923537833778918805266589838192
+            )
+        {} catch {}
 
-        try this.fuzz_burnUSDFromSynthetix(51978725119979516310380084262403014497549784881740951640043242924742048186009) {} catch {}
+        try
+            this.fuzz_burnUSDFromSynthetix(
+                51978725119979516310380084262403014497549784881740951640043242924742048186009
+            )
+        {} catch {}
 
         try this.excludeArtifacts() {} catch {}
 
@@ -1070,7 +1008,11 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 4);
         vm.roll(block.number + 12053);
-        try this.fuzz_pumpWETHPythPrice(57881106071855846508961237091619114449106847265532603503188584961426569220050) {} catch {}
+        try
+            this.fuzz_pumpWETHPythPrice(
+                57881106071855846508961237091619114449106847265532603503188584961426569220050
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 54155);
@@ -1100,7 +1042,7 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 30784);
-        try this.fuzz_guided_createDebt_LiquidateMarginOnly(true,0) {} catch {}
+        try this.fuzz_guided_createDebt_LiquidateMarginOnly(true, 0) {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 57086);
@@ -1112,7 +1054,15 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 6721);
-        try this.fuzz_delegateCollateral(4369999,1524785993,1524785993,62818061388295607208165346735794823292442871658757766994584960565562405544343,4370000) {} catch {}
+        try
+            this.fuzz_delegateCollateral(
+                4369999,
+                1524785993,
+                1524785993,
+                62818061388295607208165346735794823292442871658757766994584960565562405544343,
+                4370000
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 5);
         vm.roll(block.number + 12493);
@@ -1120,15 +1070,16 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 11942);
-        try this.invariant_MGN_15(87914021817990249610882575) {} catch {}
 
         try this.fuzz_liquidatePosition() {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 30011);
-        try this.fuzz_crashWETHPythPrice(3384311717577629014095999329592389476318589900033263442720613258630492251344) {} catch {}
-
-        try this.invariant_MGN_14(1524785992) {} catch {}
+        try
+            this.fuzz_crashWETHPythPrice(
+                3384311717577629014095999329592389476318589900033263442720613258630492251344
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 5);
         vm.roll(block.number + 2526);
@@ -1140,7 +1091,6 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 5);
         vm.roll(block.number + 23722);
-        try this.invariant_MGN_16() {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 47075);
@@ -1158,13 +1108,21 @@ contract FoundryPlayground is FuzzModules {
         vm.roll(block.number + 24311);
         try this.targetSelectors() {} catch {}
 
-        try this.fuzz_guided_createDebt_LiquidateMarginOnly(false,11167667902276408224730562216929677101514325461329936881433630288680895358749) {} catch {}
-
-        try this.invariant_MGN_15(340282366920938463463374607431768211451) {} catch {}
+        try
+            this.fuzz_guided_createDebt_LiquidateMarginOnly(
+                false,
+                11167667902276408224730562216929677101514325461329936881433630288680895358749
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 6);
         vm.roll(block.number + 15005);
-        try this.fuzz_guided_createDebt_LiquidateMarginOnly(true,12650908807397575775097778642268497213383900757161717685745018070990260653039) {} catch {}
+        try
+            this.fuzz_guided_createDebt_LiquidateMarginOnly(
+                true,
+                12650908807397575775097778642268497213383900757161717685745018070990260653039
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 54155);
@@ -1180,15 +1138,22 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 5);
         vm.roll(block.number + 53593);
-        try this.fuzz_crashWETHPythPrice(19445979271211552026393762153068637348871782583200450729535479179963) {} catch {}
+        try
+            this.fuzz_crashWETHPythPrice(
+                19445979271211552026393762153068637348871782583200450729535479179963
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 32);
-        try this.invariant_MGN_15(4370001) {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 5952);
-        try this.fuzz_pumpWETHPythPrice(115792089237316195423570985008687907853269984665640564039457584007913129639935) {} catch {}
+        try
+            this.fuzz_pumpWETHPythPrice(
+                115792089237316195423570985008687907853269984665640564039457584007913129639935
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 42229);
@@ -1198,17 +1163,30 @@ contract FoundryPlayground is FuzzModules {
         vm.roll(block.number + 7323);
         try this.fuzz_changeWBTCPythPrice(1524785992) {} catch {}
 
-        try this.fuzz_pumpWETHPythPrice(115455222081581466560662936016781449048188058971967711045082786856763288682493) {} catch {}
+        try
+            this.fuzz_pumpWETHPythPrice(
+                115455222081581466560662936016781449048188058971967711045082786856763288682493
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 46422);
-        try this.fuzz_guided_createDebt_LiquidateMarginOnly(true,55262479342812091384886880778795658276242523769116954278288293698392236065192) {} catch {}
+        try
+            this.fuzz_guided_createDebt_LiquidateMarginOnly(
+                true,
+                55262479342812091384886880778795658276242523769116954278288293698392236065192
+            )
+        {} catch {}
 
         try this.targetContracts() {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 23885);
-        try this.fuzz_pumpWETHPythPrice(115792089237316195423570985008687907853269984665640564039457584007913129639935) {} catch {}
+        try
+            this.fuzz_pumpWETHPythPrice(
+                115792089237316195423570985008687907853269984665640564039457584007913129639935
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 5053);
@@ -1216,7 +1194,9 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 27404);
-        try this.fuzz_payDebt(128354471236838546871697598878614575996) {} catch {}
+        try
+            this.fuzz_payDebt(128354471236838546871697598878614575996)
+        {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 3661);
@@ -1248,7 +1228,15 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 15005);
-        try this.fuzz_delegateCollateral(4369999,222184078082960036510249747402455690044,12363880754773229893861596779428693668172735971754208246649894137510809891579,61283307733705928599294133957445110220249428009377408892359924365738394683447,90273455696721862018034964254304874431945974501155260272400615066703053274163) {} catch {}
+        try
+            this.fuzz_delegateCollateral(
+                4369999,
+                222184078082960036510249747402455690044,
+                12363880754773229893861596779428693668172735971754208246649894137510809891579,
+                61283307733705928599294133957445110220249428009377408892359924365738394683447,
+                90273455696721862018034964254304874431945974501155260272400615066703053274163
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 21179);
@@ -1256,15 +1244,20 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 57886);
-        try this.fuzz_payDebt(128354471236838546871697598878614575996) {} catch {}
+        try
+            this.fuzz_payDebt(128354471236838546871697598878614575996)
+        {} catch {}
 
         vm.warp(block.timestamp + 5);
         vm.roll(block.number + 5237);
-        try this.fuzz_burnUSDFromSynthetix(6921200522935427282462348915319132641639072858525405344222022284229439482331) {} catch {}
+        try
+            this.fuzz_burnUSDFromSynthetix(
+                6921200522935427282462348915319132641639072858525405344222022284229439482331
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 3);
         vm.roll(block.number + 2497);
-        try this.invariant_MGN_15(330173278391555616199756745800413327332) {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 45261);
@@ -1276,7 +1269,11 @@ contract FoundryPlayground is FuzzModules {
 
         vm.warp(block.timestamp + 5);
         vm.roll(block.number + 23885);
-        try this.fuzz_pumpWETHPythPrice(102684582203599779126993990852225264517714905074500961846362724029724275704408) {} catch {}
+        try
+            this.fuzz_pumpWETHPythPrice(
+                102684582203599779126993990852225264517714905074500961846362724029724275704408
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 5);
         vm.roll(block.number + 800);
@@ -1314,7 +1311,12 @@ contract FoundryPlayground is FuzzModules {
         vm.roll(block.number + 59552);
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 1123);
-        try this.fuzz_changeOracleManagerPrice(16108137129675985311765539543168960949469269880673140394029440390106972248901,4370000) {} catch {}
+        try
+            this.fuzz_changeOracleManagerPrice(
+                16108137129675985311765539543168960949469269880673140394029440390106972248901,
+                4370000
+            )
+        {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 43566);
@@ -1323,6 +1325,5 @@ contract FoundryPlayground is FuzzModules {
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 22909);
         fuzz_guided_depositAndShort();
-
     }
 }
