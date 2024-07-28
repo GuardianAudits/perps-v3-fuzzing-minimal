@@ -1,18 +1,15 @@
 import re
 
-
 def convert_to_solidity(call_sequence):
     # Regex patterns to extract the necessary parts
     call_pattern = re.compile(
-        r"(?:Fuzz\.)?(\w+\([^\)]*\))(?: from: (0x[0-9a-fA-F]{40}))?(?: Gas: (\d+))?(?: Time delay: (\d+) seconds)?(?: Block delay: (\d+))?"
-    )
-    wait_pattern = re.compile(
-        r"\*wait\*(?: Time delay: (\d+) seconds)?(?: Block delay: (\d+))?"
-    )
+    r'(?:Fuzz\.)?(\w+\([^\)]*\))(?: from: (0x[0-9a-fA-F]{40}))?(?: Gas: (\d+))?(?: Time delay: (\d+) seconds)?(?: Block delay: (\d+))?'
+)
+    wait_pattern = re.compile(r'\*wait\*(?: Time delay: (\d+) seconds)?(?: Block delay: (\d+))?')
 
-    solidity_code = "function test_replay() public {\n"
+    solidity_code = 'function test_replay() public {\n'
 
-    lines = call_sequence.strip().split("\n")
+    lines = call_sequence.strip().split('\n')
     last_index = len(lines) - 1
 
     for i, line in enumerate(lines):
@@ -20,95 +17,135 @@ def convert_to_solidity(call_sequence):
         wait_match = wait_pattern.search(line)
         if call_match:
             call, from_addr, gas, time_delay, block_delay = call_match.groups()
-
+            
             # Add prank line if from address exists
-            if from_addr:
-                solidity_code += f"    vm.prank({from_addr});\n"
-
+            # if from_addr:
+            #     solidity_code += f'    vm.prank({from_addr});\n'
+            
             # Add warp line if time delay exists
             if time_delay:
-                solidity_code += f"    vm.warp(block.timestamp + {time_delay});\n"
-
+                solidity_code += f'    vm.warp(block.timestamp + {time_delay});\n'
+            
             # Add roll line if block delay exists
             if block_delay:
-                solidity_code += f"    vm.roll(block.number + {block_delay});\n"
+                solidity_code += f'    vm.roll(block.number + {block_delay});\n'
+
+            if 'collateralToMarketId' in call:
+                continue
 
             # Add function call
             if i < last_index:
-                solidity_code += f"    try this.{call} {{}} catch {{}}\n"
+                solidity_code += f'    try this.{call} {{}} catch {{}}\n'
             else:
-                solidity_code += f"    {call};\n"
-            solidity_code += "\n"
+                solidity_code += f'    {call};\n'
+            solidity_code += '\n'
         elif wait_match:
             time_delay, block_delay = wait_match.groups()
-
+            
             # Add warp line if time delay exists
             if time_delay:
-                solidity_code += f"    vm.warp(block.timestamp + {time_delay});\n"
-
+                solidity_code += f'    vm.warp(block.timestamp + {time_delay});\n'
+            
             # Add roll line if block delay exists
             if block_delay:
-                solidity_code += f"    vm.roll(block.number + {block_delay});\n"
-            solidity_code += "\n"
+                solidity_code += f'    vm.roll(block.number + {block_delay});\n'
+            solidity_code += '\n'
 
-    solidity_code += "}\n"
-
+    solidity_code += '}\n'
+    
     return solidity_code
 
 
 # Example usage
 call_sequence = """
- Fuzz.fuzz_changeWBTCPythPrice(4280455364831454581) from: 0x0000000000000000000000000000000000030000 Time delay: 1 seconds Block delay: 5053
-    Fuzz.fuzz_guided_createDebt_LiquidateMarginOnly(true,30954749420015391918139466440851848790163633299071895031681992968603483332913) from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 34272
-    Fuzz.excludeArtifacts() from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 19333
-    Fuzz.fuzz_changeWBTCPythPrice(4280455364831454581) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 24311
-    Fuzz.fuzz_pumpWBTCPythPrice(4571378123040129835110645501447096099757817388479875675538670709315270443873) from: 0x0000000000000000000000000000000000010000
-    Fuzz.targetArtifactSelectors() from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 24987
-    Fuzz.excludeSelectors() from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 4223
-    Fuzz.excludeSelectors() from: 0x0000000000000000000000000000000000030000 Time delay: 3 seconds Block delay: 1088
-    Fuzz.targetArtifacts() from: 0x0000000000000000000000000000000000020000
-    Fuzz.fuzz_crashWBTCPythPrice(23216544756795111064671052892044071812121785505344308683573734109174097626271) from: 0x0000000000000000000000000000000000030000 Time delay: 1 seconds Block delay: 25535
-    Fuzz.targetInterfaces() from: 0x0000000000000000000000000000000000030000
-    Fuzz.fuzz_pumpWBTCPythPrice(4571378123040129835110645501447096099757817388479875675538670709315270443873) from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 4896
-    Fuzz.targetArtifacts() from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 58783
-    Fuzz.failed() from: 0x0000000000000000000000000000000000030000 Time delay: 5 seconds Block delay: 36859
-    Fuzz.excludeSelectors() from: 0x0000000000000000000000000000000000020000 Time delay: 3 seconds Block delay: 32147
-    Fuzz.fuzz_modifyCollateral(49702006450953861765807903644386942596705006307479003070109120124712674327224,1524785993) from: 0x0000000000000000000000000000000000030000 Time delay: 3 seconds Block delay: 46422
-    Fuzz.fuzz_settleOrder() from: 0x0000000000000000000000000000000000010000 Time delay: 5 seconds Block delay: 5786
-    Fuzz.fuzz_delegateCollateral(1524785993,0,86713579207806114606671108161500018359076792467074454731219611294456891961036,1524785991,1524785991) from: 0x0000000000000000000000000000000000030000 Time delay: 3 seconds Block delay: 30304
-    Fuzz.fuzz_crashWETHPythPrice(27791911391501575981142706174694744561875260745923521918881244428685164396544) from: 0x0000000000000000000000000000000000020000 Time delay: 3 seconds Block delay: 5023
-    Fuzz.fuzz_crashWETHPythPrice(27791911391501575981142706174694744561875260745923521918881244428685164396544) from: 0x0000000000000000000000000000000000020000 Time delay: 3 seconds Block delay: 50499
-    Fuzz.targetArtifactSelectors() from: 0x0000000000000000000000000000000000020000 Time delay: 3 seconds Block delay: 11826
-    Fuzz.fuzz_liquidateFlagged(26) from: 0x0000000000000000000000000000000000010000 Time delay: 2 seconds Block delay: 30256
-    Fuzz.fuzz_liquidateFlagged(55) from: 0x0000000000000000000000000000000000010000 Time delay: 4 seconds Block delay: 4896
-    Fuzz.fuzz_guided_createDebt_LiquidateMarginOnly(true,4370001) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 41290
-    Fuzz.targetSenders() from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 45852
-    Fuzz.failed() from: 0x0000000000000000000000000000000000030000 Time delay: 3 seconds Block delay: 19933
-    Fuzz.fuzz_changeWETHPythPrice(1524785993) from: 0x0000000000000000000000000000000000030000 Time delay: 1 seconds Block delay: 59552
-    Fuzz.fuzz_settleOrder() from: 0x0000000000000000000000000000000000020000 Time delay: 3 seconds Block delay: 36859
-    Fuzz.pendingOrder(201468923201268763578963306507310472582) from: 0x0000000000000000000000000000000000030000 Time delay: 2 seconds Block delay: 3661
+Fuzz.targetContracts() from: 0x0000000000000000000000000000000000010000
+    Fuzz.excludeArtifacts() from: 0x0000000000000000000000000000000000010000
+    Fuzz.excludeArtifacts() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 52331
+    Fuzz.pendingOrder(214287796030402947727426544725022203104) from: 0x0000000000000000000000000000000000020000
+    Fuzz.fuzz_payDebt(128354471236838546871697598878614575996) from: 0x0000000000000000000000000000000000020000
+    Fuzz.invariant_ORD_22(5901090105132517108698402530431002734) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 13100
+    Fuzz.targetArtifactSelectors() from: 0x0000000000000000000000000000000000010000
+    Fuzz.invariant_MGN_14(3098295) from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 35200
+    Fuzz.collateralToMarketId(0x0) from: 0x0000000000000000000000000000000000020000
+    Fuzz.excludeContracts() from: 0x0000000000000000000000000000000000010000
+    Fuzz.collateralToMarketId(0x3f85d0b6119b38b7e6b119f7550290fec4be0e3c) from: 0x0000000000000000000000000000000000020000
+    Fuzz.targetInterfaces() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 34720
+    Fuzz.pendingOrder(2541897861) from: 0x0000000000000000000000000000000000020000 Time delay: 6 seconds Block delay: 13928
+    Fuzz.targetArtifactSelectors() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 3661
+    Fuzz.fuzz_cancelOrder(243) from: 0x0000000000000000000000000000000000010000 Time delay: 4 seconds Block delay: 47075
+    Fuzz.invariant_MGN_15(4369999) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 30784
+    Fuzz.targetArtifactSelectors() from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 10158
+    Fuzz.fuzz_payDebt(4369999) from: 0x0000000000000000000000000000000000010000
+    Fuzz.invariant_MGN_15(154118822727123805211247264644558574134) from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 5023
+    Fuzz.fuzz_changeWETHPythPrice(10636261954290471496977424074956230848709081310768360796372110293158335144948) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 12155
+    Fuzz.invariant_MGN_16() from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 42595
+    Fuzz.targetArtifactSelectors() from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 24311
+    Fuzz.fuzz_pumpWETHPythPrice(4483620328855303094470149414702153581938704238923537833778918805266589838192) from: 0x0000000000000000000000000000000000020000 Time delay: 3 seconds Block delay: 57086
+    Fuzz.fuzz_burnUSDFromSynthetix(51978725119979516310380084262403014497549784881740951640043242924742048186009) from: 0x0000000000000000000000000000000000010000
+    Fuzz.excludeArtifacts() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_payDebt(4370000) from: 0x0000000000000000000000000000000000010000
+    Fuzz.IS_TEST() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_payDebt(173880104839097007318058528976659160397) from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 6234
+    Fuzz.fuzz_changeWETHPythPrice(2533510447312883265450878948683205385014604418266701811051697718915258550600) from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_pumpWBTCPythPrice(1047484720) from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 4896
+    Fuzz.fuzz_commitOrder(4370000,2517131430495460883710475282692316570938705542938958070787542004184760421712) from: 0x0000000000000000000000000000000000010000 Value: 0x13626313ada2ffed2302e9cde
+    Fuzz.fuzz_settleOrder() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 20243
+    Fuzz.fuzz_cancelOrder(14) from: 0x0000000000000000000000000000000000020000
+    Fuzz.targetArtifactSelectors() from: 0x0000000000000000000000000000000000010000 Time delay: 5 seconds Block delay: 8447
+    Fuzz.fuzz_liquidatePosition() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 16781
+    Fuzz.fuzz_pumpWETHPythPrice(102227052366985274931132177506506925160742800919115367592913694710504826171479) from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 15368
+    Fuzz.excludeContracts() from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 51033
+    Fuzz.fuzz_changeOracleManagerPrice(1327548557,23835702790284418513880829542525152612622295769322988458236056786396313830467) from: 0x0000000000000000000000000000000000010000 Time delay: 5 seconds Block delay: 27404
+    Fuzz.fuzz_burnUSDFromSynthetix(110) from: 0x0000000000000000000000000000000000010000 Time delay: 5 seconds Block delay: 12053
+    Fuzz.fuzz_changeWETHPythPrice(17817030423578781032048006047717142833114219382695310000807734445550989059663) from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 51339
+    Fuzz.repayDebt() from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 59552
+    Fuzz.targetArtifactSelectors() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 60248
+    Fuzz.fuzz_burnUSDFromSynthetix(1524785992) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 5053
+    Fuzz.targetArtifactSelectors() from: 0x0000000000000000000000000000000000010000
+    Fuzz.excludeContracts() from: 0x0000000000000000000000000000000000020000
+    Fuzz.invariant_ORD_22(80169152196852962319288674799297713727) from: 0x0000000000000000000000000000000000010000 Time delay: 5 seconds Block delay: 22699
+    Fuzz.excludeSenders() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_guided_createDebt_LiquidateMarginOnly(false,251218947) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 3661
+    Fuzz.excludeArtifacts() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_delegateCollateral(340282366920938463463374607431768211455,230598528402976878437771036316660268931,115792089237316195423570985008687907853269984665640564039457584007913129639935,3775007600834646286532062762996845973311557855570476483592929821419809677787,1524785992) from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_settleOrder() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 18292
+    Fuzz.fuzz_guided_depositAndShort() from: 0x0000000000000000000000000000000000010000
+    Fuzz.targetInterfaces() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_liquidateMarginOnly() from: 0x0000000000000000000000000000000000010000 Time delay: 2 seconds Block delay: 4896
+    Fuzz.pendingOrder(4370000) from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 23722
+    Fuzz.invariant_ORD_22(1524785993) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 23275
+    Fuzz.repayDebt() from: 0x0000000000000000000000000000000000020000 Time delay: 5 seconds Block delay: 30256
+    Fuzz.invariant_MGN_14(4370001) from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 42595
+    Fuzz.targetSenders() from: 0x0000000000000000000000000000000000010000 Time delay: 4 seconds Block delay: 2511
+    Fuzz.excludeArtifacts() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_modifyCollateral(49062304591503552216114117492276899495019498084212417530391137354674042832393,104128690825478530713899142351418770287616132628755783395662634924650386715487) from: 0x0000000000000000000000000000000000010000
     Fuzz.IS_TEST() from: 0x0000000000000000000000000000000000020000
-    Fuzz.collateralToMarketId(0xcd9a70c13c88863ece51b302a77d2eb98fbbbd65) from: 0x0000000000000000000000000000000000020000 Time delay: 3 seconds Block delay: 46422
-    Fuzz.fuzz_liquidatePosition() from: 0x0000000000000000000000000000000000010000 Time delay: 5 seconds Block delay: 24987
-    Fuzz.fuzz_guided_depositAndShort() from: 0x0000000000000000000000000000000000030000
-    Fuzz.pendingOrder(527) from: 0x0000000000000000000000000000000000010000
-    Fuzz.fuzz_crashWBTCPythPrice(73767554418199339812106075053837917778102426611481698007305348546559953757341) from: 0x0000000000000000000000000000000000020000
-    Fuzz.fuzz_pumpWETHPythPrice(513) from: 0x0000000000000000000000000000000000030000 Time delay: 6 seconds Block delay: 20349
-    Fuzz.excludeContracts() from: 0x0000000000000000000000000000000000030000 Time delay: 1 seconds Block delay: 9920
-    Fuzz.fuzz_pumpWETHPythPrice(18550952495227114971864363557780808188744923943598095365325468250271597804530) from: 0x0000000000000000000000000000000000030000 Time delay: 1 seconds Block delay: 33357
-    Fuzz.fuzz_changeOracleManagerPrice(4370001,1524785993) from: 0x0000000000000000000000000000000000010000
-    Fuzz.repayDebt() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 60364
-    Fuzz.IS_TEST() from: 0x0000000000000000000000000000000000010000 Time delay: 5 seconds Block delay: 23403
-    Fuzz.IS_TEST() from: 0x0000000000000000000000000000000000030000 Time delay: 6 seconds Block delay: 45852
-    Fuzz.fuzz_changeWBTCPythPrice(-9223372036854775808) from: 0x0000000000000000000000000000000000020000
-    Fuzz.fuzz_liquidateFlaggedAccounts(253) from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 561
-    Fuzz.fuzz_liquidatePosition() from: 0x0000000000000000000000000000000000010000
-    Fuzz.fuzz_pumpWBTCPythPrice(21443253488308386919818604701031834188266622639471657377774134086704501932199) from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 35248
-    Fuzz.fuzz_delegateCollateral(330924488573917606084908576629834616816,196076158967676270537707503622353966090,5963535451332192165248380555010570991972943249917332641975986078000899566176,4370000,0) from: 0x0000000000000000000000000000000000030000 Time delay: 1 seconds Block delay: 32
-    Fuzz.fuzz_liquidatePosition() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 60267
-    Fuzz.targetInterfaces() from: 0x0000000000000000000000000000000000030000 Time delay: 5 seconds Block delay: 20243
-    Fuzz.fuzz_changeOracleManagerPrice(4370001,2785246858395475934513824290946353863510055321045186888325621967884044575369) from: 0x0000000000000000000000000000000000030000 Time delay: 1 seconds Block delay: 2511
-    Fuzz.fuzz_guided_createDebt_LiquidateMarginOnly(false,4370001) from: 0x0000000000000000000000000000000000030000
+    Fuzz.fuzz_pumpWBTCPythPrice(80439316134521898382305116982357501325938218366381040499268528505384014061428) from: 0x0000000000000000000000000000000000010000
+    Fuzz.invariant_MGN_15(190244630912907173813992272823203208787) from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 23978
+    Fuzz.fuzz_crashWBTCPythPrice(1013222961217538601898994217083826782035050881162911563541632509) from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_cancelOrder(213) from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_modifyCollateral(630512,500) from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 12067
+    Fuzz.fuzz_delegateCollateral(4370000,414070325363687371873480235095121703,105793111217631547348012207309602259283042750570448211729325316276470923633238,4370001,16508325718193945077108021877545628376207288505135398056511829872339793086853) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 53562
+    Fuzz.fuzz_liquidateMarginOnly() from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 11905
+    Fuzz.fuzz_liquidateFlaggedAccounts(179) from: 0x0000000000000000000000000000000000010000
+    Fuzz.repayDebt() from: 0x0000000000000000000000000000000000020000
+    Fuzz.invariant_ORD_22(5901090105132517108698402530431002734) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 18429
+    Fuzz.failed() from: 0x0000000000000000000000000000000000020000
+    Fuzz.targetArtifacts() from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 11942
+    Fuzz.targetContracts() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_liquidateFlagged(251) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 58783
+    Fuzz.fuzz_liquidateMarginOnly() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_payDebt(818) from: 0x0000000000000000000000000000000000010000
+    Fuzz.targetSelectors() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_liquidateFlaggedAccounts(255) from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_settleOrder() from: 0x0000000000000000000000000000000000020000 Time delay: 1 seconds Block delay: 34272
+    Fuzz.fuzz_guided_depositAndShort() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_mintUSDToSynthetix(98644541985410058872714285408433777779982200191717402665530570523533018100520) from: 0x0000000000000000000000000000000000010000 Time delay: 1 seconds Block delay: 38350
+    Fuzz.excludeSenders() from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_changeWETHPythPrice(2241366241144634526038387803610459761836959836119339755296052802441105377817) from: 0x0000000000000000000000000000000000010000 Time delay: 5 seconds Block delay: 1088
+    Fuzz.fuzz_changeOracleManagerPrice(4370000,1125020019) from: 0x0000000000000000000000000000000000010000
+    Fuzz.fuzz_payDebt(721) from: 0x0000000000000000000000000000000000010000 Time delay: 3 seconds Block delay: 53011
+    Fuzz.repayDebt() from: 0x0000000000000000000000000000000000010000
 """
 
 solidity_code = convert_to_solidity(call_sequence)

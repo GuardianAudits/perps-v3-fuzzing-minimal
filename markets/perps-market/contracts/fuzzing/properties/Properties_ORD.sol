@@ -216,23 +216,28 @@ abstract contract Properties_ORD is PropertiesBase {
     //ORD_17 N/A no stale orders here
 
     function invariant_ORD_18(uint128 account, uint128 marketId) internal {
-        if (states[1].actorStates[account].openPositionMarketIds.length != 0) {
-            bool containsMarketId = false;
-            for (
-                uint i = 0;
-                i < states[1].actorStates[account].openPositionMarketIds.length;
-                i++
-            ) {
-                if (
-                    states[1].actorStates[account].openPositionMarketIds[i] ==
-                    marketId
-                ) {
-                    containsMarketId = true;
-                    break;
-                }
-            }
-            fl.t(containsMarketId, ORD_18);
+        bool shouldContain;
+        if (marketId == 1) {
+            shouldContain = states[1].actorStates[account].wethMarket.positionSize != 0;
+        } else if (marketId == 2) {
+            shouldContain = states[1].actorStates[account].wbtcMarket.positionSize != 0;
         }
+
+        bool containsMarketId = false;
+        for (
+            uint i = 0;
+            i < states[1].actorStates[account].openPositionMarketIds.length;
+            i++
+        ) {
+            if (
+                states[1].actorStates[account].openPositionMarketIds[i] ==
+                marketId
+            ) {
+                containsMarketId = true;
+                break;
+            }
+        }
+        fl.t(shouldContain == containsMarketId, ORD_18);
     }
 
     function invariant_ORD_19(uint128 account) internal {
