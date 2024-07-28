@@ -727,6 +727,13 @@ abstract contract BeforeAfter is
                 cache.accountId,
                 cache
             );
+            console2.log(">>>BEFOREAFTER:Call num:", callNum);
+            console2.log(">>>BEFOREAFTER:Account:", cache.accountId);
+            console2.log(">>>BEFOREAFTER:Collateral value:", calculateCollateralValueForAccount(
+                callNum,
+                cache.accountId,
+                cache
+            ));
         }
         states[callNum].totalCollateralValueUsdGhost = cache
             .totalCollateralValueUsdGhost;
@@ -753,20 +760,43 @@ abstract contract BeforeAfter is
             1e18,
             cache
         );
+        console2.log("CALCCOLLVALUE0:", calculateCollateralValueForToken(
+            callNum,
+            accountId,
+            0,
+            1e18,
+            cache
+        ));
         totalValue += calculateCollateralValueForToken(
             callNum,
             accountId,
             1,
-            pythWrapper.getBenchmarkPrice(WETH_FEED_ID, 0),
+            mockOracleManager.process(WETH_ORACLE_NODE_ID).price,
             cache
         );
+        console2.log("CALCCOLLVALUE1NEW:", calculateCollateralValueForToken(
+            callNum,
+            accountId,
+            1,
+            mockOracleManager.process(WETH_ORACLE_NODE_ID).price,
+            cache
+        ));
+        console2.log("BenchmarkPrice1:");
+        console2.logInt(pythWrapper.getBenchmarkPrice(WETH_FEED_ID, 0));
         totalValue += calculateCollateralValueForToken(
             callNum,
             accountId,
             2,
-            pythWrapper.getBenchmarkPrice(WBTC_FEED_ID, 0),
+            mockOracleManager.process(WBTC_ORACLE_NODE_ID).price,
             cache
         );
+        console2.log("CALCCOLLVALUE2NEW:", calculateCollateralValueForToken(
+            callNum,
+            accountId,
+            2,
+            mockOracleManager.process(WBTC_ORACLE_NODE_ID).price,
+            cache
+        ));
 
         return totalValue;
     }
