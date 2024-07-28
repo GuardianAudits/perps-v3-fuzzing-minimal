@@ -176,7 +176,7 @@ abstract contract Properties_LIQ is PropertiesBase {
 
         bool wethConditionMet = (states[0]
             .wethMarket
-            .debtCorrectionAccumulator >
+            .debtCorrectionAccumulator >=
             states[1].wethMarket.debtCorrectionAccumulator) &&
             (states[0].wethMarket.reportedDebt >=
                 states[1].wethMarket.reportedDebt);
@@ -200,7 +200,7 @@ abstract contract Properties_LIQ is PropertiesBase {
 
         bool wbtcConditionMet = (states[0]
             .wbtcMarket
-            .debtCorrectionAccumulator >
+            .debtCorrectionAccumulator >=
             states[1].wbtcMarket.debtCorrectionAccumulator) &&
             (states[0].wbtcMarket.reportedDebt >=
                 states[1].wbtcMarket.reportedDebt);
