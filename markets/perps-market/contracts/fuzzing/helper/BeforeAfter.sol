@@ -270,16 +270,9 @@ abstract contract BeforeAfter is
         getCollateralAmount(callNum, accountId, 2, cache);
         getCollateralAmount(callNum, accountId, 3, cache);
 
-        (success, returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.totalCollateralValue.selector,
-                accountId
-            )
-        );
-        assert(success);
-        states[callNum].actorStates[accountId].totalCollateralValue = abi
-            .decode(returnData, (uint256));
-
+        states[callNum]
+            .actorStates[accountId]
+            .totalCollateralValue = getTotalCollateralValue(accountId);
         // Coverage check at the end
         _logCollateralIdsCoverage(
             states[callNum].actorStates[accountId].collateralIds // from map
@@ -294,7 +287,18 @@ abstract contract BeforeAfter is
             states[callNum].actorStates[accountId].totalCollateralValue // from map
         );
     }
-
+    function getTotalCollateralValue(
+        uint128 accountId
+    ) internal returns (uint256 totalCollateralValue) {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.totalCollateralValue.selector,
+                accountId
+            )
+        );
+        assert(success);
+        totalCollateralValue = abi.decode(returnData, (uint256));
+    }
     function getCollateralAmount(
         uint8 callNum,
         uint128 accountId,

@@ -105,6 +105,7 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
         uint128 accountId
     ) internal returns (bool success, bytes memory returnData) {
         emit SettleOrderCall(settleUser, accountId);
+        vm.warp(block.timestamp + 6);
 
         vm.prank(currentActor);
         (success, returnData) = perps.call(
@@ -120,6 +121,7 @@ contract FunctionCalls is FuzzBase, FuzzStorageVariables {
         uint128 accountId
     ) internal returns (bool success, bytes memory returnData) {
         emit CancelOrderCall(settleUser, accountId);
+        vm.warp(block.timestamp + 6);
 
         vm.prank(currentActor);
         (success, returnData) = perps.call(

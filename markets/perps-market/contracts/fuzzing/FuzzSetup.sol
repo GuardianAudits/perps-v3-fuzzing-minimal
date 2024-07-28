@@ -104,6 +104,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         setMockWethToken();
         setMockWbtcToken();
         setMockhugeToken();
+        // increaseCreditCapacity();
 
         coreModuleImpl = new CoreModule();
 
@@ -209,6 +210,10 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
             address(hugePrecisionTokenMock),
             HUGE_ORACLE_NODE_ID
         );
+    }
+
+    function increaseCreditCapacity() private {
+        v3Mock.updateCreditCapacity(type(uint64).max, true);
     }
 
     function addLiquidationModuleSels() private {

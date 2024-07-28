@@ -293,26 +293,76 @@ contract MockSynthetixV3 {
         return (amount * FEE_PERCENT) / 1e18;
     }
 
+    // function withdrawMarketUsd(
+    //     uint128 marketId,
+    //     address target,
+    //     uint256 amount
+    // ) external returns (uint256) {
+    //     MockERC20(sUSD).mint(target, amount);
+    //     MockERC20(sUSD).mint(address(1), (amount * FEE_PERCENT) / 1e18);
+
+    //     // accounting for user shares for handling rewards that get distributed in a liquidation event
+    //     // if the user has shares in the vault, then they should be decremented
+    //     if (shares[msg.sender][sUSD]) {
+    //         vaults[sUSD].totalShares -= 1;
+    //         shares[msg.sender][sUSD] = false;
+    //     }
+
+    //     creditCapacity -= (amount + (amount * FEE_PERCENT) / 1e18);
+
+    //     return (amount * FEE_PERCENT) / 1e18;
+    // }
     function withdrawMarketUsd(
         uint128 marketId,
         address target,
         uint256 amount
     ) external returns (uint256) {
+        console2.log("marketId", marketId);
+        console2.log("target", target);
+        console2.log("amount", amount);
+
         MockERC20(sUSD).mint(target, amount);
-        MockERC20(sUSD).mint(address(1), (amount * FEE_PERCENT) / 1e18);
+        console2.log("Minted to target", amount);
+
+        uint256 feeAmount = (amount * FEE_PERCENT) / 1e18;
+        console2.log("feeAmount", feeAmount);
+
+        MockERC20(sUSD).mint(address(1), feeAmount);
+        console2.log("Minted fee to address(1)", feeAmount);
+
+        console2.log("msg.sender", msg.sender);
+        console2.log(
+            "shares[msg.sender][sUSD] before",
+            shares[msg.sender][sUSD]
+        );
 
         // accounting for user shares for handling rewards that get distributed in a liquidation event
         // if the user has shares in the vault, then they should be decremented
         if (shares[msg.sender][sUSD]) {
+            console2.log(
+                "vaults[sUSD].totalShares before",
+                vaults[sUSD].totalShares
+            );
             vaults[sUSD].totalShares -= 1;
+            console2.log(
+                "vaults[sUSD].totalShares after",
+                vaults[sUSD].totalShares
+            );
+
             shares[msg.sender][sUSD] = false;
+            console2.log(
+                "shares[msg.sender][sUSD] after",
+                shares[msg.sender][sUSD]
+            );
         }
 
-        creditCapacity -= (amount + (amount * FEE_PERCENT) / 1e18);
+        console2.log("creditCapacity before", creditCapacity);
+        creditCapacity -= (amount + feeAmount);
+        console2.log("creditCapacity after", creditCapacity);
 
-        return (amount * FEE_PERCENT) / 1e18;
+        console2.log("Returning feeAmount", feeAmount);
+        return feeAmount;
     }
-
     /// @notice allows a market to deposit collateral
     /// @dev assumes collateral types with 18 decimals
     function depositMarketCollateral(

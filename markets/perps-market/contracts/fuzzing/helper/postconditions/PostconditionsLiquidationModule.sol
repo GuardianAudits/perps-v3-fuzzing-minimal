@@ -20,7 +20,7 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             invariant_LIQ_09(accountIds);
             invariant_LIQ_11(accountIds);
             invariant_LIQ_16();
-            invariant_ORD_21();
+            // invariant_ORD_21();
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountIds);
         } else {

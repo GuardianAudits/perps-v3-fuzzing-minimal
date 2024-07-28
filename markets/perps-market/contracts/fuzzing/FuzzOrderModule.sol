@@ -84,7 +84,6 @@ contract FuzzOrderModule is
     }
 
     function fuzz_settleOrder() public setCurrentActor {
-        vm.warp(block.timestamp + 6);
         SettleOrderParams memory params = settleOrderPreconditions();
 
         address[] memory actorsToUpdate = new address[](2);
@@ -114,7 +113,6 @@ contract FuzzOrderModule is
     }
 
     function fuzz_cancelOrder(uint8 cancelUser) public setCurrentActor {
-        vm.warp(block.timestamp + 6); //TODO:
         CancelOrderParams memory params = cancelOrderPreconditions(cancelUser);
 
         address[] memory actorsToUpdate = new address[](2);

@@ -277,7 +277,7 @@ abstract contract Properties_ORD is PropertiesBase {
             ORD_21
         );
     }
-    function invariant_ORD_22(uint128 accountId) public {
+    function invariant_ORD_22(uint128 accountId) internal {
         console2.log("debug_invariant_ORD_22::accountId", accountId);
 
         //settlement on open long
