@@ -10,12 +10,13 @@ abstract contract PostconditionsBase is Properties {
     ) internal {
         fl.log(">>ACCOUNT FOR onSuccessInvariantsGeneral", account);
         invariant_LIQ_01(account);
-        // @audit Review this assertion for perps market.
-        // invariant_ORD_11();
+
         invariant_MGN_08();
         invariant_ORD_19(account);
         // @audit Fails with payDebt.
         // invariant_ORD_20();
+        invariant_ORD_21();
+
         invariant_ORD_23();
         invariant_LIQ_18(account);
     }

@@ -218,9 +218,11 @@ abstract contract Properties_ORD is PropertiesBase {
     function invariant_ORD_18(uint128 account, uint128 marketId) internal {
         bool shouldContain;
         if (marketId == 1) {
-            shouldContain = states[1].actorStates[account].wethMarket.positionSize != 0;
+            shouldContain =
+                states[1].actorStates[account].wethMarket.positionSize != 0;
         } else if (marketId == 2) {
-            shouldContain = states[1].actorStates[account].wbtcMarket.positionSize != 0;
+            shouldContain =
+                states[1].actorStates[account].wbtcMarket.positionSize != 0;
         }
 
         bool containsMarketId = false;

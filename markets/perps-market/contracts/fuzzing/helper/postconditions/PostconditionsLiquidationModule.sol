@@ -19,10 +19,7 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             // invariant_LIQ_08();
             invariant_LIQ_09(accountIds);
             invariant_LIQ_11(accountIds);
-            // @audit fails.
-            // invariant_LIQ_16();
-            // @audit fails.
-            // invariant_ORD_21();
+            invariant_LIQ_16();
             invariant_LIQ_17(accountIds);
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountIds);
@@ -41,8 +38,7 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
         if (success) {
             _after(actorsToUpdate);
             _checkLCov(true);
-            //@audit to be resolved
-            // invariant_ORD_21();
+
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
@@ -59,8 +55,6 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
         if (success) {
             _after(actorsToUpdate);
             for (uint i = 0; i < flaggedAccounts.length; i++) {
-                //@audit to be solved
-                // invariant_ORD_21();
                 invariant_MGN_16();
                 onSuccessInvariantsGeneral(
                     returnData,
@@ -82,14 +76,32 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             _after(actorsToUpdate);
             for (uint i = 0; i < flaggedAccounts.length; i++) {
                 //@audit currently fails
-                //@audit to be resolved
-                // invariant_ORD_21();
                 invariant_MGN_16();
                 onSuccessInvariantsGeneral(
                     returnData,
                     uint128(flaggedAccounts[i])
                 );
             }
+        } else {
+            onFailInvariantsGeneral(returnData);
+        }
+    }
+
+    function liquidatePositionPostconditionsAndICheckAfterPriceMove(
+        bool success,
+        bytes memory returnData,
+        address[] memory actorsToUpdate,
+        address flaggedUser,
+        address liquidator,
+        uint128 accountIds
+    ) internal {
+        if (success) {
+            _after(actorsToUpdate);
+
+            //@audit should fail only here
+            invariant_ORD_21();
+
+            onSuccessInvariantsGeneral(returnData, accountIds);
         } else {
             onFailInvariantsGeneral(returnData);
         }

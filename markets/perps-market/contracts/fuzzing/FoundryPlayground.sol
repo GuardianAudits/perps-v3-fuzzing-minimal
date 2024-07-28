@@ -178,6 +178,53 @@ contract FoundryPlayground is FuzzModules {
         fuzz_liquidateFlagged(100);
     }
 
+    // function draft_liq_ord_21() public {
+    //      //reported debt
+    //     // liquidate ->
+    //     // hit liq window maximum ->
+    //     // time passes ->
+    //     // price moves ->
+    //     // reportedDebt != collateral + pnl.
+    //     //sh
+    //     // it would require a scenario of
+    //     vm.prank(USER1);
+    //     fuzz_mintUSDToSynthetix(100_000_000_000e18);
+
+    //     fuzz_pumpWETHPythPrice(20);
+
+    //     fuzz_modifyCollateral(1e18, 1);
+
+    //     fuzz_commitOrder(20e18, type(uint256).max - 1);
+    //     fuzz_settleOrder();
+
+    //     fuzz_crashWETHPythPrice(5);
+    //     fuzz_liquidatePosition();
+    //     fuzz_crashWETHPythPrice(1);
+    //     //_after + invariant //@giraffe here we checking ORD_21
+    //     //reported debt
+    //     (bool success, bytes memory returnData) = perps.call(
+    //         abi.encodeWithSelector(
+    //             perpsMarketFactoryModuleImpl.reportedDebt.selector,
+    //             1
+    //         )
+    //     );
+    //     assert(success);
+    //     uint beforeDebt = abi.decode(returnData, (uint256));
+    //     console2.log("beforeDebt", beforeDebt);
+    //     fuzz_liquidateFlagged(100);
+
+    //     (bool success, bytes memory returnData) = perps.call(
+    //         abi.encodeWithSelector(
+    //             perpsMarketFactoryModuleImpl.reportedDebt.selector,
+    //             1
+    //         )
+    //     );
+    //     assert(success);
+    //     uint afterDebt = abi.decode(returnData, (uint256));
+    //     console2.log("afterDebt", afterDebt);
+
+    // }
+
     function test_order_liquidateFlaggedAccounts() public {
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
         fuzz_modifyCollateral(1e18, 2);
