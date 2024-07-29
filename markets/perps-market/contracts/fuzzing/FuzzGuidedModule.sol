@@ -21,8 +21,6 @@ contract FuzzGuidedModule is
         bool isWETH,
         int amountToDeposit
     ) public setCurrentActor {
-        checkCaller.checkCaller();
-
         getPendingOrders(currentActor);
         closeAllPositions(userToAccountIds[currentActor]);
         repayDebt();
@@ -55,7 +53,7 @@ contract FuzzGuidedModule is
 
         //Make sure it is zero @giraffe
         //pump here $50k
-        isWETH ? fuzz_pumpWETHPythPrice(20) : fuzz_pumpWBTCPythPrice(20);
+        isWETH ? fuzz_pumpWETHPythPrice(2) : fuzz_pumpWBTCPythPrice(2);
 
         fuzz_modifyCollateral(amountToDeposit, collateralId);
 
@@ -104,7 +102,7 @@ contract FuzzGuidedModule is
 
         _settleOrderCall(currentActor, userToAccountIds[currentActor]);
 
-        isWETH ? fuzz_crashWETHPythPrice(20) : fuzz_crashWBTCPythPrice(20); //
+        isWETH ? fuzz_crashWETHPythPrice(10) : fuzz_crashWBTCPythPrice(10); //
         fuzz_liquidateMarginOnly();
     }
 

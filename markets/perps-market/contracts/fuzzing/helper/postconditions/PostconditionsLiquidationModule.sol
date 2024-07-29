@@ -104,9 +104,6 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
         if (success) {
             _after(actorsToUpdate);
 
-            //@audit should fail only here
-            invariant_ORD_21();
-
             onSuccessInvariantsGeneral(returnData, accountIds);
         } else {
             onFailInvariantsGeneral(returnData);

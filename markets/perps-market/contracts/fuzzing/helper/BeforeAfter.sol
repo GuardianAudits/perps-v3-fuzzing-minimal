@@ -21,8 +21,7 @@ abstract contract BeforeAfter is
 {
     mapping(uint8 => State) states;
     mapping(uint8 => State) positionStates;
-    mapping(uint256 => mapping(address => uint256))
-        public liquidationCallsInBlock;
+    mapping(uint256 => mapping(address => uint256)) liquidationCallsInBlock;
     uint lcov_liquidateMarginOnlyCovered;
 
     struct PositionVars {

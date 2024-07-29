@@ -40,6 +40,8 @@ contract FuzzOrderModule is
             trackingCode,
             referrer
         );
+
+        require(params.marketId != 0);
         _beforeSettlement(params.accountId, params.marketId);
 
         // require(pendingOrder[params.accountId].accountId == uint128(0), "User has a pending order");
