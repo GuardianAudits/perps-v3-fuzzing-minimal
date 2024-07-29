@@ -20,6 +20,9 @@ abstract contract BeforeAfter is
     GlobalCoverage
 {
     mapping(uint8 => State) states;
+    mapping(uint8 => State) positionStates;
+    mapping(uint256 => mapping(address => uint256))
+        public liquidationCallsInBlock;
     uint lcov_liquidateMarginOnlyCovered;
 
     struct PositionVars {
@@ -76,6 +79,9 @@ abstract contract BeforeAfter is
         bool isMarginLiquidatable;
         uint128 debt;
         uint256[] collateralIds; //perpsAccountModuleImpl.getAccountCollateralIds
+        uint256 balanceOfSUSD;
+        uint256 balanceOfWETH;
+        uint256 balanceOfWBTC;
         uint256 collateralAmountSUSD;
         uint256 collateralAmountWETH; //perpsAccountModuleImpl.getCollateralAmount
         uint256 collateralAmountWBTC; //perpsAccountModuleImpl.getCollateralAmount
@@ -160,6 +166,14 @@ abstract contract BeforeAfter is
         if (DEBUG) debugAfter(actors);
     }
 
+    function _beforeSettlement(uint128 accountId, uint128 marketId) internal {
+        _setStates(0, accountId, marketId);
+    }
+
+    function _afterSettlement(uint128 accountId, uint128 marketId) internal {
+        _setStates(1, accountId, marketId);
+    }
+
     function _checkLCov(bool lcov) internal {
         lcov
             ? lcov_liquidateMarginOnlyCovered += 1
@@ -173,6 +187,20 @@ abstract contract BeforeAfter is
 
         // Set states here that are independent from actors
     }
+
+    function _setStates(
+        uint8 callNum,
+        uint128 accountId,
+        uint128 marketId
+    ) internal {
+        _setActorState(
+            callNum,
+            accountId,
+            marketId,
+            accountIdToUser[accountId]
+        );
+    }
+
     function _setActorState(
         uint8 callNum,
         uint128 accountId,
@@ -193,15 +221,37 @@ abstract contract BeforeAfter is
         getMarginInfo(callNum, accountId, cache);
         getGlobalDebt(callNum, cache);
         getMarketDebt(callNum, cache);
-
+        getAccountBalances(callNum, accountId, cache);
         calculateReportedDebtComparison(callNum, cache);
         calculateTotalAccountsDebt(callNum, cache);
         checkIfAccountLiquidatable(callNum, accountId);
         calculateCollateralValueForEveryToken(callNum, cache);
-        checkIfPositionWasProifitable(callNum, accountId);
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
 
+    function _setActorState(
+        uint8 callNum,
+        uint128 accountId,
+        uint128 marketId,
+        address actor
+    ) internal {
+        console2.log("===== BeforeAfter::_setActorState START ===== ");
+        StackCache memory cache;
+
+        _checkIfPositionWasProifitable(callNum, accountId, marketId);
+        console2.log("===== BeforeAfter::_setActorState END ===== ");
+    }
+    function _incrementAndCheckLiquidationCalls(
+        address liquidator
+    ) internal returns (bool isFirstCall) {
+        isFirstCall = liquidationCallsInBlock[block.number][liquidator] == 0;
+        liquidationCallsInBlock[block.number][liquidator]++;
+        console2.log(
+            "_incrementAndCheckLiquidationCalls::incremened to ",
+            liquidationCallsInBlock[block.number][liquidator]
+        );
+        return isFirstCall;
+    }
     function resetGhostVariables(uint8 callNum) private {
         states[callNum].totalCollateralValueUsdGhost = 0;
         states[callNum].reportedDebtGhost = 0;
@@ -246,6 +296,19 @@ abstract contract BeforeAfter is
         );
 
         _logLiquidateMarginOnlyCoverage(lcov_liquidateMarginOnlyCovered);
+    }
+
+    function getAccountBalances(
+        uint8 callNum,
+        uint128 accountId,
+        StackCache memory cache
+    ) private {
+        states[callNum].actorStates[accountId].balanceOfWETH = wethTokenMock
+            .balanceOf(accountIdToUser[accountId]);
+        states[callNum].actorStates[accountId].balanceOfSUSD = sUSDTokenMock
+            .balanceOf(accountIdToUser[accountId]);
+        states[callNum].actorStates[accountId].balanceOfWBTC = wbtcTokenMock
+            .balanceOf(accountIdToUser[accountId]);
     }
 
     function getCollateralInfo(
@@ -1242,103 +1305,182 @@ abstract contract BeforeAfter is
             .decode(returnData, (bool));
     }
 
-    function checkIfPositionWasProifitable(
+    function _checkIfPositionWasProifitable(
         uint8 callNum,
-        uint128 accountId
+        uint128 accountId,
+        uint128 marketId
     ) internal {
-        console2.log("checkIfPositionWasProifitable::callNum", callNum);
         console2.log("checkIfPositionWasProifitable::accountId", accountId);
+        console2.log("checkIfPositionWasProifitable::marketId", marketId);
+        StackCache memory cache;
 
-        if (callNum == 1) {
+        bool isPositionClosed;
+        bool wasPreviousPositionOpen;
+
+        console2.log("marketId", marketId);
+        console2.log("accountId", accountId);
+
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.getOpenPosition.selector,
+                accountId,
+                marketId
+            )
+        );
+        assert(success);
+        (
+            cache.totalPnl,
+            cache.accruedFunding,
+            cache.positionSize,
+            cache.owedInterest
+        ) = abi.decode(returnData, (int256, int256, int128, uint256));
+
+        if (marketId == 1) {
+            console2.log("Market: WETH");
+
+            // Store previous trade PnL before updating
+            positionStates[callNum]
+                .actorStates[accountId]
+                .previousTradePositionPnl = positionStates[callNum]
+                .actorStates[accountId]
+                .wethMarket
+                .totalPnl;
+
+            positionStates[callNum]
+                .actorStates[accountId]
+                .wethMarket
+                .totalPnl = cache.totalPnl;
+
             console2.log(
-                "checkIfPositionWasProifitable::Inside callNum == 1 condition"
+                "totalPnl (WETH)",
+                positionStates[callNum]
+                    .actorStates[accountId]
+                    .wethMarket
+                    .totalPnl
             );
 
-            int256 totalPnl = states[callNum]
+            positionStates[callNum]
                 .actorStates[accountId]
                 .wethMarket
-                .totalPnl +
-                states[callNum].actorStates[accountId].wbtcMarket.totalPnl;
-            console2.log("checkIfPositionWasProifitable::totalPnl", totalPnl);
+                .positionSize = cache.positionSize;
 
-            bool isPositionClosed = states[callNum]
+            isPositionClosed =
+                positionStates[callNum]
+                    .actorStates[accountId]
+                    .wethMarket
+                    .positionSize ==
+                0;
+            console2.log("isPositionClosed (WETH)", isPositionClosed);
+            console2.log(
+                "Current positionSize (WETH)",
+                positionStates[callNum]
+                    .actorStates[accountId]
+                    .wethMarket
+                    .positionSize
+            );
+            positionStates[callNum]
                 .actorStates[accountId]
-                .wethMarket
-                .positionSize ==
-                0 &&
-                states[callNum]
+                .isPreviousPositionInLoss = cache.totalPnl < 0;
+
+            // Update isPreviousTradePositionInLoss
+            positionStates[callNum]
+                .actorStates[accountId]
+                .isPreviousTradePositionInLoss =
+                positionStates[callNum]
+                    .actorStates[accountId]
+                    .previousTradePositionPnl <
+                0;
+        } else if (marketId == 2) {
+            console2.log("Market: WBTC");
+
+            // Store previous trade PnL before updating
+            positionStates[callNum]
+                .actorStates[accountId]
+                .previousTradePositionPnl = positionStates[callNum]
+                .actorStates[accountId]
+                .wbtcMarket
+                .totalPnl;
+
+            positionStates[callNum]
+                .actorStates[accountId]
+                .wbtcMarket
+                .totalPnl = cache.totalPnl;
+
+            positionStates[callNum]
+                .actorStates[accountId]
+                .wbtcMarket
+                .positionSize = cache.positionSize;
+
+            console2.log(
+                "totalPnl (WBTC)",
+                positionStates[callNum]
+                    .actorStates[accountId]
+                    .wbtcMarket
+                    .totalPnl
+            );
+
+            isPositionClosed =
+                positionStates[callNum]
                     .actorStates[accountId]
                     .wbtcMarket
                     .positionSize ==
                 0;
+
             console2.log(
-                "checkIfPositionWasProifitable::isPositionClosed",
-                isPositionClosed
+                "Current positionSize (WBTC)",
+                positionStates[callNum]
+                    .actorStates[accountId]
+                    .wbtcMarket
+                    .positionSize
             );
 
-            bool wasPreviousPositionOpen = states[0]
+            console2.log("isPositionClosed (WBTC)", isPositionClosed);
+            positionStates[callNum]
                 .actorStates[accountId]
-                .wethMarket
-                .positionSize !=
-                0 ||
-                states[0].actorStates[accountId].wbtcMarket.positionSize != 0;
-            console2.log(
-                "checkIfPositionWasProifitable::wasPreviousPositionOpen",
-                wasPreviousPositionOpen
-            );
+                .isPreviousPositionInLoss = cache.totalPnl < 0;
 
-            if (isPositionClosed && wasPreviousPositionOpen) {
-                console2.log(
-                    "checkIfPositionWasProifitable::Inside isPositionClosed && wasPreviousPositionOpen condition"
-                );
-
-                // Save the current trade's information as the previous trade
-                states[callNum]
+            // Update isPreviousTradePositionInLoss
+            positionStates[callNum]
+                .actorStates[accountId]
+                .isPreviousTradePositionInLoss =
+                positionStates[callNum]
                     .actorStates[accountId]
-                    .isPreviousTradePositionInLoss = states[callNum]
-                    .actorStates[accountId]
-                    .isPreviousPositionInLoss;
-                states[callNum]
-                    .actorStates[accountId]
-                    .previousTradePositionPnl = states[callNum]
-                    .actorStates[accountId]
-                    .latestPositionPnl;
-
-                // Update the current trade's information
-                states[callNum]
-                    .actorStates[accountId]
-                    .isPreviousPositionInLoss = totalPnl < 0;
-                console2.log(
-                    "checkIfPositionWasProifitable::isPreviousPositionInLoss",
-                    states[callNum]
-                        .actorStates[accountId]
-                        .isPreviousPositionInLoss
-                );
-
-                states[callNum]
-                    .actorStates[accountId]
-                    .latestPositionPnl = totalPnl;
-                console2.log(
-                    "checkIfPositionWasProifitable::latestPositionPnl",
-                    states[callNum].actorStates[accountId].latestPositionPnl
-                );
-
-                console2.log(
-                    "checkIfPositionWasProifitable::isPreviousTradePositionInLoss",
-                    states[callNum]
-                        .actorStates[accountId]
-                        .isPreviousTradePositionInLoss
-                );
-                console2.log(
-                    "checkIfPositionWasProifitable::previousTradePositionPnl",
-                    states[callNum]
-                        .actorStates[accountId]
-                        .previousTradePositionPnl
-                );
-            }
+                    .previousTradePositionPnl <
+                0;
+        } else {
+            console2.log("Invalid marketId", marketId);
+            revert("Invalid marketId");
         }
-    }
 
+        console2.log(
+            "checkIfPositionWasProifitable::isPreviousPositionInLoss",
+            positionStates[callNum]
+                .actorStates[accountId]
+                .isPreviousPositionInLoss
+        );
+
+        // Log new variables
+        console2.log(
+            "checkIfPositionWasProifitable::isPreviousTradePositionInLoss",
+            positionStates[callNum]
+                .actorStates[accountId]
+                .isPreviousTradePositionInLoss
+        );
+        console2.log(
+            "checkIfPositionWasProifitable::previousTradePositionPnl",
+            positionStates[callNum]
+                .actorStates[accountId]
+                .previousTradePositionPnl
+        );
+
+        // Update latestPositionPnl
+        positionStates[callNum].actorStates[accountId].latestPositionPnl = cache
+            .totalPnl;
+        console2.log(
+            "checkIfPositionWasProifitable::latestPositionPnl",
+            positionStates[callNum].actorStates[accountId].latestPositionPnl
+        );
+    }
     function debugBefore(address[] memory actors) internal {
         debugState(0, actors);
     }

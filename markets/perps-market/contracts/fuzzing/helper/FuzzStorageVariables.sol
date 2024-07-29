@@ -49,6 +49,7 @@ contract FuzzStorageVariables is FuzzConstants, Test {
     // user => accountId
     mapping(address => uint128) userToAccountIds;
     mapping(uint128 => address) accountIdToUser;
+
     // pythNodeId => chainlinkNodeId, chainlinkNodeId => pythNodeId
     mapping(bytes32 node1 => bytes32 node2) oracleNodes;
     // collateralToken => chainlink nodeId

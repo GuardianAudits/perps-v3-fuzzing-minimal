@@ -715,29 +715,79 @@ library PerpsAccount {
         }
     }
 
+    // function getPossibleLiquidationReward(
+    //     Data storage self,
+    //     uint256 accumulatedLiquidationRewards,
+    //     uint256 numOfWindows
+    // ) internal view returns (uint256 possibleLiquidationReward) {
+    //     GlobalPerpsMarketConfiguration.Data
+    //         storage globalConfig = GlobalPerpsMarketConfiguration.load();
+    //     KeeperCosts.Data storage keeperCosts = KeeperCosts.load();
+    //     uint256 costOfFlagging = keeperCosts.getFlagKeeperCosts(self.id);
+    //     uint256 costOfLiquidation = keeperCosts.getLiquidateKeeperCosts();
+    //     uint256 liquidateAndFlagCost = globalConfig.keeperReward(
+    //         accumulatedLiquidationRewards,
+    //         costOfFlagging,
+    //         getTotalCollateralValue(self, PerpsPrice.Tolerance.DEFAULT, false)
+    //     );
+    //     uint256 liquidateWindowsCosts = numOfWindows == 0
+    //         ? 0
+    //         : globalConfig.keeperReward(0, costOfLiquidation, 0) *
+    //             (numOfWindows - 1);
+
+    //     possibleLiquidationReward =
+    //         liquidateAndFlagCost +
+    //         liquidateWindowsCosts;
+    // }
+
     function getPossibleLiquidationReward(
         Data storage self,
         uint256 accumulatedLiquidationRewards,
         uint256 numOfWindows
     ) internal view returns (uint256 possibleLiquidationReward) {
+        console2.log(
+            "accumulatedLiquidationRewards",
+            accumulatedLiquidationRewards
+        );
+        console2.log("numOfWindows", numOfWindows);
+
         GlobalPerpsMarketConfiguration.Data
             storage globalConfig = GlobalPerpsMarketConfiguration.load();
+
         KeeperCosts.Data storage keeperCosts = KeeperCosts.load();
+
         uint256 costOfFlagging = keeperCosts.getFlagKeeperCosts(self.id);
+        console2.log("costOfFlagging", costOfFlagging);
+
         uint256 costOfLiquidation = keeperCosts.getLiquidateKeeperCosts();
+        console2.log("costOfLiquidation", costOfLiquidation);
+
+        uint256 totalCollateralValue = getTotalCollateralValue(
+            self,
+            PerpsPrice.Tolerance.DEFAULT,
+            false
+        );
+        console2.log("totalCollateralValue", totalCollateralValue);
+
         uint256 liquidateAndFlagCost = globalConfig.keeperReward(
             accumulatedLiquidationRewards,
             costOfFlagging,
-            getTotalCollateralValue(self, PerpsPrice.Tolerance.DEFAULT, false)
+            totalCollateralValue
         );
+        console2.log("liquidateAndFlagCost", liquidateAndFlagCost);
+
         uint256 liquidateWindowsCosts = numOfWindows == 0
             ? 0
             : globalConfig.keeperReward(0, costOfLiquidation, 0) *
                 (numOfWindows - 1);
+        console2.log("liquidateWindowsCosts", liquidateWindowsCosts);
 
         possibleLiquidationReward =
             liquidateAndFlagCost +
             liquidateWindowsCosts;
+        console2.log("possibleLiquidationReward", possibleLiquidationReward);
+
+        return possibleLiquidationReward;
     }
 
     function transferAllCollateral(

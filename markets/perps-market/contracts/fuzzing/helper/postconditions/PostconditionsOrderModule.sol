@@ -33,6 +33,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
     ) internal {
         if (success) {
             _after(actorsToUpdate);
+            _afterSettlement(accountId, marketId);
 
             invariant_ORD_02(accountId);
             invariant_ORD_03(accountId);
@@ -53,8 +54,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             invariant_ORD_18(accountId, marketId);
             fl.log("4");
 
-            //@audit reformulate
-            // invariant_ORD_22(accountId);
+            invariant_ORD_22(accountId);
 
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountId);

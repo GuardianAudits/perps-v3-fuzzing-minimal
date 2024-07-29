@@ -14,6 +14,7 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
     ) internal {
         if (success) {
             _after(actorsToUpdate);
+
             // invariant_LIQ_03();
             // @audit-ok This assertion is supposed to fail to show a user can be liquidated in such a scenario.
             // invariant_LIQ_08();
@@ -22,6 +23,11 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             invariant_LIQ_16();
             invariant_LIQ_17(accountIds);
             invariant_MGN_16();
+            invariant_LIQ_19(
+                _incrementAndCheckLiquidationCalls(actorsToUpdate[0]),
+                actorsToUpdate[0]
+            ); //liquidator
+
             onSuccessInvariantsGeneral(returnData, accountIds);
         } else {
             onFailInvariantsGeneral(returnData);

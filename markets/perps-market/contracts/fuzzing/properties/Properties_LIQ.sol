@@ -314,4 +314,43 @@ abstract contract Properties_LIQ is PropertiesBase {
             );
         }
     }
+
+    function invariant_LIQ_19(
+        bool firstLiquidationAttempt,
+        address liquidator
+    ) internal {
+        if (!firstLiquidationAttempt) {
+            console2.log(
+                "Invariant liq 19 user debug",
+                userToAccountIds[liquidator]
+            );
+            fl.eq(
+                states[0]
+                    .actorStates[userToAccountIds[liquidator]]
+                    .balanceOfSUSD,
+                states[1]
+                    .actorStates[userToAccountIds[liquidator]]
+                    .balanceOfSUSD,
+                LIQ_19
+            );
+            fl.eq(
+                states[0]
+                    .actorStates[userToAccountIds[liquidator]]
+                    .balanceOfWETH,
+                states[1]
+                    .actorStates[userToAccountIds[liquidator]]
+                    .balanceOfWETH,
+                LIQ_19
+            );
+            fl.eq(
+                states[0]
+                    .actorStates[userToAccountIds[liquidator]]
+                    .balanceOfWBTC,
+                states[1]
+                    .actorStates[userToAccountIds[liquidator]]
+                    .balanceOfWBTC,
+                LIQ_19
+            );
+        }
+    }
 }

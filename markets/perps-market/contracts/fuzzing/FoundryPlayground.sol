@@ -117,18 +117,31 @@ contract FoundryPlayground is FuzzModules {
         fuzz_settleOrder();
     }
 
-    function test_openAndClose() public {
-        vm.prank(USER1);
+    function test_openAndCloseAfterSettle_ORD22() public {
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
-        vm.prank(USER1);
         fuzz_modifyCollateral(1e18, 1);
-        vm.prank(USER1);
-        fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 will be weth market
-        vm.prank(USER1);
-        fuzz_settleOrder();
-        vm.prank(USER1);
+
+        //before pnl = 0
+        //before pos = 0
         fuzz_commitOrder(2e18, type(uint256).max - 1); //-1 will be weth market
-        vm.prank(USER1);
+        fuzz_settleOrder();
+        //after pnl = -6
+        //after pos = 2000
+
+        // fuzz_crashWETHPythPrice(1);
+        fuzz_pumpWETHPythPrice(1);
+        //before pnl = -200
+        //before pos = 2000
+        fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 will be weth market
+        fuzz_settleOrder();
+        //after pnl = 0
+        //after pos = 0
+
+        fuzz_modifyCollateral(10100e18, 0);
+
+        //before pnl = 0
+        //before pos = 0
+        fuzz_commitOrder(2.33e18, type(uint256).max); //wbtc
         fuzz_settleOrder();
     }
 
@@ -166,6 +179,7 @@ contract FoundryPlayground is FuzzModules {
         fuzz_settleOrder();
 
         fuzz_crashWETHPythPrice(30);
+        fuzz_liquidatePosition();
         fuzz_liquidatePosition();
     }
 
