@@ -132,10 +132,6 @@ contract FoundryPlayground is FuzzModules {
         fuzz_pumpWETHPythPrice(1);
         //before pnl = -200
         //before pos = 2000
-        fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 will be weth market
-        fuzz_settleOrder();
-        //after pnl = 0
-        //after pos = 0
 
         fuzz_modifyCollateral(10100e18, 0);
 

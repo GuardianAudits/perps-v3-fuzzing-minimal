@@ -284,49 +284,6 @@ abstract contract Properties_ORD is PropertiesBase {
             ORD_21
         );
     }
-    // function invariant_ORD_22(uint128 accountId) internal {
-    //     console2.log("debug_invariant_ORD_22::accountId", accountId);
-
-    //     //settlement on open long
-    //     bool condition1 = states[1]
-    //         .actorStates[accountId]
-    //         .wethMarket
-    //         .positionSize != 0; //!NOTE: not be zero
-    //     console2.log("debug_invariant_ORD_22::condition1", condition1);
-
-    //     bool condition2 = states[1]
-    //         .actorStates[accountId]
-    //         .wbtcMarket
-    //         .positionSize != 0;
-    //     console2.log("debug_invariant_ORD_22::condition2", condition2);
-
-    //     bool condition3 = states[0]
-    //         .actorStates[accountId]
-    //         .wethMarket
-    //         .positionSize == 0;
-    //     console2.log("debug_invariant_ORD_22::condition3", condition3);
-
-    //     bool condition4 = states[0]
-    //         .actorStates[accountId]
-    //         .wbtcMarket
-    //         .positionSize == 0;
-    //     console2.log("debug_invariant_ORD_22::condition4", condition4);
-
-    //     if ((condition1 || condition2) && (condition3 || condition4)) {
-    //         console2.log(
-    //             "debug_invariant_ORD_22: debt before",
-    //             states[0].actorStates[accountId].debt
-    //         );
-    //         console2.log(
-    //             "debug_invariant_ORD_22: debt now",
-    //             states[1].actorStates[accountId].debt
-    //         );
-
-    //         if (states[0].actorStates[accountId].debt != 0) {
-    //             fl.t(states[1].actorStates[accountId].debt != 0, ORD_22);
-    //         }
-    //     }
-    // }
 
     function invariant_ORD_22(uint128 accountId) internal {
         // Prior debt should not be zero and if existing position prior to settlement was in loss, debt should stay non zero
