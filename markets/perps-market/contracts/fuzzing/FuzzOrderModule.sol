@@ -104,14 +104,16 @@ contract FuzzOrderModule is
         //     fl.eq(params.sizeDelta, 0, "SO SIZE NEGATIVE SETTLED");
         // }
 
-        settleOrderPostconditions(
-            success,
-            returnData,
-            actorsToUpdate,
-            params.settleUser,
-            params.accountId,
-            pendingOrder[params.accountId].marketId
-        );
+        if (pendingOrder[params.accountId].marketId != 0) {
+            settleOrderPostconditions(
+                success,
+                returnData,
+                actorsToUpdate,
+                params.settleUser,
+                params.accountId,
+                pendingOrder[params.accountId].marketId
+            );
+        }
         delete pendingOrder[params.accountId];
     }
 
