@@ -11,3 +11,4 @@ new/
 echidna-corpus-old/
 crytic-export/
 cache_forge/
+markets/perps-market/cache_forge/solidity-files-cache.json
