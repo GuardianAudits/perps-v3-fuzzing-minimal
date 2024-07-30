@@ -1,5 +1,6 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
+
 import "../FuzzSetup.sol";
 import {AsyncOrder} from "../../storage/AsyncOrder.sol";
 import {MathUtil} from "../../utils/MathUtil.sol";
@@ -25,7 +26,6 @@ abstract contract BeforeAfter is
     uint lcov_liquidateMarginOnlyCovered;
 
     struct PositionVars {
-        // Position.Data position; getting separately instead
         int256 totalPnl;
         int256 accruedFunding;
         int128 positionSize;
@@ -43,7 +43,6 @@ abstract contract BeforeAfter is
     }
 
     struct State {
-        // account => actorStates
         mapping(uint128 => ActorStates) actorStates;
         MarketVars wethMarket;
         MarketVars wbtcMarket;
@@ -58,11 +57,11 @@ abstract contract BeforeAfter is
         uint depositedHUGECollateral;
         uint256 totalCollateralValueUsd;
         uint256 marketSizeGhost;
-        uint256 delegatedCollateralValueUsd; //get with lens
-        uint128 currentUtilizationAccruedComputed; //get with lens
-        uint256 utilizationRate; //perpsMarketFactoryModuleImpl.utilizationRate
-        uint256 delegatedCollateral; //perpsMarketFactoryModuleImpl.utilizationRate
-        uint256 lockedCredit; //perpsMarketFactoryModuleImpl.utilizationRate
+        uint256 delegatedCollateralValueUsd;
+        uint128 currentUtilizationAccruedComputed;
+        uint256 utilizationRate;
+        uint256 delegatedCollateral;
+        uint256 lockedCredit;
         uint256 reportedDebtGhost;
         uint256 totalCollateralValueUsdGhost;
         uint256 minimumCredit;
@@ -77,29 +76,29 @@ abstract contract BeforeAfter is
         bool isPositionLiquidatablePassing;
         bool isMarginLiquidatable;
         uint128 debt;
-        uint256[] collateralIds; //perpsAccountModuleImpl.getAccountCollateralIds
+        uint256[] collateralIds;
         uint256 balanceOfSUSD;
         uint256 balanceOfWETH;
         uint256 balanceOfWBTC;
         uint256 collateralAmountSUSD;
-        uint256 collateralAmountWETH; //perpsAccountModuleImpl.getCollateralAmount
-        uint256 collateralAmountWBTC; //perpsAccountModuleImpl.getCollateralAmount
-        uint256 collateralAmountHUGE; //perpsAccountModuleImpl.getCollateralAmount
-        uint256 totalCollateralValue; //perpsAccountModuleImpl.totalCollateralValue
+        uint256 collateralAmountWETH;
+        uint256 collateralAmountWBTC;
+        uint256 collateralAmountHUGE;
+        uint256 totalCollateralValue;
         int128 sizeDelta;
         bool isOrderExpired;
         uint256 fillPriceWETH;
         uint256 fillPriceWBTC;
         uint256 sUSDBalance;
-        int256 availableMargin; //perpsAccountModuleImpl.getAvailableMargin
-        uint256 requiredInitialMargin; //perpsAccountModuleImpl.getRequiredMargins
-        uint256 requiredMaintenanceMargin; //perpsAccountModuleImpl.getRequiredMargins
-        uint256 maxLiquidationReward; //perpsAccountModuleImpl.getRequiredMargins
+        int256 availableMargin;
+        uint256 requiredInitialMargin;
+        uint256 requiredMaintenanceMargin;
+        uint256 maxLiquidationReward;
         uint256 depositedWethCollateral;
         uint256 depositedSusdCollateral;
         uint128[] activeCollateralTypes;
         uint128[] openPositionMarketIds;
-        PositionVars wethMarket; //TODO:rename to position
+        PositionVars wethMarket;
         PositionVars wbtcMarket;
         bool isAccountLiquidatable;
         bool isPreviousPositionInLoss;
@@ -108,46 +107,55 @@ abstract contract BeforeAfter is
         int256 previousTradePositionPnl;
     }
 
-    struct StackCache {
-        uint256 capacity;
-        uint256 maxLiquidationInWindow;
-        uint256 latestLiquidationTimestamp;
+    // Function-specific structs
+    struct LiquidationVars {
+        bool isPositionLiquidatable;
+        bool isMarginLiquidatable;
+        uint128 debt;
+        uint256 maxLiquidatableAmount;
+    }
+
+    struct CollateralVars {
+        uint256[] collateralIds;
+        uint256 collateralAmount;
+        uint256 totalCollateralValue;
+    }
+
+    struct OrderVars {
+        int128 sizeDelta;
+        bool isOrderExpired;
+        uint256 fillPrice;
+    }
+
+    struct PositionInfoVars {
         int256 totalPnl;
         int256 accruedFunding;
         int128 positionSize;
         uint256 owedInterest;
-        int256 skew;
-        uint256 marketSkew;
+    }
+
+    struct MarketInfoVars {
+        uint256 liquidationCapacity;
         uint256 marketSize;
-        uint256 rate;
+        int256 skew;
+    }
+
+    struct UtilizationVars {
+        uint256 utilizationRate;
         uint256 delegatedCollateral;
         uint256 lockedCredit;
+    }
+
+    struct MarginVars {
         int256 availableMargin;
         uint256 requiredInitialMargin;
         uint256 requiredMaintenanceMargin;
-        uint256 maxLiquidationReward;
-        bool isOrderExpired;
-        address collateralToken;
-        int256 amount;
-        bytes32 nodeId;
-        int256 price;
-        int256 value;
-        uint256 totalCollateralValueUsdGhost;
-        uint128 accountId;
-        int256 collateralValueUsd;
-        int256 pricePnL;
-        int256 pendingFunding;
-        int256 debtUsd;
-        int256 reportedDebtGhost;
-        uint256 marketSizeGhost;
-        int256 userReportedDebt;
-        uint256 fillPriceWETH;
-        uint256 fillPriceWBTC;
-        uint256 orderFeesWBTC;
-        uint256 orderFeesWETH;
-        uint256 positionSizeSum;
-        int256 accountDebt;
-        int256 CollateralValueForTokenGhost;
+    }
+
+    struct DebtVars {
+        int256 totalDebt;
+        uint256 reportedDebt;
+        uint256 debtCorrectionAccumulator;
     }
 
     event DebugSize(int size, address a, string s);
@@ -173,6 +181,13 @@ abstract contract BeforeAfter is
         _setStates(1, accountId, marketId);
     }
 
+    function zeroOutMemory() public {
+        for (uint8 i = 0; i < 2; i++) {
+            delete states[i];
+            delete positionStates[i];
+        }
+    }
+
     function _checkLCov(bool lcov) internal {
         lcov
             ? lcov_liquidateMarginOnlyCovered += 1
@@ -183,8 +198,6 @@ abstract contract BeforeAfter is
         for (uint256 i = 0; i < ACCOUNTS.length; i++) {
             _setActorState(callNum, ACCOUNTS[i], accountIdToUser[ACCOUNTS[i]]);
         }
-
-        // Set states here that are independent from actors
     }
 
     function _setStates(
@@ -206,25 +219,16 @@ abstract contract BeforeAfter is
         address actor
     ) internal {
         console2.log("===== BeforeAfter::_setActorState START ===== ");
-        StackCache memory cache;
-
         resetGhostVariables(callNum);
-        getLiquidationValues(callNum, accountId, cache);
-        getCollateralInfo(callNum, accountId, cache);
-        getOrderInfo(callNum, accountId, cache);
-        getPositionInfo(callNum, accountId, cache);
-        getMarketInfo(callNum, cache);
-        getGlobalCollateralValues(callNum, cache);
-        calculateTotalCollateralValueGhost(callNum, cache);
-        getUtilizationInfo(callNum, cache);
-        getMarginInfo(callNum, accountId, cache);
-        getGlobalDebt(callNum, cache);
-        getMarketDebt(callNum, cache);
-        getAccountBalances(callNum, accountId, cache);
-        calculateReportedDebtComparison(callNum, cache);
-        calculateTotalAccountsDebt(callNum, cache);
-        checkIfAccountLiquidatable(callNum, accountId);
-        calculateCollateralValueForEveryToken(callNum, cache);
+        getLiquidationValues(callNum, accountId);
+        getCollateralInfo(callNum, accountId);
+        getOrderInfo(callNum, accountId);
+        getPositionInfo(callNum, accountId);
+        getMarketInfo(callNum);
+        getUtilizationInfo(callNum);
+        getMarginInfo(callNum, accountId);
+        getDebtInfo(callNum, accountId);
+
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
 
@@ -235,11 +239,12 @@ abstract contract BeforeAfter is
         address actor
     ) internal {
         console2.log("===== BeforeAfter::_setActorState START ===== ");
-        StackCache memory cache;
 
         _checkIfPositionWasProifitable(callNum, accountId, marketId);
+
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
+
     function _incrementAndCheckLiquidationCalls(
         address liquidator
     ) internal returns (bool isFirstCall) {
@@ -258,11 +263,9 @@ abstract contract BeforeAfter is
         states[callNum].totalDebtCalculated = 0;
     }
 
-    function getLiquidationValues(
-        uint8 callNum,
-        uint128 accountId,
-        StackCache memory cache
-    ) private {
+    function getLiquidationValues(uint8 callNum, uint128 accountId) private {
+        LiquidationVars memory vars;
+
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 liquidationModuleImpl.canLiquidate.selector,
@@ -272,12 +275,7 @@ abstract contract BeforeAfter is
         states[callNum]
             .actorStates[accountId]
             .isPositionLiquidatablePassing = success;
-        fl.log("SUCC VALUE:", success);
-        fl.log("ACCOUNT ID:", accountId);
-        fl.log("CALL NUM:", callNum);
-        // fl.t(false, "!passing success");
-        states[callNum].actorStates[accountId].isPositionLiquidatable = abi
-            .decode(returnData, (bool));
+        vars.isPositionLiquidatable = abi.decode(returnData, (bool));
 
         (success, returnData) = perps.call(
             abi.encodeWithSelector(
@@ -286,35 +284,24 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        states[callNum].actorStates[accountId].isMarginLiquidatable = abi
-            .decode(returnData, (bool));
+        vars.isMarginLiquidatable = abi.decode(returnData, (bool));
+
+        states[callNum].actorStates[accountId].isPositionLiquidatable = vars
+            .isPositionLiquidatable;
+        states[callNum].actorStates[accountId].isMarginLiquidatable = vars
+            .isMarginLiquidatable;
 
         _logLiquidatableCoverage(
-            states[callNum].actorStates[accountId].isPositionLiquidatable,
-            states[callNum].actorStates[accountId].isMarginLiquidatable
+            vars.isPositionLiquidatable,
+            vars.isMarginLiquidatable
         );
 
         _logLiquidateMarginOnlyCoverage(lcov_liquidateMarginOnlyCovered);
     }
 
-    function getAccountBalances(
-        uint8 callNum,
-        uint128 accountId,
-        StackCache memory cache
-    ) private {
-        states[callNum].actorStates[accountId].balanceOfWETH = wethTokenMock
-            .balanceOf(accountIdToUser[accountId]);
-        states[callNum].actorStates[accountId].balanceOfSUSD = sUSDTokenMock
-            .balanceOf(accountIdToUser[accountId]);
-        states[callNum].actorStates[accountId].balanceOfWBTC = wbtcTokenMock
-            .balanceOf(accountIdToUser[accountId]);
-    }
+    function getCollateralInfo(uint8 callNum, uint128 accountId) private {
+        CollateralVars memory vars;
 
-    function getCollateralInfo(
-        uint8 callNum,
-        uint128 accountId,
-        StackCache memory cache
-    ) private {
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsAccountModuleImpl.getAccountCollateralIds.selector,
@@ -322,50 +309,32 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        states[callNum].actorStates[accountId].collateralIds = abi.decode(
-            returnData,
-            (uint256[])
-        );
+        vars.collateralIds = abi.decode(returnData, (uint256[]));
 
-        getCollateralAmount(callNum, accountId, 0, cache);
-        getCollateralAmount(callNum, accountId, 1, cache);
-        getCollateralAmount(callNum, accountId, 2, cache);
-        getCollateralAmount(callNum, accountId, 3, cache);
+        states[callNum].actorStates[accountId].collateralIds = vars
+            .collateralIds;
 
-        states[callNum]
-            .actorStates[accountId]
-            .totalCollateralValue = getTotalCollateralValue(accountId);
-        // Coverage check at the end
-        _logCollateralIdsCoverage(
-            states[callNum].actorStates[accountId].collateralIds // from map
-        );
+        for (uint256 i = 0; i < 4; i++) {
+            getCollateralAmount(callNum, accountId, i);
+        }
 
-        // Additional coverage for collateral amounts and total value
+        vars.totalCollateralValue = getTotalCollateralValue(accountId);
+        states[callNum].actorStates[accountId].totalCollateralValue = vars
+            .totalCollateralValue;
+
+        _logCollateralIdsCoverage(vars.collateralIds);
         _logCollateralAmountsCoverage(
-            states[callNum].actorStates[accountId].collateralAmountSUSD, // from map
-            states[callNum].actorStates[accountId].collateralAmountWETH, // from map
-            states[callNum].actorStates[accountId].collateralAmountWBTC, // from map
-            // states[callNum].actorStates[accountId].collateralAmountHUGE, // from map TODO: add huge
-            states[callNum].actorStates[accountId].totalCollateralValue // from map
+            states[callNum].actorStates[accountId].collateralAmountSUSD,
+            states[callNum].actorStates[accountId].collateralAmountWETH,
+            states[callNum].actorStates[accountId].collateralAmountWBTC,
+            vars.totalCollateralValue
         );
     }
-    function getTotalCollateralValue(
-        uint128 accountId
-    ) internal returns (uint256 totalCollateralValue) {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.totalCollateralValue.selector,
-                accountId
-            )
-        );
-        assert(success);
-        totalCollateralValue = abi.decode(returnData, (uint256));
-    }
+
     function getCollateralAmount(
         uint8 callNum,
         uint128 accountId,
-        uint256 collateralId,
-        StackCache memory cache
+        uint256 collateralId
     ) private {
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
@@ -396,11 +365,22 @@ abstract contract BeforeAfter is
         }
     }
 
-    function getOrderInfo(
-        uint8 callNum,
-        uint128 accountId,
-        StackCache memory cache
-    ) private {
+    function getTotalCollateralValue(
+        uint128 accountId
+    ) internal returns (uint256 totalCollateralValue) {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.totalCollateralValue.selector,
+                accountId
+            )
+        );
+        assert(success);
+        totalCollateralValue = abi.decode(returnData, (uint256));
+    }
+
+    function getOrderInfo(uint8 callNum, uint128 accountId) private {
+        OrderVars memory vars;
+
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsAccountModuleImpl.debt.selector,
@@ -424,9 +404,7 @@ abstract contract BeforeAfter is
             returnData,
             (AsyncOrder.Data)
         );
-        states[callNum].actorStates[accountId].sizeDelta = order
-            .request
-            .sizeDelta;
+        vars.sizeDelta = order.request.sizeDelta;
 
         (success, returnData) = perps.call(
             abi.encodeWithSelector(
@@ -435,20 +413,22 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        cache.isOrderExpired = abi.decode(returnData, (bool));
-        states[callNum].actorStates[accountId].isOrderExpired = cache
+        vars.isOrderExpired = abi.decode(returnData, (bool));
+
+        states[callNum].actorStates[accountId].sizeDelta = vars.sizeDelta;
+        states[callNum].actorStates[accountId].isOrderExpired = vars
             .isOrderExpired;
 
-        getOrderFees(callNum, accountId, 1, WETH_PYTH_PRICE_FEED_ID, cache);
-        getOrderFees(callNum, accountId, 2, WBTC_PYTH_PRICE_FEED_ID, cache);
+        getOrderFees(callNum, accountId, 1, WETH_PYTH_PRICE_FEED_ID);
+        getOrderFees(callNum, accountId, 2, WBTC_PYTH_PRICE_FEED_ID);
 
         states[callNum].actorStates[accountId].sUSDBalance = sUSDTokenMock
             .balanceOf(accountIdToUser[accountId]);
 
         _logOrderInfoCoverage(
             states[callNum].actorStates[accountId].debt,
-            states[callNum].actorStates[accountId].sizeDelta,
-            states[callNum].actorStates[accountId].isOrderExpired,
+            vars.sizeDelta,
+            vars.isOrderExpired,
             states[callNum].actorStates[accountId].fillPriceWETH,
             states[callNum].actorStates[accountId].fillPriceWBTC,
             states[callNum].actorStates[accountId].sUSDBalance
@@ -459,8 +439,7 @@ abstract contract BeforeAfter is
         uint8 callNum,
         uint128 accountId,
         uint256 marketId,
-        bytes32 priceFeedId,
-        StackCache memory cache
+        bytes32 priceFeedId
     ) private {
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
@@ -482,13 +461,11 @@ abstract contract BeforeAfter is
         }
     }
 
-    function getPositionInfo(
-        uint8 callNum,
-        uint128 accountId,
-        StackCache memory cache
-    ) private {
-        getOpenPosition(callNum, accountId, 1, cache);
-        getOpenPosition(callNum, accountId, 2, cache);
+    function getPositionInfo(uint8 callNum, uint128 accountId) private {
+        PositionInfoVars memory vars;
+
+        getOpenPosition(callNum, accountId, 1);
+        getOpenPosition(callNum, accountId, 2);
 
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
@@ -496,9 +473,7 @@ abstract contract BeforeAfter is
                 accountId
             )
         );
-
         assert(success);
-
         states[callNum].actorStates[accountId].openPositionMarketIds = abi
             .decode(returnData, (uint128[]));
 
@@ -508,9 +483,7 @@ abstract contract BeforeAfter is
                 accountId
             )
         );
-
         assert(success);
-
         states[callNum].actorStates[accountId].activeCollateralTypes = abi
             .decode(returnData, (uint128[]));
 
@@ -519,7 +492,6 @@ abstract contract BeforeAfter is
                 mockLensModuleImpl.getGlobalCollateralTypes.selector
             )
         );
-
         assert(success);
         states[callNum].globalCollateralTypes = abi.decode(
             returnData,
@@ -561,6 +533,61 @@ abstract contract BeforeAfter is
         );
     }
 
+    function getOpenPosition(
+        uint8 callNum,
+        uint128 accountId,
+        uint128 marketId
+    ) private {
+        PositionInfoVars memory vars;
+
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.getOpenPosition.selector,
+                accountId,
+                marketId
+            )
+        );
+        assert(success);
+        (
+            vars.totalPnl,
+            vars.accruedFunding,
+            vars.positionSize,
+            vars.owedInterest
+        ) = abi.decode(returnData, (int256, int256, int128, uint256));
+
+        if (marketId == 1) {
+            states[callNum].actorStates[accountId].wethMarket.totalPnl = vars
+                .totalPnl;
+            states[callNum]
+                .actorStates[accountId]
+                .wethMarket
+                .accruedFunding = vars.accruedFunding;
+            states[callNum]
+                .actorStates[accountId]
+                .wethMarket
+                .positionSize = vars.positionSize;
+            states[callNum]
+                .actorStates[accountId]
+                .wethMarket
+                .owedInterest = vars.owedInterest;
+        } else if (marketId == 2) {
+            states[callNum].actorStates[accountId].wbtcMarket.totalPnl = vars
+                .totalPnl;
+            states[callNum]
+                .actorStates[accountId]
+                .wbtcMarket
+                .accruedFunding = vars.accruedFunding;
+            states[callNum]
+                .actorStates[accountId]
+                .wbtcMarket
+                .positionSize = vars.positionSize;
+            states[callNum]
+                .actorStates[accountId]
+                .wbtcMarket
+                .owedInterest = vars.owedInterest;
+        }
+    }
+
     function getMaxLiquidatableAmount(
         uint128 marketId,
         int128 positionSize
@@ -580,93 +607,32 @@ abstract contract BeforeAfter is
         return abi.decode(returnData, (uint128));
     }
 
-    function getOpenPosition(
-        uint8 callNum,
-        uint128 accountId,
-        uint256 marketId,
-        StackCache memory cache
-    ) private {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.getOpenPosition.selector,
-                accountId,
-                marketId
-            )
-        );
-        assert(success);
-        (
-            cache.totalPnl,
-            cache.accruedFunding,
-            cache.positionSize,
-            cache.owedInterest
-        ) = abi.decode(returnData, (int256, int256, int128, uint256));
+    function getMarketInfo(uint8 callNum) private {
+        MarketInfoVars memory vars;
 
-        console2.log("Debug position size", cache.positionSize);
+        getLiquidationCapacity(callNum, 1);
+        getLiquidationCapacity(callNum, 2);
+        getLiquidationCapacity(callNum, 3);
 
-        if (marketId == 1) {
-            states[callNum].actorStates[accountId].wethMarket.totalPnl = cache
-                .totalPnl;
-            states[callNum]
-                .actorStates[accountId]
-                .wethMarket
-                .accruedFunding = cache.accruedFunding;
-            states[callNum]
-                .actorStates[accountId]
-                .wethMarket
-                .positionSize = cache.positionSize;
-            states[callNum]
-                .actorStates[accountId]
-                .wethMarket
-                .owedInterest = cache.owedInterest;
-        } else if (marketId == 2) {
-            states[callNum].actorStates[accountId].wbtcMarket.totalPnl = cache
-                .totalPnl;
-            states[callNum]
-                .actorStates[accountId]
-                .wbtcMarket
-                .accruedFunding = cache.accruedFunding;
-            states[callNum]
-                .actorStates[accountId]
-                .wbtcMarket
-                .positionSize = cache.positionSize;
-            states[callNum]
-                .actorStates[accountId]
-                .wbtcMarket
-                .owedInterest = cache.owedInterest;
-        }
-    }
+        getMarketSize(callNum, 1);
+        getMarketSize(callNum, 2);
+        getMarketSize(callNum, 3);
 
-    function getMarketInfo(uint8 callNum, StackCache memory cache) private {
-        getLiquidationCapacity(callNum, 1, cache);
-        getLiquidationCapacity(callNum, 2, cache);
-        getLiquidationCapacity(callNum, 3, cache);
-
-        getMarketSize(callNum, 1, cache);
-        getMarketSize(callNum, 2, cache);
-        getMarketSize(callNum, 3, cache);
-
-        getMarketSkew(callNum, 1, cache);
-        getMarketSkew(callNum, 2, cache);
-        getMarketSkew(callNum, 3, cache);
+        getMarketSkew(callNum, 1);
+        getMarketSkew(callNum, 2);
+        getMarketSkew(callNum, 3);
 
         _logMarketInfoCoverage(
             states[callNum].wethMarket.liquidationCapacity,
             states[callNum].wbtcMarket.liquidationCapacity,
-            // states[callNum].hugeMarket.liquidationCapacity, //not sure if a huge precision tokens is aplicable for the protocol
             states[callNum].wethMarket.marketSize,
             states[callNum].wbtcMarket.marketSize
-            // states[callNum].hugeMarket.marketSize,
-            // states[callNum].wbtcMarket.skew,
-            // states[callNum].wethMarket.skew
-            // states[callNum].hugeMarket.skew
         );
     }
 
-    function getLiquidationCapacity(
-        uint8 callNum,
-        uint256 marketId,
-        StackCache memory cache
-    ) private {
+    function getLiquidationCapacity(uint8 callNum, uint256 marketId) private {
+        MarketInfoVars memory vars;
+
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 liquidationModuleImpl.liquidationCapacity.selector,
@@ -674,23 +640,22 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        (
-            cache.capacity,
-            cache.maxLiquidationInWindow,
-            cache.latestLiquidationTimestamp
-        ) = abi.decode(returnData, (uint256, uint256, uint256));
+        (vars.liquidationCapacity, , ) = abi.decode(
+            returnData,
+            (uint256, uint256, uint256)
+        );
         if (marketId == 1) {
-            states[callNum].wethMarket.liquidationCapacity = cache.capacity;
+            states[callNum].wethMarket.liquidationCapacity = vars
+                .liquidationCapacity;
         } else if (marketId == 2) {
-            states[callNum].wbtcMarket.liquidationCapacity = cache.capacity;
+            states[callNum].wbtcMarket.liquidationCapacity = vars
+                .liquidationCapacity;
         }
     }
 
-    function getMarketSize(
-        uint8 callNum,
-        uint256 marketId,
-        StackCache memory cache
-    ) private {
+    function getMarketSize(uint8 callNum, uint256 marketId) private {
+        MarketInfoVars memory vars;
+
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsMarketModuleImpl.size.selector,
@@ -698,19 +663,17 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        cache.marketSize = abi.decode(returnData, (uint256));
+        vars.marketSize = abi.decode(returnData, (uint256));
         if (marketId == 1) {
-            states[callNum].wethMarket.marketSize = cache.marketSize;
+            states[callNum].wethMarket.marketSize = vars.marketSize;
         } else if (marketId == 2) {
-            states[callNum].wbtcMarket.marketSize = cache.marketSize;
+            states[callNum].wbtcMarket.marketSize = vars.marketSize;
         }
     }
 
-    function getMarketSkew(
-        uint8 callNum,
-        uint256 marketId,
-        StackCache memory cache
-    ) private {
+    function getMarketSkew(uint8 callNum, uint256 marketId) private {
+        MarketInfoVars memory vars;
+
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsMarketModuleImpl.skew.selector,
@@ -718,249 +681,19 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        cache.skew = abi.decode(returnData, (int256));
+        vars.skew = abi.decode(returnData, (int256));
         if (marketId == 1) {
-            states[callNum].wethMarket.skew = cache.skew;
+            states[callNum].wethMarket.skew = vars.skew;
         } else if (marketId == 2) {
-            states[callNum].wbtcMarket.skew = cache.skew;
+            states[callNum].wbtcMarket.skew = vars.skew;
         } else if (marketId == 3) {
-            states[callNum].hugeMarket.skew = cache.skew;
-        }
-    }
-    function getGlobalCollateralValues(
-        uint8 callNum,
-        StackCache memory cache
-    ) private {
-        getGlobalCollateralValue(callNum, 0);
-        getGlobalCollateralValue(callNum, 1);
-        getGlobalCollateralValue(callNum, 2);
-
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                globalPerpsMarketModuleImpl.totalGlobalCollateralValue.selector
-            )
-        );
-        assert(success);
-        uint256 totalCollateralValue = abi.decode(returnData, (uint256));
-        states[callNum].totalCollateralValueUsd = totalCollateralValue;
-
-        _logGlobalCollateralValuesCoverage(
-            states[callNum].depositedSusdCollateral,
-            states[callNum].depositedWethCollateral,
-            states[callNum].depositedWbtcCollateral,
-            // states[callNum].depositedHUGECollateral,
-            states[callNum].totalCollateralValueUsd,
-            states[callNum].totalCollateralValueUsdGhost,
-            states[callNum].skew
-        );
-    }
-
-    function getGlobalCollateralValue(
-        uint8 callNum,
-        uint256 collateralId
-    ) private {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                globalPerpsMarketModuleImpl.globalCollateralValue.selector,
-                collateralId
-            )
-        );
-        assert(success);
-        uint256 collateralValue = abi.decode(returnData, (uint256));
-        if (collateralId == 0) {
-            states[callNum].depositedSusdCollateral = collateralValue;
-        } else if (collateralId == 1) {
-            states[callNum].depositedWethCollateral = collateralValue;
-        } else if (collateralId == 2) {
-            states[callNum].depositedWbtcCollateral = collateralValue;
+            states[callNum].hugeMarket.skew = vars.skew;
         }
     }
 
-    function calculateTotalCollateralValueGhost(
-        uint8 callNum,
-        StackCache memory cache
-    ) private {
-        cache.totalCollateralValueUsdGhost = 0;
-        for (uint256 i = 0; i < USERS.length; i++) {
-            cache.accountId = userToAccountIds[USERS[i]];
-            cache
-                .totalCollateralValueUsdGhost += calculateCollateralValueForAccount(
-                callNum,
-                cache.accountId,
-                cache
-            );
-            console2.log(">>>BEFOREAFTER:Call num:", callNum);
-            console2.log(">>>BEFOREAFTER:Account:", cache.accountId);
-            console2.log(
-                ">>>BEFOREAFTER:Collateral value:",
-                calculateCollateralValueForAccount(
-                    callNum,
-                    cache.accountId,
-                    cache
-                )
-            );
-        }
-        states[callNum].totalCollateralValueUsdGhost = cache
-            .totalCollateralValueUsdGhost;
-        console2.log(
-            "calculateTotalCollateralValueGhost::totalCollateralValueUsdGhost",
-            states[callNum].totalCollateralValueUsdGhost
-        );
-        console2.log(
-            "comparing with totalCollateralValue of system report::totalCollateralValueUsd",
-            states[callNum].totalCollateralValueUsd
-        );
-    }
+    function getUtilizationInfo(uint8 callNum) private {
+        UtilizationVars memory vars;
 
-    function calculateCollateralValueForAccount(
-        uint8 callNum,
-        uint128 accountId,
-        StackCache memory cache
-    ) private view returns (uint256) {
-        uint256 totalValue = 0;
-        totalValue += calculateCollateralValueForToken(
-            callNum,
-            accountId,
-            0,
-            1e18,
-            cache
-        );
-        console2.log(
-            "CALCCOLLVALUE0:",
-            calculateCollateralValueForToken(callNum, accountId, 0, 1e18, cache)
-        );
-        totalValue += calculateCollateralValueForToken(
-            callNum,
-            accountId,
-            1,
-            mockOracleManager.process(WETH_ORACLE_NODE_ID).price,
-            cache
-        );
-        console2.log(
-            "CALCCOLLVALUE1NEW:",
-            calculateCollateralValueForToken(
-                callNum,
-                accountId,
-                1,
-                mockOracleManager.process(WETH_ORACLE_NODE_ID).price,
-                cache
-            )
-        );
-        console2.log("BenchmarkPrice1:");
-        console2.logInt(pythWrapper.getBenchmarkPrice(WETH_FEED_ID, 0));
-        totalValue += calculateCollateralValueForToken(
-            callNum,
-            accountId,
-            2,
-            mockOracleManager.process(WBTC_ORACLE_NODE_ID).price,
-            cache
-        );
-        console2.log(
-            "CALCCOLLVALUE2NEW:",
-            calculateCollateralValueForToken(
-                callNum,
-                accountId,
-                2,
-                mockOracleManager.process(WBTC_ORACLE_NODE_ID).price,
-                cache
-            )
-        );
-
-        return totalValue;
-    }
-
-    function calculateCollateralValueForToken(
-        uint8 callNum,
-        uint128 accountId,
-        uint256 collateralId,
-        int256 price,
-        StackCache memory cache
-    ) private view returns (uint256) {
-        uint256 amount;
-        if (collateralId == 0) {
-            amount = states[callNum]
-                .actorStates[accountId]
-                .collateralAmountSUSD;
-        } else if (collateralId == 1) {
-            amount = states[callNum]
-                .actorStates[accountId]
-                .collateralAmountWETH;
-        } else if (collateralId == 2) {
-            amount = states[callNum]
-                .actorStates[accountId]
-                .collateralAmountWBTC;
-        }
-        return (uint256(price) * amount) / 1e18;
-    }
-
-    function calculateCollateralValueForEveryToken(
-        uint8 callNum,
-        StackCache memory cache
-    ) private {
-        states[callNum]
-            .collateralValueAllUsersSUSDCalculated = calculateCollateralValueForTokenAllUsers(
-            callNum,
-            0,
-            cache
-        );
-        states[callNum]
-            .collateralValueAllUsersWETHCalculated = calculateCollateralValueForTokenAllUsers(
-            callNum,
-            1,
-            cache
-        );
-        states[callNum]
-            .collateralValueAllUsersWBTCCalculated = calculateCollateralValueForTokenAllUsers(
-            callNum,
-            2,
-            cache
-        );
-    }
-
-    function calculateCollateralValueForTokenAllUsers(
-        uint8 callNum,
-        uint128 collateralId,
-        StackCache memory cache
-    ) private returns (int256) {
-        cache.CollateralValueForTokenGhost = 0;
-
-        int256 price;
-
-        for (uint256 i = 0; i < USERS.length; i++) {
-            cache.accountId = userToAccountIds[USERS[i]];
-
-            if (collateralId == 0) {
-                cache.CollateralValueForTokenGhost += int256(
-                    states[callNum]
-                        .actorStates[cache.accountId]
-                        .collateralAmountSUSD
-                );
-            } else if (collateralId == 1) {
-                cache.CollateralValueForTokenGhost += int256(
-                    states[callNum]
-                        .actorStates[cache.accountId]
-                        .collateralAmountWETH
-                );
-            } else if (collateralId == 2) {
-                cache.CollateralValueForTokenGhost += int256(
-                    states[callNum]
-                        .actorStates[cache.accountId]
-                        .collateralAmountWBTC
-                );
-            }
-
-            console2.log(
-                " cache .CollateralValueForTokenGhost",
-                cache.CollateralValueForTokenGhost
-            );
-        }
-        return cache.CollateralValueForTokenGhost;
-    }
-
-    function getUtilizationInfo(
-        uint8 callNum,
-        StackCache memory cache
-    ) private {
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsMarketFactoryModuleImpl.minimumCredit.selector,
@@ -976,25 +709,26 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        (cache.rate, cache.delegatedCollateral, cache.lockedCredit) = abi
-            .decode(returnData, (uint256, uint256, uint256));
-        states[callNum].utilizationRate = cache.rate;
-        states[callNum].delegatedCollateral = cache.delegatedCollateral;
-        states[callNum].lockedCredit = cache.lockedCredit;
+        (
+            vars.utilizationRate,
+            vars.delegatedCollateral,
+            vars.lockedCredit
+        ) = abi.decode(returnData, (uint256, uint256, uint256));
+        states[callNum].utilizationRate = vars.utilizationRate;
+        states[callNum].delegatedCollateral = vars.delegatedCollateral;
+        states[callNum].lockedCredit = vars.lockedCredit;
 
         _logUtilizationInfoCoverage(
             states[callNum].minimumCredit,
-            states[callNum].utilizationRate,
-            states[callNum].delegatedCollateral,
-            states[callNum].lockedCredit
+            vars.utilizationRate,
+            vars.delegatedCollateral,
+            vars.lockedCredit
         );
     }
 
-    function getMarginInfo(
-        uint8 callNum,
-        uint128 accountId,
-        StackCache memory cache
-    ) private {
+    function getMarginInfo(uint8 callNum, uint128 accountId) private {
+        MarginVars memory vars;
+
         (bool success, bytes memory returnData) = perps.staticcall(
             abi.encodeWithSelector(
                 perpsAccountModuleImpl.getAvailableMargin.selector,
@@ -1002,8 +736,8 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        cache.availableMargin = abi.decode(returnData, (int256));
-        states[callNum].actorStates[accountId].availableMargin = cache
+        vars.availableMargin = abi.decode(returnData, (int256));
+        states[callNum].actorStates[accountId].availableMargin = vars
             .availableMargin;
 
         (success, returnData) = perps.staticcall(
@@ -1013,229 +747,33 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        (
-            cache.requiredInitialMargin,
-            cache.requiredMaintenanceMargin,
-            cache.maxLiquidationReward
-        ) = abi.decode(returnData, (uint256, uint256, uint256));
-        states[callNum].actorStates[accountId].requiredInitialMargin = cache
+        (vars.requiredInitialMargin, vars.requiredMaintenanceMargin, ) = abi
+            .decode(returnData, (uint256, uint256, uint256));
+        states[callNum].actorStates[accountId].requiredInitialMargin = vars
             .requiredInitialMargin;
-        states[callNum].actorStates[accountId].requiredMaintenanceMargin = cache
+        states[callNum].actorStates[accountId].requiredMaintenanceMargin = vars
             .requiredMaintenanceMargin;
-        states[callNum].actorStates[accountId].maxLiquidationReward = cache
-            .maxLiquidationReward;
 
         _logMarginInfoCoverage(
-            states[callNum].actorStates[accountId].availableMargin,
-            states[callNum].actorStates[accountId].requiredInitialMargin,
-            states[callNum].actorStates[accountId].requiredMaintenanceMargin,
+            vars.availableMargin,
+            vars.requiredInitialMargin,
+            vars.requiredMaintenanceMargin,
             states[callNum].actorStates[accountId].maxLiquidationReward
         );
     }
 
-    function calculateReportedDebtComparison(
-        uint8 callNum,
-        StackCache memory cache
-    ) private {
-        cache.reportedDebtGhost = 0;
-        for (uint256 i = 0; i < USERS.length; i++) {
-            cache.accountId = userToAccountIds[USERS[i]];
-            (
-                cache.collateralValueUsd,
-                cache.pricePnL,
-                cache.pendingFunding,
-                cache.debtUsd,
-                cache.positionSizeSum
-            ) = getAccountValues(callNum, cache); //sum markets
+    function getDebtInfo(uint8 callNum, uint128 accountId) private {
+        DebtVars memory vars;
 
-            if (callNum > 0) {
-                console2.log("USERS.length, cache.accountId", cache.accountId);
-                console2.log("collateralValueUsd", cache.collateralValueUsd);
-                console2.log("pricePnL", cache.pricePnL);
-                console2.log("pendingFunding", cache.pendingFunding);
-                console2.log("debtUsd", cache.debtUsd);
-                console2.log("positionSizeSum", cache.positionSizeSum);
-            }
-
-            console2.log("User", i);
-            console2.log("userReportedDebt before", cache.userReportedDebt);
-            cache.userReportedDebt = (cache.collateralValueUsd +
-                cache.pricePnL +
-                cache.pendingFunding -
-                cache.debtUsd); // need to subtract debt
-            console2.log("userReportedDebt after", cache.userReportedDebt);
-            console2.log("reportedDebtGhost before", cache.reportedDebtGhost);
-            cache.reportedDebtGhost += cache.userReportedDebt;
-            console2.log("reportedDebtGhost after", cache.reportedDebtGhost);
-        }
-        if (cache.reportedDebtGhost < 0) cache.reportedDebtGhost = 0;
-
-        states[callNum].reportedDebtGhost = uint256(cache.reportedDebtGhost);
-    }
-
-    function getPositionData(
-        uint128 accountId,
-        uint128 marketId
-    )
-        private
-        returns (
-            uint256, //notionalValue,
-            int256, //totalPnl
-            int256, //pricePnl
-            uint256, //chargedInterest
-            int256, //accruedFunding
-            int256, //netFundingPerUnit
-            int256, //nextFunding
-            int128 //positionSize
-        )
-    {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                mockLensModuleImpl.getPositionData.selector,
-                accountId,
-                marketId
-            )
-        );
-        assert(success);
-
-        return
-            abi.decode(
-                returnData,
-                (
-                    uint256,
-                    int256,
-                    int256,
-                    uint256,
-                    int256,
-                    int256,
-                    int256,
-                    int128
-                )
-            );
-    }
-
-    function getAccountValues(
-        uint8 callNum,
-        StackCache memory cache
-    ) private returns (int256, int256, int256, int256, uint256) {
-        int256 collateralValueUsd = getCollateralValue(cache.accountId);
-        (
-            int256 pricePnL,
-            int256 pendingFunding,
-            uint256 positionSizeSum
-        ) = getPositionValues(callNum, cache);
-        int256 debtUsd = getDebtValue(cache.accountId);
-
-        return (
-            collateralValueUsd,
-            pricePnL,
-            pendingFunding,
-            debtUsd,
-            positionSizeSum
-        );
-    }
-
-    function getCollateralValue(uint256 accountId) private returns (int256) {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.totalCollateralValue.selector,
-                accountId
-            )
-        );
-        assert(success);
-        return int256(abi.decode(returnData, (uint256)));
-    }
-
-    function getPositionValues(
-        uint8 callNum,
-        StackCache memory cache
-    ) private returns (int256, int256, uint256) {
-        int256 pricePnL = 0;
-        int256 pendingFunding = 0;
-        uint256 positionSizeSum = 0;
-
-        for (uint128 marketId = 1; marketId <= 2; marketId++) {
-            (
-                ,
-                //using price pnl instead
-                int256 accruedFunding,
-                int128 positionSize,
-
-            ) = getOpenPosition(cache.accountId, marketId);
-            (, , int256 pricePnLReturned, , , , , ) = getPositionData(
-                cache.accountId,
-                marketId
-            ); ////pricePnl
-            if (callNum > 0) {
-                logPositionDetails(pricePnL, accruedFunding, positionSize);
-            }
-            pricePnL += pricePnLReturned;
-            pendingFunding += accruedFunding;
-            positionSizeSum += uint256(MathUtil.abs(positionSize));
-        }
-        console2.log("getPositionValues::pricePnL TOTAL", pricePnL);
-
-        return (pricePnL, pendingFunding, positionSizeSum);
-    }
-
-    function getOpenPosition(
-        uint256 accountId,
-        uint128 marketId
-    ) private returns (int256, int256, int128, uint256) {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.getOpenPosition.selector,
-                accountId,
-                marketId
-            )
-        );
-        assert(success);
-        return abi.decode(returnData, (int256, int256, int128, uint256));
-    }
-
-    function logPositionDetails(
-        int256 totalPnl,
-        int256 accruedFunding,
-        int128 positionSize
-    ) private {
-        console2.log("totalPnl", totalPnl);
-        console2.log("accruedFunding", accruedFunding);
-        console2.log("positionSize", positionSize);
-    }
-
-    function getDebtValue(uint256 accountId) private returns (int256) {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.debt.selector,
-                accountId
-            )
-        );
-        assert(success);
-        return abi.decode(returnData, (int256));
-    }
-
-    function calculateTotalAccountsDebt(
-        uint8 callNum,
-        StackCache memory cache
-    ) private {
-        for (uint256 i = 0; i < USERS.length; i++) {
-            cache.accountId = userToAccountIds[USERS[i]];
-            (, , , cache.accountDebt, ) = getAccountValues(callNum, cache);
-            states[callNum].totalDebtCalculated += cache.accountDebt;
-        }
-    }
-
-    function getGlobalDebt(uint8 callNum, StackCache memory cache) private {
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 mockLensModuleImpl.getGlobalTotalAccountsDebt.selector
             )
         );
         assert(success);
-        states[callNum].totalDebt = abi.decode(returnData, (int256));
-    }
+        vars.totalDebt = abi.decode(returnData, (int256));
+        states[callNum].totalDebt = vars.totalDebt;
 
-    function getMarketDebt(uint8 callNum, StackCache memory cache) private {
         getReportedDebt(callNum, 1);
         getReportedDebt(callNum, 2);
         getMarketDebtCorrectionAccumulator(callNum, 1);
@@ -1243,6 +781,8 @@ abstract contract BeforeAfter is
     }
 
     function getReportedDebt(uint8 callNum, uint128 marketId) private {
+        DebtVars memory vars;
+
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsMarketFactoryModuleImpl.reportedDebt.selector,
@@ -1250,17 +790,12 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
+        vars.reportedDebt = abi.decode(returnData, (uint256));
 
         if (marketId == 1) {
-            states[callNum].wethMarket.reportedDebt = abi.decode(
-                returnData,
-                (uint256)
-            );
+            states[callNum].wethMarket.reportedDebt = vars.reportedDebt;
         } else if (marketId == 2) {
-            states[callNum].wbtcMarket.reportedDebt = abi.decode(
-                returnData,
-                (uint256)
-            );
+            states[callNum].wbtcMarket.reportedDebt = vars.reportedDebt;
         }
     }
 
@@ -1268,6 +803,8 @@ abstract contract BeforeAfter is
         uint8 callNum,
         uint128 marketId
     ) private {
+        DebtVars memory vars;
+
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 mockLensModuleImpl.getDebtCorrectionAccumulator.selector,
@@ -1275,33 +812,15 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
+        vars.debtCorrectionAccumulator = abi.decode(returnData, (uint256));
 
         if (marketId == 1) {
-            states[callNum].wethMarket.debtCorrectionAccumulator = abi.decode(
-                returnData,
-                (uint256)
-            );
+            states[callNum].wethMarket.debtCorrectionAccumulator = vars
+                .debtCorrectionAccumulator;
         } else if (marketId == 2) {
-            states[callNum].wbtcMarket.debtCorrectionAccumulator = abi.decode(
-                returnData,
-                (uint256)
-            );
+            states[callNum].wbtcMarket.debtCorrectionAccumulator = vars
+                .debtCorrectionAccumulator;
         }
-    }
-
-    function checkIfAccountLiquidatable(
-        uint8 callNum,
-        uint128 accountId
-    ) private {
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                mockLensModuleImpl.isAccountLiquidatable.selector,
-                accountId
-            )
-        );
-        assert(success);
-        states[callNum].actorStates[accountId].isAccountLiquidatable = abi
-            .decode(returnData, (bool));
     }
 
     function _checkIfPositionWasProifitable(
@@ -1311,13 +830,7 @@ abstract contract BeforeAfter is
     ) internal {
         console2.log("checkIfPositionWasProifitable::accountId", accountId);
         console2.log("checkIfPositionWasProifitable::marketId", marketId);
-        StackCache memory cache;
-
-        bool isPositionClosed;
-        bool wasPreviousPositionOpen;
-
-        console2.log("marketId", marketId);
-        console2.log("accountId", accountId);
+        PositionInfoVars memory vars;
 
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
@@ -1328,128 +841,61 @@ abstract contract BeforeAfter is
         );
         assert(success);
         (
-            cache.totalPnl,
-            cache.accruedFunding,
-            cache.positionSize,
-            cache.owedInterest
+            vars.totalPnl,
+            vars.accruedFunding,
+            vars.positionSize,
+            vars.owedInterest
         ) = abi.decode(returnData, (int256, int256, int128, uint256));
 
         if (marketId == 1) {
             console2.log("Market: WETH");
-
-            // Store previous trade PnL before updating
             positionStates[callNum]
                 .actorStates[accountId]
                 .previousTradePositionPnl = positionStates[callNum]
                 .actorStates[accountId]
                 .wethMarket
                 .totalPnl;
-
             positionStates[callNum]
                 .actorStates[accountId]
                 .wethMarket
-                .totalPnl = cache.totalPnl;
-
-            console2.log(
-                "totalPnl (WETH)",
-                positionStates[callNum]
-                    .actorStates[accountId]
-                    .wethMarket
-                    .totalPnl
-            );
-
+                .totalPnl = vars.totalPnl;
             positionStates[callNum]
                 .actorStates[accountId]
                 .wethMarket
-                .positionSize = cache.positionSize;
-
-            isPositionClosed =
-                positionStates[callNum]
-                    .actorStates[accountId]
-                    .wethMarket
-                    .positionSize ==
-                0;
-            console2.log("isPositionClosed (WETH)", isPositionClosed);
-            console2.log(
-                "Current positionSize (WETH)",
-                positionStates[callNum]
-                    .actorStates[accountId]
-                    .wethMarket
-                    .positionSize
-            );
-            positionStates[callNum]
-                .actorStates[accountId]
-                .isPreviousPositionInLoss = cache.totalPnl < 0;
-
-            // Update isPreviousTradePositionInLoss
-            positionStates[callNum]
-                .actorStates[accountId]
-                .isPreviousTradePositionInLoss =
-                positionStates[callNum]
-                    .actorStates[accountId]
-                    .previousTradePositionPnl <
-                0;
+                .positionSize = vars.positionSize;
         } else if (marketId == 2) {
             console2.log("Market: WBTC");
-
-            // Store previous trade PnL before updating
             positionStates[callNum]
                 .actorStates[accountId]
                 .previousTradePositionPnl = positionStates[callNum]
                 .actorStates[accountId]
                 .wbtcMarket
                 .totalPnl;
-
             positionStates[callNum]
                 .actorStates[accountId]
                 .wbtcMarket
-                .totalPnl = cache.totalPnl;
-
+                .totalPnl = vars.totalPnl;
             positionStates[callNum]
                 .actorStates[accountId]
                 .wbtcMarket
-                .positionSize = cache.positionSize;
-
-            console2.log(
-                "totalPnl (WBTC)",
-                positionStates[callNum]
-                    .actorStates[accountId]
-                    .wbtcMarket
-                    .totalPnl
-            );
-
-            isPositionClosed =
-                positionStates[callNum]
-                    .actorStates[accountId]
-                    .wbtcMarket
-                    .positionSize ==
-                0;
-
-            console2.log(
-                "Current positionSize (WBTC)",
-                positionStates[callNum]
-                    .actorStates[accountId]
-                    .wbtcMarket
-                    .positionSize
-            );
-
-            console2.log("isPositionClosed (WBTC)", isPositionClosed);
-            positionStates[callNum]
-                .actorStates[accountId]
-                .isPreviousPositionInLoss = cache.totalPnl < 0;
-
-            // Update isPreviousTradePositionInLoss
-            positionStates[callNum]
-                .actorStates[accountId]
-                .isPreviousTradePositionInLoss =
-                positionStates[callNum]
-                    .actorStates[accountId]
-                    .previousTradePositionPnl <
-                0;
+                .positionSize = vars.positionSize;
         } else {
             console2.log("Invalid marketId", marketId);
             revert("Invalid marketId");
         }
+
+        positionStates[callNum]
+            .actorStates[accountId]
+            .isPreviousPositionInLoss = vars.totalPnl < 0;
+        positionStates[callNum]
+            .actorStates[accountId]
+            .isPreviousTradePositionInLoss =
+            positionStates[callNum]
+                .actorStates[accountId]
+                .previousTradePositionPnl <
+            0;
+        positionStates[callNum].actorStates[accountId].latestPositionPnl = vars
+            .totalPnl;
 
         console2.log(
             "checkIfPositionWasProifitable::isPreviousPositionInLoss",
@@ -1457,8 +903,6 @@ abstract contract BeforeAfter is
                 .actorStates[accountId]
                 .isPreviousPositionInLoss
         );
-
-        // Log new variables
         console2.log(
             "checkIfPositionWasProifitable::isPreviousTradePositionInLoss",
             positionStates[callNum]
@@ -1471,15 +915,12 @@ abstract contract BeforeAfter is
                 .actorStates[accountId]
                 .previousTradePositionPnl
         );
-
-        // Update latestPositionPnl
-        positionStates[callNum].actorStates[accountId].latestPositionPnl = cache
-            .totalPnl;
         console2.log(
             "checkIfPositionWasProifitable::latestPositionPnl",
             positionStates[callNum].actorStates[accountId].latestPositionPnl
         );
     }
+
     function debugBefore(address[] memory actors) internal {
         debugState(0, actors);
     }

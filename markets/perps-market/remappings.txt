@@ -1,0 +1,4 @@
+@synthetixio/=node_modules/@synthetixio/
+@openzeppelin/=node_modules/@openzeppelin/
+lib/=lib/
+@perimetersec/=lib/

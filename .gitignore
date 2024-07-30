@@ -11,3 +11,10 @@ new/
 echidna-corpus-old/
 crytic-export/
 cache_forge/
+markets/perps-market/libsecp256k1.dylib
+markets/perps-market/libff.dylib
+markets/perps-market/echidna2.2.1
+markets/perps-market/echidna2.2.3
+markets/perps-market/libgmp.dylib
+markets/echidnaSource/
+markets/perps-market/cache_forge/solidity-files-cache.json

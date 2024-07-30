@@ -18,6 +18,8 @@ abstract contract PostconditionsBase is Properties {
 
         invariant_ORD_23();
         invariant_LIQ_18(account);
+
+        zeroOutMemory();
     }
 
     function onFailInvariantsGeneral(bytes memory returnData) internal {}
