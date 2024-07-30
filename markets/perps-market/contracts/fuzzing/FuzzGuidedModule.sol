@@ -17,103 +17,17 @@ contract FuzzGuidedModule is
         fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 is weth short
     }
 
-    function fuzz_guided_pruned_createDebt_LiquidateMarginOnly(
-        bool isWETH,
-        int amountToDeposit
-    ) public setCurrentActor {
-        uint collateralId = isWETH ? 1 : 2;
-        amountToDeposit = fl.clamp(amountToDeposit, 1e18, 500e18);
-
-        //Make sure it is zero @giraffe
-        //pump here $50k
-
-        fuzz_modifyCollateral(amountToDeposit, collateralId);
-
-        (bool success, bytes memory returnData) = perps.call(
-            abi.encodeWithSelector(
-                perpsAccountModuleImpl.getCollateralAmount.selector,
-                userToAccountIds[currentActor],
-                collateralId
-            )
-        );
-        require(success);
-        uint256 amount = abi.decode(returnData, (uint256));
-        fl.log(
-            "Currect collateral amount afrer withdrawal and deposits",
-            amount
-        );
-
-        require(amount > 0, "User needs some collateral");
-        fuzz_commitOrder(
-            int128(uint128(amount) * 2),
-            isWETH ? type(uint256).max - 1 : type(uint256).max //maxprice + marketId
-        );
-
-        _settleOrderCall(currentActor, userToAccountIds[currentActor]);
-
-        isWETH
-            ? fuzz_crashWETHPythPrice(uint(1))
-            : fuzz_crashWBTCPythPrice(uint(1)); //20% lower
-
-        (success, returnData) = perps.call(
-            abi.encodeWithSelector(
-                liquidationModuleImpl.canLiquidate.selector,
-                userToAccountIds[currentActor]
-            )
-        );
-        assert(success);
-        require(
-            !abi.decode(returnData, (bool)),
-            "Position should not be liquidatable at this momment"
-        );
-
-        fuzz_commitOrder((int128(uint128(amount * 2)) * -1), isWETH ? 6 : 5); //maxprice + marketId
-
-        _settleOrderCall(currentActor, userToAccountIds[currentActor]);
-
-        isWETH ? fuzz_crashWETHPythPrice(10) : fuzz_crashWBTCPythPrice(10); //
-        fuzz_liquidateMarginOnly();
-    }
-
-    // function fuzz_guided_createDebt_LiquidateMarginOnly(
+    // function fuzz_guided_pruned_createDebt_LiquidateMarginOnly(
     //     bool isWETH,
     //     int amountToDeposit
     // ) public setCurrentActor {
-    //     getPendingOrders(currentActor);
-    //     closeAllPositions(userToAccountIds[currentActor]);
-    //     repayDebt();
-    //     uint collateralBeforeWithdrawal = getTotalCollateralValue(
-    //         userToAccountIds[currentActor]
-    //     );
-    //     require(collateralBeforeWithdrawal > 0);
-
-    //     fl.log(
-    //         "fuzz_guided_createDebt_LiquidateMarginOnly::collateralBeforeWithdrawal",
-    //         collateralBeforeWithdrawal
-    //     );
-
-    //     fuzz_withdrawAllCollateral(
-    //         userToAccountIds[currentActor],
-    //         true,
-    //         true,
-    //         true
-    //     );
-
-    //     uint collateralAfrterWithdrawal = getTotalCollateralValue(
-    //         userToAccountIds[currentActor]
-    //     );
-    //     fl.log(
-    //         "fuzz_guided_createDebt_LiquidateMarginOnly::collateralAfrterWithdrawal",
-    //         collateralAfrterWithdrawal
-    //     );
     //     uint collateralId = isWETH ? 1 : 2;
-    //     amountToDeposit = fl.clamp(amountToDeposit, 1e18, 500e18);
+    //     // amountToDeposit = fl.clamp(amountToDeposit, 1e18, 500e18);
 
-    //     //Make sure it is zero @giraffe
-    //     //pump here $50k
-    //     isWETH ? fuzz_pumpWETHPythPrice(2) : fuzz_pumpWBTCPythPrice(2);
+    //     // //Make sure it is zero @giraffe
+    //     // //pump here $50k
 
-    //     fuzz_modifyCollateral(amountToDeposit, collateralId);
+    //     // fuzz_modifyCollateral(amountToDeposit, collateralId);
 
     //     (bool success, bytes memory returnData) = perps.call(
     //         abi.encodeWithSelector(
@@ -130,9 +44,6 @@ contract FuzzGuidedModule is
     //     );
 
     //     require(amount > 0, "User needs some collateral");
-
-    //     //make sure we are on high enough price @giraffe
-
     //     fuzz_commitOrder(
     //         int128(uint128(amount) * 2),
     //         isWETH ? type(uint256).max - 1 : type(uint256).max //maxprice + marketId
@@ -163,6 +74,95 @@ contract FuzzGuidedModule is
     //     isWETH ? fuzz_crashWETHPythPrice(10) : fuzz_crashWBTCPythPrice(10); //
     //     fuzz_liquidateMarginOnly();
     // }
+
+    function fuzz_guided_createDebt_LiquidateMarginOnly(
+        bool isWETH,
+        int amountToDeposit
+    ) public setCurrentActor {
+        getPendingOrders(currentActor);
+        closeAllPositions(userToAccountIds[currentActor]);
+        repayDebt();
+        uint collateralBeforeWithdrawal = getTotalCollateralValue(
+            userToAccountIds[currentActor]
+        );
+        require(collateralBeforeWithdrawal > 0);
+
+        fl.log(
+            "fuzz_guided_createDebt_LiquidateMarginOnly::collateralBeforeWithdrawal",
+            collateralBeforeWithdrawal
+        );
+
+        fuzz_withdrawAllCollateral(
+            userToAccountIds[currentActor],
+            true,
+            true,
+            true
+        );
+
+        uint collateralAfrterWithdrawal = getTotalCollateralValue(
+            userToAccountIds[currentActor]
+        );
+        fl.log(
+            "fuzz_guided_createDebt_LiquidateMarginOnly::collateralAfrterWithdrawal",
+            collateralAfrterWithdrawal
+        );
+        uint collateralId = isWETH ? 1 : 2;
+        amountToDeposit = fl.clamp(amountToDeposit, 1e18, 500e18);
+
+        //Make sure it is zero @giraffe
+        //pump here $50k
+        isWETH ? fuzz_pumpWETHPythPrice(2) : fuzz_pumpWBTCPythPrice(2);
+
+        fuzz_modifyCollateral(amountToDeposit, collateralId);
+
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                perpsAccountModuleImpl.getCollateralAmount.selector,
+                userToAccountIds[currentActor],
+                collateralId
+            )
+        );
+        require(success);
+        uint256 amount = abi.decode(returnData, (uint256));
+        fl.log(
+            "Currect collateral amount afrer withdrawal and deposits",
+            amount
+        );
+
+        require(amount > 0, "User needs some collateral");
+
+        //make sure we are on high enough price @giraffe
+
+        fuzz_commitOrder(
+            int128(uint128(amount) * 2),
+            isWETH ? type(uint256).max - 1 : type(uint256).max //maxprice + marketId
+        );
+
+        _settleOrderCall(currentActor, userToAccountIds[currentActor]);
+
+        isWETH
+            ? fuzz_crashWETHPythPrice(uint(1))
+            : fuzz_crashWBTCPythPrice(uint(1)); //20% lower
+
+        (success, returnData) = perps.call(
+            abi.encodeWithSelector(
+                liquidationModuleImpl.canLiquidate.selector,
+                userToAccountIds[currentActor]
+            )
+        );
+        assert(success);
+        require(
+            !abi.decode(returnData, (bool)),
+            "Position should not be liquidatable at this momment"
+        );
+
+        fuzz_commitOrder((int128(uint128(amount * 2)) * -1), isWETH ? 6 : 5); //maxprice + marketId
+
+        _settleOrderCall(currentActor, userToAccountIds[currentActor]);
+
+        isWETH ? fuzz_crashWETHPythPrice(10) : fuzz_crashWBTCPythPrice(10); //
+        fuzz_liquidateMarginOnly();
+    }
 
     function fuzz_liquidatePositionAndICheckAfterPriceMove()
         public
