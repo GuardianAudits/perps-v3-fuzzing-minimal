@@ -219,7 +219,9 @@ abstract contract BeforeAfter is
         address actor
     ) internal {
         console2.log("===== BeforeAfter::_setActorState START ===== ");
+
         resetGhostVariables(callNum);
+        getGlobalCollateralValues(callNum);
         getLiquidationValues(callNum, accountId);
         getCollateralInfo(callNum, accountId);
         getOrderInfo(callNum, accountId);
@@ -228,10 +230,13 @@ abstract contract BeforeAfter is
         getUtilizationInfo(callNum);
         getMarginInfo(callNum, accountId);
         getDebtInfo(callNum, accountId);
+        getGlobalDebt(callNum);
+        getAndCalculateCollateralValues(callNum);
+        checkIfAccountLiquidatable(callNum, accountId);
+        getAccountBalances(callNum, accountId);
 
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
-
     function _setActorState(
         uint8 callNum,
         uint128 accountId,
@@ -244,7 +249,15 @@ abstract contract BeforeAfter is
 
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
-
+    function getGlobalDebt(uint8 callNum) private {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getGlobalTotalAccountsDebt.selector
+            )
+        );
+        assert(success);
+        states[callNum].totalDebt = abi.decode(returnData, (int256));
+    }
     function _incrementAndCheckLiquidationCalls(
         address liquidator
     ) internal returns (bool isFirstCall) {
@@ -256,11 +269,81 @@ abstract contract BeforeAfter is
         );
         return isFirstCall;
     }
+
+    function checkIfAccountLiquidatable(
+        uint8 callNum,
+        uint128 accountId
+    ) private {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.isAccountLiquidatable.selector,
+                accountId
+            )
+        );
+        assert(success);
+        states[callNum].actorStates[accountId].isAccountLiquidatable = abi
+            .decode(returnData, (bool));
+    }
     function resetGhostVariables(uint8 callNum) private {
         states[callNum].totalCollateralValueUsdGhost = 0;
         states[callNum].reportedDebtGhost = 0;
         states[callNum].marketSizeGhost = 0;
         states[callNum].totalDebtCalculated = 0;
+    }
+
+    function getGlobalCollateralValues(uint8 callNum) private {
+        getGlobalCollateralValue(callNum, 0);
+        getGlobalCollateralValue(callNum, 1);
+        getGlobalCollateralValue(callNum, 2);
+
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                globalPerpsMarketModuleImpl.totalGlobalCollateralValue.selector
+            )
+        );
+        assert(success);
+        uint256 totalCollateralValue = abi.decode(returnData, (uint256));
+        states[callNum].totalCollateralValueUsd = totalCollateralValue;
+
+        _logGlobalCollateralValuesCoverage(
+            states[callNum].depositedSusdCollateral,
+            states[callNum].depositedWethCollateral,
+            states[callNum].depositedWbtcCollateral,
+            // states[callNum].depositedHUGECollateral,
+            states[callNum].totalCollateralValueUsd,
+            states[callNum].totalCollateralValueUsdGhost,
+            states[callNum].skew
+        );
+    }
+
+    function getGlobalCollateralValue(
+        uint8 callNum,
+        uint256 collateralId
+    ) private {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                globalPerpsMarketModuleImpl.globalCollateralValue.selector,
+                collateralId
+            )
+        );
+        assert(success);
+        uint256 collateralValue = abi.decode(returnData, (uint256));
+        if (collateralId == 0) {
+            states[callNum].depositedSusdCollateral = collateralValue;
+        } else if (collateralId == 1) {
+            states[callNum].depositedWethCollateral = collateralValue;
+        } else if (collateralId == 2) {
+            states[callNum].depositedWbtcCollateral = collateralValue;
+        }
+    }
+
+    function getAccountBalances(uint8 callNum, uint128 accountId) private {
+        states[callNum].actorStates[accountId].balanceOfWETH = wethTokenMock
+            .balanceOf(accountIdToUser[accountId]);
+        states[callNum].actorStates[accountId].balanceOfSUSD = sUSDTokenMock
+            .balanceOf(accountIdToUser[accountId]);
+        states[callNum].actorStates[accountId].balanceOfWBTC = wbtcTokenMock
+            .balanceOf(accountIdToUser[accountId]);
     }
 
     function getLiquidationValues(uint8 callNum, uint128 accountId) private {
@@ -690,7 +773,150 @@ abstract contract BeforeAfter is
             states[callNum].hugeMarket.skew = vars.skew;
         }
     }
+    // struct CollateralData {
+    //     uint256 susdValue;
+    //     uint256 wethValue;
+    //     uint256 wbtcValue;
+    //     uint256 totalValue;
+    // }
 
+    // function getAndCalculateCollateralValues(uint8 callNum) private {
+    //     CollateralData memory globalData;
+    //     CollateralData memory userTotalData;
+
+    //     // Get global collateral values from the perps contract
+    //     (bool success, bytes memory returnData) = perps.call(
+    //         abi.encodeWithSelector(
+    //             globalPerpsMarketModuleImpl.globalCollateralValue.selector,
+    //             0
+    //         )
+    //     );
+    //     assert(success);
+    //     globalData.susdValue = abi.decode(returnData, (uint256));
+
+    //     (success, returnData) = perps.call(
+    //         abi.encodeWithSelector(
+    //             globalPerpsMarketModuleImpl.globalCollateralValue.selector,
+    //             1
+    //         )
+    //     );
+    //     assert(success);
+    //     globalData.wethValue = abi.decode(returnData, (uint256));
+
+    //     (success, returnData) = perps.call(
+    //         abi.encodeWithSelector(
+    //             globalPerpsMarketModuleImpl.globalCollateralValue.selector,
+    //             2
+    //         )
+    //     );
+    //     assert(success);
+    //     globalData.wbtcValue = abi.decode(returnData, (uint256));
+
+    //     (success, returnData) = perps.call(
+    //         abi.encodeWithSelector(
+    //             globalPerpsMarketModuleImpl.totalGlobalCollateralValue.selector
+    //         )
+    //     );
+    //     assert(success);
+    //     globalData.totalValue = abi.decode(returnData, (uint256));
+
+    //     // Calculate user totals
+    //     int256 wethPrice = mockOracleManager.process(WETH_ORACLE_NODE_ID).price;
+    //     int256 wbtcPrice = mockOracleManager.process(WBTC_ORACLE_NODE_ID).price;
+
+    //     for (uint256 i = 0; i < USERS.length; i++) {
+    //         uint128 accountId = userToAccountIds[USERS[i]];
+    //         userTotalData.susdValue += states[callNum]
+    //             .actorStates[accountId]
+    //             .collateralAmountSUSD;
+    //         userTotalData.wethValue += states[callNum]
+    //             .actorStates[accountId]
+    //             .collateralAmountWETH;
+    //         userTotalData.wbtcValue += states[callNum]
+    //             .actorStates[accountId]
+    //             .collateralAmountWBTC;
+    //     }
+
+    //     userTotalData.totalValue =
+    //         userTotalData.susdValue +
+    //         ((uint256(wethPrice) * userTotalData.wethValue) / 1e18) +
+    //         ((uint256(wbtcPrice) * userTotalData.wbtcValue) / 1e18);
+
+    //     // Store results
+    //     states[callNum].depositedSusdCollateral = globalData.susdValue;
+    //     states[callNum].depositedWethCollateral = globalData.wethValue;
+    //     states[callNum].depositedWbtcCollateral = globalData.wbtcValue;
+    //     states[callNum].totalCollateralValueUsd = globalData.totalValue;
+    //     states[callNum].totalCollateralValueUsdGhost = userTotalData.totalValue;
+
+    //     states[callNum].collateralValueAllUsersSUSDCalculated = int256(
+    //         userTotalData.susdValue
+    //     );
+    //     states[callNum].collateralValueAllUsersWETHCalculated = int256(
+    //         userTotalData.wethValue
+    //     );
+    //     states[callNum].collateralValueAllUsersWBTCCalculated = int256(
+    //         userTotalData.wbtcValue
+    //     );
+
+    //     // Logging
+    //     console2.log("Global SUSD Collateral:", globalData.susdValue);
+    //     console2.log("Global WETH Collateral:", globalData.wethValue);
+    //     console2.log("Global WBTC Collateral:", globalData.wbtcValue);
+    //     console2.log("Total Global Collateral Value:", globalData.totalValue);
+    //     console2.log("Total User Collateral Value:", userTotalData.totalValue);
+
+    //     _logGlobalCollateralValuesCoverage(
+    //         globalData.susdValue,
+    //         globalData.wethValue,
+    //         globalData.wbtcValue,
+    //         globalData.totalValue,
+    //         userTotalData.totalValue,
+    //         states[callNum].skew
+    //     );
+    // }
+
+    function getAndCalculateCollateralValues(uint8 callNum) private {
+        // User collateral values
+        uint256 userTotalSusdValue = states[callNum]
+            .actorStates[ACCOUNTS[0]]
+            .collateralAmountSUSD +
+            states[callNum].actorStates[ACCOUNTS[1]].collateralAmountSUSD +
+            states[callNum].actorStates[ACCOUNTS[2]].collateralAmountSUSD;
+
+        uint256 userTotalWethValue = states[callNum]
+            .actorStates[ACCOUNTS[0]]
+            .collateralAmountWETH +
+            states[callNum].actorStates[ACCOUNTS[1]].collateralAmountWETH +
+            states[callNum].actorStates[ACCOUNTS[2]].collateralAmountWETH;
+
+        uint256 userTotalWbtcValue = states[callNum]
+            .actorStates[ACCOUNTS[0]]
+            .collateralAmountWBTC +
+            states[callNum].actorStates[ACCOUNTS[1]].collateralAmountWBTC +
+            states[callNum].actorStates[ACCOUNTS[2]].collateralAmountWBTC;
+
+        // Get prices
+        int256 wethPrice = mockOracleManager.getPrice(WETH_ORACLE_NODE_ID);
+        int256 wbtcPrice = mockOracleManager.getPrice(WBTC_ORACLE_NODE_ID);
+
+        // Calculate total user collateral value
+        uint256 userTotalValue = userTotalSusdValue +
+            ((uint256(wethPrice) * userTotalWethValue) / 1e18) +
+            ((uint256(wbtcPrice) * userTotalWbtcValue) / 1e18);
+
+        states[callNum].totalCollateralValueUsdGhost = userTotalValue;
+
+        states[callNum].collateralValueAllUsersSUSDCalculated = int256(
+            userTotalSusdValue
+        );
+        states[callNum].collateralValueAllUsersWETHCalculated = int256(
+            userTotalWethValue
+        );
+        states[callNum].collateralValueAllUsersWBTCCalculated = int256(
+            userTotalWbtcValue
+        );
+    }
     function getUtilizationInfo(uint8 callNum) private {
         UtilizationVars memory vars;
 

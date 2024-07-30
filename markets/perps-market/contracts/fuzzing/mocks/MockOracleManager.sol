@@ -7,7 +7,9 @@ import {console2} from "lib/forge-std/src/Test.sol";
 interface IMockOracleManager {
     function changePrice(bytes32 nodeId, int256 newPrice) external;
 
-    function process(bytes32 nodeId) external returns (NodeOutput.Data memory node);
+    function process(
+        bytes32 nodeId
+    ) external returns (NodeOutput.Data memory node);
 }
 
 // solhint-disable-next-line no-empty-blocks
@@ -36,8 +38,14 @@ contract MockOracleManager {
         nodes[nodeId].price = newPrice;
     }
 
-    function process(bytes32 nodeId) external view returns (NodeOutput.Data memory node) {
+    function process(
+        bytes32 nodeId
+    ) external view returns (NodeOutput.Data memory node) {
         return nodes[nodeId];
+    }
+
+    function getPrice(bytes32 nodeId) external view returns (int256 price) {
+        return nodes[nodeId].price;
     }
 
     function processWithRuntime(
