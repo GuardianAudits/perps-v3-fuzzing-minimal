@@ -15,6 +15,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             _after(actorsToUpdate);
             invariant_ORD_01(accountId);
             invariant_ORD_15(accountId);
+
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
             onFailInvariantsGeneral(returnData);
@@ -52,10 +53,9 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             invariant_ORD_12(accountId);
             // @audit Invalid assertion formulation.
             invariant_ORD_18(accountId, marketId);
+            invariant_ORD_19(accountId);
             fl.log("4");
-
-            // invariant_ORD_22(accountId);
-
+            invariant_ORD_22(accountId);
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {

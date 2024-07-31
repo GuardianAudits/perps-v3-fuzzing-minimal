@@ -33,6 +33,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         addMockPythERC7412WrapperSels();
         //bootstrap()
         setPythPriceFeed();
+
         addWETHSettlementStrategy();
         addWBTCSettlementStrategy();
         addHUGESettlementStrategy();
@@ -80,6 +81,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         grantAccountPermissions();
         setMaxCollateralsPerAccount();
         setPerpMarketFactoryModuleImplInVault();
+        setPythWrappeInLens();
         setupActors();
     }
 
@@ -100,6 +102,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         deployMockPythERC7412Wrapper();
 
         setOracleManager();
+
         setMockSynthetixUSDToken();
         setMockWethToken();
         setMockWbtcToken();
@@ -141,6 +144,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         );
 
         vaultModuleMock = new MockVaultModule(v3Mock, perps);
+
         mockLensModuleImpl = new MockLensModule();
     }
 
@@ -192,6 +196,16 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
 
     function setOracleManager() private {
         v3Mock.setOracleManager(address(mockOracleManager));
+    }
+
+    function setPythWrappeInLens() private {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.setPythWrapperAddress.selector,
+                address(pythWrapper)
+            )
+        );
+        assert(success);
     }
 
     function setMockSynthetixUSDToken() private {
@@ -1296,6 +1310,39 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
             abi.encodeWithSelector(
                 router.addFunctionAndImplementation.selector,
                 mockLensModuleImpl.getMaxLiquidatableAmount.selector,
+                address(mockLensModuleImpl)
+            )
+        );
+        assert(success);
+
+        (success, ) = perps.call(
+            abi.encodeWithSelector(
+                router.addFunctionAndImplementation.selector,
+                mockLensModuleImpl.getChargeAmount.selector,
+                address(mockLensModuleImpl)
+            )
+        );
+        assert(success);
+        (success, ) = perps.call(
+            abi.encodeWithSelector(
+                router.addFunctionAndImplementation.selector,
+                mockLensModuleImpl.setPythWrapperAddress.selector,
+                address(mockLensModuleImpl)
+            )
+        );
+        assert(success);
+        (success, ) = perps.call(
+            abi.encodeWithSelector(
+                router.addFunctionAndImplementation.selector,
+                mockLensModuleImpl.getPythWrapperAddress.selector,
+                address(mockLensModuleImpl)
+            )
+        );
+        assert(success);
+        (success, ) = perps.call(
+            abi.encodeWithSelector(
+                router.addFunctionAndImplementation.selector,
+                mockLensModuleImpl.getCollateralTypes.selector,
                 address(mockLensModuleImpl)
             )
         );

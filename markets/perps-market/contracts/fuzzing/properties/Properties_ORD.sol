@@ -252,10 +252,21 @@ abstract contract Properties_ORD is PropertiesBase {
         if (accountCollateralTypes.length != 0) {
             for (uint i = 0; i < accountCollateralTypes.length; i++) {
                 uint128 collateralType = accountCollateralTypes[i];
+                fl.log("accountCollateralTypes[i]", accountCollateralTypes[i]);
                 bool found = false;
 
                 for (uint j = 0; j < globalCollateralTypes.length; j++) {
+                    fl.log(
+                        "globalCollateralTypes[j]",
+                        globalCollateralTypes[j]
+                    );
+
                     if (collateralType == globalCollateralTypes[j]) {
+                        fl.log(
+                            "globalCollateralTypes[j]",
+                            globalCollateralTypes[j]
+                        );
+
                         found = true;
                         break;
                     }
@@ -293,18 +304,13 @@ abstract contract Properties_ORD is PropertiesBase {
             states[0].actorStates[accountId].debt
         );
         console2.log(
-            " positionStates[1].actorStates[accountId].isPreviousTradePositionInLoss",
-            positionStates[1]
-                .actorStates[accountId]
-                .isPreviousTradePositionInLoss
+            "  states[0].actorStates[accountId].chargedAmount ",
+            states[0].actorStates[accountId].chargedAmount
         );
 
         if (
-            states[0].actorStates[accountId].debt != 0
-            // &&
-            // positionStates[1]
-            //     .actorStates[accountId]
-            //     .isPreviousTradePositionInLoss
+            states[0].actorStates[accountId].debt != 0 &&
+            states[0].actorStates[accountId].chargedAmount < 0
         ) {
             console2.log("entered ord 22 condition");
             console2.log(
@@ -313,10 +319,5 @@ abstract contract Properties_ORD is PropertiesBase {
             );
             fl.t(states[1].actorStates[accountId].debt != 0, ORD_22);
         }
-    }
-
-    function invariant_ORD_23() internal {
-        fl.t(states[0].calculateFillPricePassing, ORD_23);
-        fl.t(states[1].calculateFillPricePassing, ORD_23);
     }
 }

@@ -4,15 +4,20 @@ pragma solidity >=0.8.11 <0.9.0;
 import {AsyncOrder} from "../../storage/AsyncOrder.sol";
 import {PerpsMarketConfiguration} from "../../storage/PerpsMarketConfiguration.sol";
 import {SettlementStrategy} from "../../storage/SettlementStrategy.sol";
-import {console2} from "lib/forge-std/src/Test.sol";
 import {PerpsAccount} from "../../storage/PerpsAccount.sol";
 import {GlobalPerpsMarket} from "../../storage/GlobalPerpsMarket.sol";
 import {PerpsMarket} from "../../storage/PerpsMarket.sol";
 import {PerpsPrice} from "../../storage/PerpsPrice.sol";
 import {Position} from "../../storage/Position.sol";
+import {MockPythERC7412Wrapper} from "../../mocks/MockPythERC7412Wrapper.sol";
+import "@perimetersec/fuzzlib/src/IHEVM.sol";
+
+// import {IAsyncOrderSettlementPythModule} from "../../interfaces/IAsyncOrderSettlementPythModule.sol"; //TODO: delete
 
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {SafeCastI256, SafeCastU256, SafeCastU128} from "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
+
+import {console2} from "lib/forge-std/src/Test.sol";
 
 contract MockLensModule {
     using AsyncOrder for AsyncOrder.Data;
@@ -24,6 +29,7 @@ contract MockLensModule {
     using SafeCastI256 for int256;
     using SafeCastU128 for uint128;
     using SafeCastU256 for uint256;
+    MockPythERC7412Wrapper public pythWrapper;
 
     struct StackCache {
         uint256 currentPrice;
@@ -36,7 +42,108 @@ contract MockLensModule {
         int256 nextFunding;
         int128 positionSize;
     }
+    struct SettleOrderRuntime {
+        uint128 marketId;
+        uint128 accountId;
+        int128 sizeDelta;
+        int256 pnl;
+        uint256 chargedInterest;
+        int256 accruedFunding;
+        uint256 settlementReward;
+        uint256 fillPrice;
+        uint256 totalFees;
+        uint256 referralFees;
+        uint256 feeCollectorFees;
+        Position.Data newPosition;
+        uint256 synthDeductionIterator;
+        uint128[] deductedSynthIds;
+        uint256[] deductedAmount;
+        int256 chargedAmount;
+        uint256 newAccountDebt;
+    }
 
+    function getPythWrapperAddress() public view returns (address) {
+        return address(pythWrapper);
+    }
+
+    function setPythWrapperAddress(address _pythWrapper) public {
+        bool done;
+        require(!done); //only once
+
+        pythWrapper = MockPythERC7412Wrapper(_pythWrapper);
+        done = true;
+    }
+
+    function getChargeAmount(
+        uint128 accountId
+    ) external returns (int256 chargedAmount) {
+        SettleOrderRuntime memory runtime;
+        // runtime.accountId = asyncOrder.request.accountId;
+        // runtime.marketId = asyncOrder.request.marketId;
+
+        AsyncOrder.Data storage asyncOrder = AsyncOrder.load(accountId);
+        console2.log(
+            "MockLens::isOrderExpired::order.request.marketId",
+            asyncOrder.request.marketId
+        );
+        console2.log(
+            "MockLens::isasyncOrderExpired::asyncOrder.request.sizeDelta",
+            asyncOrder.request.sizeDelta
+        );
+
+        if (asyncOrder.request.sizeDelta != 0) {
+            SettlementStrategy.Data
+                storage settlementStrategy = PerpsMarketConfiguration
+                    .load(asyncOrder.request.marketId)
+                    .settlementStrategies[
+                        asyncOrder.request.settlementStrategyId
+                    ];
+            console2.log("PythWrapper in MockLens", address(pythWrapper));
+            int256 offchainPrice = pythWrapper.getBenchmarkPrice(
+                settlementStrategy.feedId,
+                0
+            );
+            console2.log("After pythWrapper.getBenchmarkPrice");
+            console2.log("offchainPrice:", offchainPrice);
+
+            uint256 price = offchainPrice.toUint();
+
+            Position.Data storage oldPosition;
+            console2.log("Before asyncOrder.validateRequest");
+            (
+                runtime.newPosition,
+                runtime.totalFees,
+                runtime.fillPrice,
+                oldPosition
+            ) = asyncOrder.validateRequest(settlementStrategy, price);
+            console2.log("After asyncOrder.validateRequest");
+            console2.log("runtime.totalFees:", runtime.totalFees);
+            console2.log("runtime.fillPrice:", runtime.fillPrice);
+
+            console2.log("Before asyncOrder.validateAcceptablePrice");
+            asyncOrder.validateAcceptablePrice(runtime.fillPrice);
+            console2.log("After asyncOrder.validateAcceptablePrice");
+
+            console2.log("Before oldPosition.getPnl");
+            (
+                runtime.pnl,
+                ,
+                runtime.chargedInterest,
+                runtime.accruedFunding,
+                ,
+
+            ) = oldPosition.getPnl(runtime.fillPrice);
+            console2.log("After oldPosition.getPnl");
+            console2.log("runtime.pnl:", runtime.pnl);
+            console2.log("runtime.chargedInterest:", runtime.chargedInterest);
+            console2.log("runtime.accruedFunding:", runtime.accruedFunding);
+
+            chargedAmount = runtime.pnl - runtime.totalFees.toInt();
+            console2.log("chargedAmount:", chargedAmount);
+        } else {
+            console2.log("getChargedAmount skipped, no order found");
+        }
+    }
     function isAccountLiquidatable(
         uint128 accountId
     ) external view returns (bool) {

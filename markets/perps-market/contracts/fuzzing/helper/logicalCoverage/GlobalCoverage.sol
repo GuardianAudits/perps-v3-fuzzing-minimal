@@ -18,7 +18,6 @@ contract GlobalCoverage is FuzzBase {
             totalCollateralValueUsd,
             totalCollateralValueUsdGhost
         );
-        _logSkewCoverage(skew);
     }
 
     function _logSusdCollateralCoverage(
@@ -94,27 +93,6 @@ contract GlobalCoverage is FuzzBase {
         }
     }
 
-    function _logSkewCoverage(int128 skew) internal {
-        if (skew == 0) {
-            fl.log("No market skew");
-        } else if (skew > 0) {
-            if (skew <= 1000e18) {
-                fl.log("Small positive market skew (0-1000)");
-            } else if (skew <= 10000e18) {
-                fl.log("Medium positive market skew (1000-10000)");
-            } else {
-                fl.log("Large positive market skew (>10000)");
-            }
-        } else {
-            if (skew >= -1000e18) {
-                fl.log("Small negative market skew (0 to -1000)");
-            } else if (skew >= -10000e18) {
-                fl.log("Medium negative market skew (-1000 to -10000)");
-            } else {
-                fl.log("Large negative market skew (<-10000)");
-            }
-        }
-    }
     function _logUtilizationInfoCoverage(
         uint256 minimumCredit,
         uint256 utilizationRate,

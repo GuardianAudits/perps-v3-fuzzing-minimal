@@ -34,11 +34,10 @@ import {MockLensModule} from "../mocks/MockLensModule.sol";
 
 import {MockGasPriceNode} from "../../mocks/MockGasPriceNode.sol";
 
-// import "lib/forge-std/src/Test.sol";
-import "@perimetersec/fuzzlib/src/IHEVM.sol";
-contract FuzzStorageVariables is
-    FuzzConstants //, Test {
-{
+import "lib/forge-std/src/Test.sol";
+// import "@perimetersec/fuzzlib/src/IHEVM.sol";
+//NOTE: uncomment this and comment out Test.sol import and inheritance to get rid of forundry
+contract FuzzStorageVariables is FuzzConstants, Test {
     //Foundry compatibility
     bool isFoundry;
     bool guidedDone;

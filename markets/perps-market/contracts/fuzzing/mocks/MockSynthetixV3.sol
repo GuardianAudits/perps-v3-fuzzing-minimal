@@ -35,6 +35,7 @@ struct Cache {
 }
 contract MockSynthetixV3 {
     address oracleManager;
+
     address public sUSD;
     address public wETH;
     address public wBTC;

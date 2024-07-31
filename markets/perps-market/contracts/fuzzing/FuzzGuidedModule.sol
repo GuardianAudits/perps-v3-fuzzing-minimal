@@ -17,6 +17,11 @@ contract FuzzGuidedModule is
         fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 is weth short
     }
 
+    function fuzz_guided_depositAndShortWBTC() public {
+        fuzz_modifyCollateral(1e18, 1);
+        fuzz_commitOrder(-2e18, 6); //-1 is weth short
+    }
+
     function fuzz_guided_createDebt_LiquidateMarginOnly(
         bool isWETH,
         int amountToDeposit
@@ -136,7 +141,7 @@ contract FuzzGuidedModule is
         );
     }
 
-    function repayDebt() internal returns (int256 debt) {
+    function repayDebt() public returns (int256 debt) {
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(
                 perpsAccountModuleImpl.debt.selector,

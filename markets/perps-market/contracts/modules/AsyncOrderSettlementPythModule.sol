@@ -51,10 +51,12 @@ contract AsyncOrderSettlementPythModule is
             SettlementStrategy.Data storage settlementStrategy
         ) = AsyncOrder.loadValid(accountId);
 
-        int256 offchainPrice = IPythERC7412Wrapper(settlementStrategy.priceVerificationContract)
-            .getBenchmarkPrice(
+        int256 offchainPrice = IPythERC7412Wrapper(
+            settlementStrategy.priceVerificationContract
+        ).getBenchmarkPrice(
                 settlementStrategy.feedId,
-                (asyncOrder.commitmentTime + settlementStrategy.commitmentPriceDelay).to64()
+                (asyncOrder.commitmentTime +
+                    settlementStrategy.commitmentPriceDelay).to64()
             );
 
         _settleOrder(offchainPrice.toUint(), asyncOrder, settlementStrategy);
@@ -75,30 +77,47 @@ contract AsyncOrderSettlementPythModule is
         GlobalPerpsMarket.load().checkLiquidation(runtime.accountId);
 
         Position.Data storage oldPosition;
-        (runtime.newPosition, runtime.totalFees, runtime.fillPrice, oldPosition) = asyncOrder
-            .validateRequest(settlementStrategy, price);
+        (
+            runtime.newPosition,
+            runtime.totalFees,
+            runtime.fillPrice,
+            oldPosition
+        ) = asyncOrder.validateRequest(settlementStrategy, price);
         asyncOrder.validateAcceptablePrice(runtime.fillPrice);
 
         runtime.sizeDelta = asyncOrder.request.sizeDelta;
 
         PerpsMarketFactory.Data storage factory = PerpsMarketFactory.load();
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
+        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(
+            runtime.accountId
+        );
 
         // use fill price to calculate realized pnl
-        (runtime.pnl, , runtime.chargedInterest, runtime.accruedFunding, , ) = oldPosition.getPnl(
-            runtime.fillPrice
-        );
+        (
+            runtime.pnl,
+            ,
+            runtime.chargedInterest,
+            runtime.accruedFunding,
+            ,
+
+        ) = oldPosition.getPnl(runtime.fillPrice);
 
         runtime.chargedAmount = runtime.pnl - runtime.totalFees.toInt();
         perpsAccount.charge(runtime.chargedAmount);
-        emit AccountCharged(runtime.accountId, runtime.chargedAmount, perpsAccount.debt);
+        emit AccountCharged(
+            runtime.accountId,
+            runtime.chargedAmount,
+            perpsAccount.debt
+        );
 
         // after pnl is realized, update position
-        runtime.updateData = PerpsMarket.loadValid(runtime.marketId).updatePositionData(
-            runtime.accountId,
-            runtime.newPosition
+        runtime.updateData = PerpsMarket
+            .loadValid(runtime.marketId)
+            .updatePositionData(runtime.accountId, runtime.newPosition);
+        perpsAccount.updateOpenPositions(
+            runtime.marketId,
+            runtime.newPosition.size
         );
-        perpsAccount.updateOpenPositions(runtime.marketId, runtime.newPosition.size);
 
         emit MarketUpdated(
             runtime.updateData.marketId,
@@ -111,20 +130,26 @@ contract AsyncOrderSettlementPythModule is
             runtime.updateData.interestRate
         );
 
-        runtime.settlementReward = AsyncOrder.settlementRewardCost(settlementStrategy);
+        runtime.settlementReward = AsyncOrder.settlementRewardCost(
+            settlementStrategy
+        );
 
         if (runtime.settlementReward > 0) {
             // pay keeper
-            factory.withdrawMarketUsd(ERC2771Context._msgSender(), runtime.settlementReward);
+            factory.withdrawMarketUsd(
+                ERC2771Context._msgSender(),
+                runtime.settlementReward
+            );
         }
 
-        (runtime.referralFees, runtime.feeCollectorFees) = GlobalPerpsMarketConfiguration
-            .load()
-            .collectFees(
-                runtime.totalFees - runtime.settlementReward, // totalFees includes settlement reward so we remove it
-                asyncOrder.request.referrer,
-                factory
-            );
+        (
+            runtime.referralFees,
+            runtime.feeCollectorFees
+        ) = GlobalPerpsMarketConfiguration.load().collectFees(
+            runtime.totalFees - runtime.settlementReward, // totalFees includes settlement reward so we remove it
+            asyncOrder.request.referrer,
+            factory
+        );
 
         // trader can now commit a new order
         asyncOrder.reset();

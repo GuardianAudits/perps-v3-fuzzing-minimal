@@ -105,6 +105,7 @@ abstract contract BeforeAfter is
         int256 latestPositionPnl;
         bool isPreviousTradePositionInLoss;
         int256 previousTradePositionPnl;
+        int256 chargedAmount;
     }
 
     // Function-specific structs
@@ -234,7 +235,7 @@ abstract contract BeforeAfter is
         getAndCalculateCollateralValues(callNum);
         checkIfAccountLiquidatable(callNum, accountId);
         getAccountBalances(callNum, accountId);
-
+        getChargedAmount(callNum, accountId);
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
     function _setActorState(
@@ -258,6 +259,21 @@ abstract contract BeforeAfter is
         assert(success);
         states[callNum].totalDebt = abi.decode(returnData, (int256));
     }
+
+    function getChargedAmount(uint8 callNum, uint128 accountId) private {
+        (bool success, bytes memory returnData) = perps.call(
+            abi.encodeWithSelector(
+                mockLensModuleImpl.getChargeAmount.selector,
+                accountId
+            )
+        );
+        // assert(success);
+        states[callNum].actorStates[accountId].chargedAmount = abi.decode(
+            returnData,
+            (int256)
+        );
+    }
+
     function _incrementAndCheckLiquidationCalls(
         address liquidator
     ) internal returns (bool isFirstCall) {
@@ -532,11 +548,22 @@ abstract contract BeforeAfter is
                 pythWrapper.getBenchmarkPrice(priceFeedId, 0)
             )
         );
+        if (!success) {
+            fl.log(
+                "computeOrderFeesWithPrice reverts",
+                abi.decode(returnData, (string))
+            );
+            fl.t(
+                success,
+                "ORD-23: AsyncOrder.calculateFillPrice() should never revert"
+            );
+        }
         states[callNum].calculateFillPricePassing = success;
         (uint256 orderFees, uint256 fillPrice) = abi.decode(
             returnData,
             (uint256, uint256)
         );
+
         if (marketId == 1) {
             states[callNum].actorStates[accountId].fillPriceWETH = fillPrice;
         } else if (marketId == 2) {
@@ -562,13 +589,18 @@ abstract contract BeforeAfter is
 
         (success, returnData) = perps.call(
             abi.encodeWithSelector(
-                mockLensModuleImpl.getGlobalCollateralTypes.selector,
+                mockLensModuleImpl.getCollateralTypes.selector,
                 accountId
             )
         );
         assert(success);
         states[callNum].actorStates[accountId].activeCollateralTypes = abi
             .decode(returnData, (uint128[]));
+
+        fl.log(
+            "User activeCollateralTypes",
+            states[callNum].actorStates[accountId].activeCollateralTypes.length
+        );
 
         (success, returnData) = perps.call(
             abi.encodeWithSelector(
@@ -580,7 +612,10 @@ abstract contract BeforeAfter is
             returnData,
             (uint128[])
         );
-
+        fl.log(
+            "Global activeCollateralTypes",
+            states[callNum].globalCollateralTypes.length
+        );
         if (
             states[callNum].actorStates[accountId].wethMarket.positionSize != 0
         ) {
