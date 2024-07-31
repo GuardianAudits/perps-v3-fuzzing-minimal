@@ -1,5 +1,7 @@
-solcArgs: "--optimize false"
-
+#solcArgs: "--optimize false"
+# solcArgs: "--include-path ../perps-market --base-path  ../perps-market"
+# solcArgs: "--allow-paths ../,../../"
+cryticArgs: ["--solc-remaps", "@synthetixio/=node_modules/@synthetixio/ @openzeppelin/=node_modules/@openzeppelin/ lib/=lib/ @perimetersec/=node_modules/@perimetersec/"]
 workers: 4
 
 testMode: assertion
@@ -16,6 +18,8 @@ seqLen: 100
 
 propMaxGas: 1000000000
 testMaxGas: 1000000000
+
+
 
 deployer: "0xfffff"
 sender:
@@ -35,3 +39,7 @@ maxTimeDelay: 6
 # seed: 883771614506616433
 # seed: 7477410103401019355
 format: text 
+
+
+allow_paths: [".", "../perps-market"]
+  

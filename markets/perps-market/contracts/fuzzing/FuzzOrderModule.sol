@@ -26,10 +26,10 @@ contract FuzzOrderModule is
         bytes32 trackingCode;
         address referrer;
         int128 positionSize;
-        console.log("msg.sender", msg.sender);
+        console2.log("msg.sender", msg.sender);
         console2.log("===== _before START =====");
         _before(actorsToUpdate);
-        console.log("msg.sender", msg.sender);
+        console2.log("msg.sender", msg.sender);
 
         console2.log("===== _before END =====");
 
@@ -46,7 +46,7 @@ contract FuzzOrderModule is
 
         // require(pendingOrder[params.accountId].accountId == uint128(0), "User has a pending order");
 
-        console.log("msg.sender", msg.sender);
+        console2.log("msg.sender", msg.sender);
 
         console2.log("===== commitOrderPreconditions END =====");
 

@@ -307,7 +307,7 @@ abstract contract Properties_ORD is PropertiesBase {
             //     .isPreviousTradePositionInLoss
         ) {
             console2.log("entered ord 22 condition");
-            console.log(
+            console2.log(
                 "states[1].actorStates[accountId].debt",
                 states[1].actorStates[accountId].debt
             );
