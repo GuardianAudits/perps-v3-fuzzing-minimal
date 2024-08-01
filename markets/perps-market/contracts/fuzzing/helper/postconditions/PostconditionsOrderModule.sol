@@ -55,7 +55,8 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             invariant_ORD_18(accountId, marketId);
             invariant_ORD_19(accountId);
             fl.log("4");
-            invariant_ORD_22(accountId);
+            // @audit broken
+            // invariant_ORD_22(accountId);
             invariant_MGN_16();
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {

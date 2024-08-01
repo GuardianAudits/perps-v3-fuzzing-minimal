@@ -14,12 +14,12 @@ contract FuzzGuidedModule is
 {
     function fuzz_guided_depositAndShort() public {
         fuzz_modifyCollateral(1e18, 1);
-        fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 is weth short
+        fuzz_commitOrder(-2e18, type(uint256).max - 1); //-1 is weth
     }
 
     function fuzz_guided_depositAndShortWBTC() public {
         fuzz_modifyCollateral(1e18, 1);
-        fuzz_commitOrder(-2e18, 6); //-1 is weth short
+        fuzz_commitOrder(-2e18, 7);
     }
 
     function fuzz_guided_createDebt_LiquidateMarginOnly(

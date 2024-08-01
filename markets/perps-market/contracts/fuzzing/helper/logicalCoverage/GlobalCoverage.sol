@@ -57,11 +57,11 @@ contract GlobalCoverage is FuzzBase {
     ) internal {
         if (depositedWbtcCollateral == 0) {
             fl.log("No WBTC collateral deposited");
-        } else if (depositedWbtcCollateral <= 1e8) {
+        } else if (depositedWbtcCollateral <= 1e18) {
             fl.log("Low WBTC collateral (0-1)");
-        } else if (depositedWbtcCollateral <= 10e8) {
+        } else if (depositedWbtcCollateral <= 10e18) {
             fl.log("Medium WBTC collateral (1-10)");
-        } else if (depositedWbtcCollateral <= 100e8) {
+        } else if (depositedWbtcCollateral <= 100e18) {
             fl.log("High WBTC collateral (10-100)");
         } else {
             fl.log("Very high WBTC collateral (>100)");

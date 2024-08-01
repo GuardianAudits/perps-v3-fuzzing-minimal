@@ -167,25 +167,25 @@ contract PositionCoverage is FuzzBase {
         if (positionSize == 0) {
             fl.log("WBTC market: No open position");
         } else if (positionSize > 0) {
-            if (positionSize <= 0.01e8) {
+            if (positionSize <= 0.01e18) {
                 fl.log("WBTC market: Long position between 0 and 0.01");
-            } else if (positionSize <= 0.1e8) {
+            } else if (positionSize <= 0.1e18) {
                 fl.log("WBTC market: Long position between 0.01 and 0.1");
-            } else if (positionSize <= 1e8) {
+            } else if (positionSize <= 1e18) {
                 fl.log("WBTC market: Long position between 0.1 and 1");
-            } else if (positionSize <= 10e8) {
+            } else if (positionSize <= 10e18) {
                 fl.log("WBTC market: Long position between 1 and 10");
             } else {
                 fl.log("WBTC market: Long position greater than 10");
             }
         } else {
-            if (positionSize >= -0.01e8) {
+            if (positionSize >= -0.01e18) {
                 fl.log("WBTC market: Short position between 0 and -0.01");
-            } else if (positionSize >= -0.1e8) {
+            } else if (positionSize >= -0.1e18) {
                 fl.log("WBTC market: Short position between -0.01 and -0.1");
-            } else if (positionSize >= -1e8) {
+            } else if (positionSize >= -1e18) {
                 fl.log("WBTC market: Short position between -0.1 and -1");
-            } else if (positionSize >= -10e8) {
+            } else if (positionSize >= -10e18) {
                 fl.log("WBTC market: Short position between -1 and -10");
             } else {
                 fl.log("WBTC market: Short position less than -10");
@@ -196,25 +196,25 @@ contract PositionCoverage is FuzzBase {
         if (totalPnl == 0) {
             fl.log("WBTC market: Zero PnL");
         } else if (totalPnl > 0) {
-            if (totalPnl <= 0.01e8) {
+            if (totalPnl <= 0.01e18) {
                 fl.log("WBTC market: Profit between 0 and 0.01");
-            } else if (totalPnl <= 0.1e8) {
+            } else if (totalPnl <= 0.1e18) {
                 fl.log("WBTC market: Profit between 0.01 and 0.1");
-            } else if (totalPnl <= 1e8) {
+            } else if (totalPnl <= 1e18) {
                 fl.log("WBTC market: Profit between 0.1 and 1");
-            } else if (totalPnl <= 10e8) {
+            } else if (totalPnl <= 10e18) {
                 fl.log("WBTC market: Profit between 1 and 10");
             } else {
                 fl.log("WBTC market: Profit greater than 10");
             }
         } else {
-            if (totalPnl >= -0.01e8) {
+            if (totalPnl >= -0.01e18) {
                 fl.log("WBTC market: Loss between 0 and -0.01");
-            } else if (totalPnl >= -0.1e8) {
+            } else if (totalPnl >= -0.1e18) {
                 fl.log("WBTC market: Loss between -0.01 and -0.1");
-            } else if (totalPnl >= -1e8) {
+            } else if (totalPnl >= -1e18) {
                 fl.log("WBTC market: Loss between -0.1 and -1");
-            } else if (totalPnl >= -10e8) {
+            } else if (totalPnl >= -10e18) {
                 fl.log("WBTC market: Loss between -1 and -10");
             } else {
                 fl.log("WBTC market: Loss less than -10");
@@ -225,15 +225,15 @@ contract PositionCoverage is FuzzBase {
         if (accruedFunding == 0) {
             fl.log("WBTC market: No accrued funding");
         } else if (accruedFunding > 0) {
-            if (accruedFunding <= 0.001e8) {
+            if (accruedFunding <= 0.001e18) {
                 fl.log(
                     "WBTC market: Positive accrued funding between 0 and 0.001"
                 );
-            } else if (accruedFunding <= 0.01e8) {
+            } else if (accruedFunding <= 0.01e18) {
                 fl.log(
                     "WBTC market: Positive accrued funding between 0.001 and 0.01"
                 );
-            } else if (accruedFunding <= 0.1e8) {
+            } else if (accruedFunding <= 0.1e18) {
                 fl.log(
                     "WBTC market: Positive accrued funding between 0.01 and 0.1"
                 );
@@ -243,15 +243,15 @@ contract PositionCoverage is FuzzBase {
                 );
             }
         } else {
-            if (accruedFunding >= -0.001e8) {
+            if (accruedFunding >= -0.001e18) {
                 fl.log(
                     "WBTC market: Negative accrued funding between 0 and -0.001"
                 );
-            } else if (accruedFunding >= -0.01e8) {
+            } else if (accruedFunding >= -0.01e18) {
                 fl.log(
                     "WBTC market: Negative accrued funding between -0.001 and -0.01"
                 );
-            } else if (accruedFunding >= -0.1e8) {
+            } else if (accruedFunding >= -0.1e18) {
                 fl.log(
                     "WBTC market: Negative accrued funding between -0.01 and -0.1"
                 );
@@ -263,13 +263,13 @@ contract PositionCoverage is FuzzBase {
         // WBTC Owed interest coverage
         if (owedInterest == 0) {
             fl.log("WBTC market: No owed interest");
-        } else if (owedInterest <= 0.001e8) {
+        } else if (owedInterest <= 0.001e18) {
             fl.log("WBTC market: Owed interest between 0 and 0.001");
-        } else if (owedInterest <= 0.01e8) {
+        } else if (owedInterest <= 0.01e18) {
             fl.log("WBTC market: Owed interest between 0.001 and 0.01");
-        } else if (owedInterest <= 0.1e8) {
+        } else if (owedInterest <= 0.1e18) {
             fl.log("WBTC market: Owed interest between 0.01 and 0.1");
-        } else if (owedInterest <= 1e8) {
+        } else if (owedInterest <= 1e18) {
             fl.log("WBTC market: Owed interest between 0.1 and 1");
         } else {
             fl.log("WBTC market: Owed interest greater than 1");

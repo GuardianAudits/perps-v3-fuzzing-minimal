@@ -96,11 +96,11 @@ contract LiquidationCoverage is FuzzBase {
         // WBTC coverage (assuming 8 decimal places)
         if (wbtcAmount == 0) {
             fl.log("No WBTC collateral");
-        } else if (wbtcAmount > 0 && wbtcAmount <= 1e8) {
+        } else if (wbtcAmount > 0 && wbtcAmount <= 1e18) {
             fl.log("WBTC collateral between 0 and 1");
-        } else if (wbtcAmount > 1e8 && wbtcAmount <= 10e8) {
+        } else if (wbtcAmount > 1e8 && wbtcAmount <= 10e18) {
             fl.log("WBTC collateral between 1 and 10");
-        } else if (wbtcAmount > 10e8 && wbtcAmount <= 100e8) {
+        } else if (wbtcAmount > 10e8 && wbtcAmount <= 100e18) {
             fl.log("WBTC collateral between 10 and 100");
         } else {
             fl.log("WBTC collateral greater than 100");

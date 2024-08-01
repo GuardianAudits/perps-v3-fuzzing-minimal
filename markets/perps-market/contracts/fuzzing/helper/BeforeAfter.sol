@@ -182,13 +182,6 @@ abstract contract BeforeAfter is
         _setStates(1, accountId, marketId);
     }
 
-    function zeroOutMemory() public {
-        for (uint8 i = 0; i < 2; i++) {
-            delete states[i];
-            delete positionStates[i];
-        }
-    }
-
     function _checkLCov(bool lcov) internal {
         lcov
             ? lcov_liquidateMarginOnlyCovered += 1
