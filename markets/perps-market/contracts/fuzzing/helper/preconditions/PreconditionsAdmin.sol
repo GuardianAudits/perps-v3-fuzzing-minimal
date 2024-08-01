@@ -8,24 +8,30 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
         int256 newPrice;
         bytes32 id;
     }
-    function mintUSDToSynthetixPreconditions(uint256 amount) internal returns (uint256) {
+    function mintUSDToSynthetixPreconditions(
+        uint256 amount
+    ) internal returns (uint256) {
         uint256 currentBalance = sUSDTokenMock.balanceOf(address(v3Mock));
         if (currentBalance == 0) return amount;
         return
             fl.clamp(
                 amount,
                 1,
-                (currentBalance * UINT_MAX_SYNTHETIX_USD_CHANGE_BP) / UINT_ONE_HUNDRED_BP
+                (currentBalance * UINT_MAX_SYNTHETIX_USD_CHANGE_BP) /
+                    UINT_ONE_HUNDRED_BP
             );
     }
 
-    function burnUSDFromSynthetixPreconditions(uint256 amount) internal returns (uint256) {
+    function burnUSDFromSynthetixPreconditions(
+        uint256 amount
+    ) internal returns (uint256) {
         uint256 currentBalance = sUSDTokenMock.balanceOf(address(v3Mock));
         return
             fl.clamp(
                 amount,
                 1,
-                (currentBalance * UINT_MAX_SYNTHETIX_USD_CHANGE_BP) / UINT_ONE_HUNDRED_BP
+                (currentBalance * UINT_MAX_SYNTHETIX_USD_CHANGE_BP) /
+                    UINT_ONE_HUNDRED_BP
             );
     }
     event DebugPricePre(int256 p, string s);
@@ -39,10 +45,10 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
 
         int256 currentPrice = mockOracleManager.process(nodeId).price;
 
-        int256 minBound = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
-            INT_ONE_HUNDRED_BP; // -20%
-        int256 maxBound = (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) /
-            INT_ONE_HUNDRED_BP; // +20%
+        int256 minBound = (currentPrice *
+            (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP; // -20%
+        int256 maxBound = (currentPrice *
+            (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP; // +20%
 
         if (minBound < 500e18) {
             minBound = 500e18; // min ETH price $500
@@ -63,10 +69,10 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
             0 //uint64 requestedTime, irrelevant for mock
         );
 
-        int256 minBound = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
-            INT_ONE_HUNDRED_BP; // -20%
-        int256 maxBound = (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) /
-            INT_ONE_HUNDRED_BP; // +20%
+        int256 minBound = (currentPrice *
+            (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP; // -20%
+        int256 maxBound = (currentPrice *
+            (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP; // +20%
 
         if (minBound < 500e18) {
             minBound = 500e18; // min ETH price $500
@@ -80,19 +86,20 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
 
         fl.log("changeWETHPythPricePreconditions::newPrice", clampedPrice);
 
-        return ChangePythPriceParams({newPrice: clampedPrice, id: WETH_FEED_ID});
+        return
+            ChangePythPriceParams({newPrice: clampedPrice, id: WETH_FEED_ID});
     }
 
     function changeWBTCPythPricePreconditions(
-        int64 newPrice
+        int128 newPrice
     ) internal returns (ChangePythPriceParams memory) {
         int256 currentPrice = pythWrapper.getBenchmarkPrice(WBTC_FEED_ID, 0);
         emit DebugPricing(currentPrice, "CURRENT PRICE");
 
-        int256 minBound = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
-            INT_ONE_HUNDRED_BP; // -20%
-        int256 maxBound = (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) /
-            INT_ONE_HUNDRED_BP; // +20%
+        int256 minBound = (currentPrice *
+            (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP; // -20%
+        int256 maxBound = (currentPrice *
+            (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP; // +20%
 
         if (minBound < 500e18) {
             minBound = 500e18; // min WBTC price $500
@@ -106,20 +113,28 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
 
         fl.log("changeWBTCPythPricePreconditions::newPrice", clampedPrice);
 
-        return ChangePythPriceParams({newPrice: clampedPrice, id: WBTC_FEED_ID});
+        return
+            ChangePythPriceParams({newPrice: clampedPrice, id: WBTC_FEED_ID});
     }
 
-    function crashWETHPythPricePreconditions() internal returns (ChangePythPriceParams memory) {
+    function crashWETHPythPricePreconditions()
+        internal
+        returns (ChangePythPriceParams memory)
+    {
         int256 currentPrice = pythWrapper.getBenchmarkPrice(WETH_FEED_ID, 0);
 
-        int256 newPrice = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
-            INT_ONE_HUNDRED_BP;
+        int256 newPrice = (currentPrice *
+            (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP;
         int256 clampedPrice = newPrice < int(500e18) ? int(500e18) : newPrice;
 
-        return ChangePythPriceParams({newPrice: clampedPrice, id: WETH_FEED_ID});
+        return
+            ChangePythPriceParams({newPrice: clampedPrice, id: WETH_FEED_ID});
     }
 
-    function pumpWETHPythPricePreconditions() internal returns (ChangePythPriceParams memory) {
+    function pumpWETHPythPricePreconditions()
+        internal
+        returns (ChangePythPriceParams memory)
+    {
         int256 currentPrice = pythWrapper.getBenchmarkPrice(
             WETH_FEED_ID,
             0 //uint64 requestedTime, irrelevant for mock
@@ -128,24 +143,32 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
         return
             ChangePythPriceParams({
                 newPrice: int256(
-                    (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP
+                    (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) /
+                        INT_ONE_HUNDRED_BP
                 ),
                 id: WETH_FEED_ID
             });
     }
 
     event DebugPricing(int256 p, string s);
-    function crashWBTCPythPricePreconditions() internal returns (ChangePythPriceParams memory) {
+    function crashWBTCPythPricePreconditions()
+        internal
+        returns (ChangePythPriceParams memory)
+    {
         int256 currentPrice = pythWrapper.getBenchmarkPrice(WBTC_FEED_ID, 0);
 
-        int256 newPrice = (currentPrice * (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) /
-            INT_ONE_HUNDRED_BP;
+        int256 newPrice = (currentPrice *
+            (INT_ONE_HUNDRED_BP - INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP;
         int256 clampedPrice = newPrice < int(500e18) ? int(500e18) : newPrice;
 
-        return ChangePythPriceParams({newPrice: clampedPrice, id: WBTC_FEED_ID});
+        return
+            ChangePythPriceParams({newPrice: clampedPrice, id: WBTC_FEED_ID});
     }
 
-    function pumpWBTCPythPricePreconditions() internal returns (ChangePythPriceParams memory) {
+    function pumpWBTCPythPricePreconditions()
+        internal
+        returns (ChangePythPriceParams memory)
+    {
         int256 currentPrice = pythWrapper.getBenchmarkPrice(
             WBTC_FEED_ID,
             0 //uint64 requestedTime, irrelevant for mock
@@ -154,7 +177,8 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
         return
             ChangePythPriceParams({
                 newPrice: int256(
-                    (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) / INT_ONE_HUNDRED_BP
+                    (currentPrice * (INT_ONE_HUNDRED_BP + INT_MAX_CHANGE_BP)) /
+                        INT_ONE_HUNDRED_BP
                 ),
                 id: WBTC_FEED_ID
             });
@@ -165,9 +189,17 @@ abstract contract PreconditionsAdmin is PreconditionsBase {
         uint256 collateralTokenIndex
     )
         internal
-        returns (uint256 clampedNewCollateralAmountD18, address collateralToken, uint128 marketId)
+        returns (
+            uint256 clampedNewCollateralAmountD18,
+            address collateralToken,
+            uint128 marketId
+        )
     {
-        clampedNewCollateralAmountD18 = fl.clamp(newCollateralAmountD18, 1, 100_000_000);
+        clampedNewCollateralAmountD18 = fl.clamp(
+            newCollateralAmountD18,
+            1,
+            100_000_000
+        );
         collateralToken = _getRandomCollateralToken(collateralTokenIndex);
         marketId = collateralTokenIndex % 2 == 0 ? 1 : 2;
     }

@@ -34,7 +34,7 @@ contract FuzzAdmin is PreconditionsAdmin, PostconditionsAdmin {
         changePythPricePostconditions(params.id, params.newPrice);
     }
 
-    function fuzz_changeWBTCPythPrice(int64 newPrice) public {
+    function fuzz_changeWBTCPythPrice(int128 newPrice) public {
         ChangePythPriceParams memory params = changeWBTCPythPricePreconditions(
             newPrice
         );

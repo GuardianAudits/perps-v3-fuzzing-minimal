@@ -111,36 +111,6 @@ contract FuzzGuidedModule is
         fuzz_liquidateMarginOnly();
     }
 
-    function fuzz_liquidatePositionAndICheckAfterPriceMove()
-        public
-        setCurrentActor
-    {
-        LiquidatePositionParams
-            memory params = liquidatePositionPreconditions();
-
-        address[] memory actorsToUpdate = new address[](2);
-        actorsToUpdate[0] = currentActor; //This is liquidator
-        actorsToUpdate[1] = params.user;
-
-        _before(actorsToUpdate);
-
-        (bool success, bytes memory returnData) = _liquidatePositionCall(
-            params.accountId
-        );
-
-        fuzz_pumpWETHPythPrice(1); //20%
-        fuzz_pumpWBTCPythPrice(1);
-
-        liquidatePositionPostconditionsAndICheckAfterPriceMove(
-            success,
-            returnData,
-            actorsToUpdate,
-            params.user,
-            currentActor,
-            params.accountId
-        );
-    }
-
     function repayDebt() public returns (int256 debt) {
         (bool success, bytes memory returnData) = perps.call(
             abi.encodeWithSelector(

@@ -387,398 +387,93 @@ contract FoundryPlayground is FuzzModules {
     }
 
     function test_replay_LIQ16() public {
-        try
-            this.fuzz_pumpWBTCPythPrice(
-                87533894305706623835127403366182214841640945574257531966164707911797135609362
-            )
-        {} catch {}
-
-        try this.failed() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 23653);
-        try this.excludeSelectors() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 800);
-        try
-            this.pendingOrder(198157980115751335463707764415661308873)
-        {} catch {}
-
         vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 54450);
+        vm.roll(block.number + 14246);
+        try this.fuzz_crashWBTCPythPrice(8272663) {} catch {}
+
         try
-            this.fuzz_modifyCollateral(
-                24092337307607371349201338000150018698563060124685791176197706600483751518467,
-                90407037280924408380053388513981287048452607374058181965830948600213731242434
+            this.fuzz_changeOracleManagerPrice(
+                5876995114192504108114557442559075274233847232337755884555805112560331383974,
+                20374593907295150528490908016128133617111158061146294585622734675020521622889
             )
         {} catch {}
 
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 15367);
-        try this.failed() {} catch {}
+        try this.fuzz_crashWBTCPythPrice(3801989) {} catch {}
 
         vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 15367);
-        try this.zeroOutMemory() {} catch {}
-
-        try
-            this.fuzz_modifyCollateral(
-                30254981041208237121442751022686994243506136113484675422420858878955062105627,
-                1524785991
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 30042);
+        vm.roll(block.number + 11942);
         try this.fuzz_guided_depositAndShortWBTC() {} catch {}
 
-        try this.fuzz_changeWETHPythPrice(3371411820699086044) {} catch {}
-
+        vm.warp(block.timestamp + 1);
+        vm.roll(block.number + 31807);
         try this.repayDebt() {} catch {}
 
-        try this.excludeSelectors() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 30256);
-        try this.targetSelectors() {} catch {}
-
-        try
-            this.fuzz_mintUSDToSynthetix(
-                58319597077716673645932964154407652621469602560859317685919569768048102057668
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 5);
-        vm.roll(block.number + 23403);
         try this.fuzz_settleOrder() {} catch {}
 
-        vm.warp(block.timestamp + 5);
-        vm.roll(block.number + 53678);
-        try
-            this.fuzz_pumpWBTCPythPrice(
-                82817779763846017808909410027613035085688643318141728797755601145978533293377
-            )
-        {} catch {}
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 58783);
+        try this.targetSenders() {} catch {}
+
+        try this.fuzz_guided_depositAndShort() {} catch {}
 
         vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 4462);
-        try this.targetArtifactSelectors() {} catch {}
-
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 23275);
-        try
-            this.fuzz_pumpWBTCPythPrice(
-                19488746330700717173729999299626481610075830215268097516715688792938728795577
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 5);
-        vm.roll(block.number + 561);
+        vm.roll(block.number + 60);
         try this.excludeSenders() {} catch {}
 
-        try this.fuzz_mintUSDToSynthetix(4370000) {} catch {}
-
         vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 30256);
-        try this.fuzz_liquidatePosition() {} catch {}
+        vm.roll(block.number + 33218);
+        vm.warp(block.timestamp + 10);
+        vm.roll(block.number + 69950);
 
         vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 54809);
-        try
-            this.fuzz_payDebt(194164902771823277421466735235281904579)
-        {} catch {}
-
-        try
-            this.fuzz_pumpWETHPythPrice(
-                18049749202201179818722872742054829732607359957881867016432298076426715384390
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 60055);
-        try this.targetInterfaces() {} catch {}
-
-        try
-            this.fuzz_crashWETHPythPrice(
-                115792089237316195423570985008687907853269984665640564039457584007913129639934
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 4);
-        vm.roll(block.number + 8447);
-        try
-            this.fuzz_changeOracleManagerPrice(
-                23400675182106258488606864710744411171724282909129838509255408941851036610387,
-                4370000
-            )
-        {} catch {}
-
-        try
-            this.fuzz_guided_createDebt_LiquidateMarginOnly(
-                false,
-                10448546154597721895128468398821108859332993338374862366538266264915089241453
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 36859);
-        try this.fuzz_crashWBTCPythPrice(2459009544832) {} catch {}
-
-        vm.warp(block.timestamp + 5);
-        vm.roll(block.number + 59982);
-        try
-            this.fuzz_delegateCollateral(
-                135316917356334091652617671628503220893,
-                256186319903586881582888722810996732870,
-                4369999,
-                115792089237316195423570985008687907853269984665640564039457584007913129639935,
-                82249183903970785728399494859185397493376003927400094584376132305559208207554
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 58783);
-        try this.fuzz_crashWETHPythPrice(1524785993) {} catch {}
-
-        vm.warp(block.timestamp + 4);
-        vm.roll(block.number + 3661);
-        vm.warp(block.timestamp + 5);
-        vm.roll(block.number + 42595);
-        try this.excludeSelectors() {} catch {}
-
-        vm.warp(block.timestamp + 6);
-        vm.roll(block.number + 4896);
-        try this.targetInterfaces() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 32);
-        try
-            this.fuzz_delegateCollateral(
-                4369999,
-                1524785991,
-                88234109651709974343794513113785112769805635900493061281585349761168106275435,
-                115792089237316195423570985008687907853269984665640564039457584007913129639933,
-                0
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 46422);
-        try this.excludeContracts() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 5053);
-        try
-            this.fuzz_burnUSDFromSynthetix(4785833217208195328970646574223)
-        {} catch {}
-
-        try
-            this.fuzz_crashWETHPythPrice(
-                25476845697035121763736771662605580125177619118584312647413036283710652449087
-            )
-        {} catch {}
-
-        try
-            this.fuzz_guided_createDebt_LiquidateMarginOnly(false, 1524785991)
-        {} catch {}
-
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 38100);
-        try this.fuzz_liquidateFlagged(209) {} catch {}
-
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 5140);
-        try
-            this.fuzz_pumpWBTCPythPrice(
-                69019241900129816506093301311936514493300398317673844574145440550932985591986
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 561);
-        try this.zeroOutMemory() {} catch {}
-
-        try
-            this.fuzz_burnUSDFromSynthetix(
-                34116435638630449540627727772912217272715670289207484923760363923548874852833
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 1088);
-        try this.targetArtifacts() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 55538);
-        try this.failed() {} catch {}
-
-        try this.fuzz_liquidateFlagged(0) {} catch {}
-
-        try this.zeroOutMemory() {} catch {}
-
-        try
-            this.fuzz_commitOrder(
-                4370000,
-                29569306801110173369255259629940846712699826178710513738506742790051962914851
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 45261);
-        try this.fuzz_cancelOrder(251) {} catch {}
-
-        try this.IS_TEST() {} catch {}
-
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 14684);
-        try this.fuzz_settleOrder() {} catch {}
-
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 7278);
-        try this.repayDebt() {} catch {}
-
-        vm.warp(block.timestamp + 4);
-        vm.roll(block.number + 32767);
-        try this.fuzz_guided_depositAndShort() {} catch {}
-
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 42229);
-        try this.fuzz_guided_depositAndShortWBTC() {} catch {}
-
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 24311);
-        try
-            this.fuzz_delegateCollateral(
-                216592120038409315430614080998136574909,
-                301716905279369085090174297453791891502,
-                1,
-                1524785993,
-                23942288908294858944485301061666975500641733209716141398976073325
-            )
-        {} catch {}
-
-        try
-            this.fuzz_changeOracleManagerPrice(
-                1524785992,
-                29754741601185319919143644719617558737820674580386367181806146663921552677524
-            )
-        {} catch {}
-
-        try this.repayDebt() {} catch {}
-
-        vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 2526);
-        try this.repayDebt() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 30011);
-        try this.fuzz_changeWETHPythPrice(1524785993) {} catch {}
-
-        try this.excludeContracts() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 23403);
-        try this.targetContracts() {} catch {}
-
-        vm.warp(block.timestamp + 6);
-        vm.roll(block.number + 5140);
-        try this.targetArtifactSelectors() {} catch {}
-
-        try this.fuzz_guided_depositAndShort() {} catch {}
-
-        try this.fuzz_cancelOrder(192) {} catch {}
-
-        try this.fuzz_changeWBTCPythPrice(1524785991) {} catch {}
-
-        vm.warp(block.timestamp + 2);
-        vm.roll(block.number + 22699);
-        try this.targetContracts() {} catch {}
+        vm.roll(block.number + 35731);
+        try this.fuzz_cancelOrder(5) {} catch {}
 
         vm.warp(block.timestamp + 5);
         vm.roll(block.number + 49415);
-        try
-            this.fuzz_crashWETHPythPrice(
-                74445261737262899442454652605568939724013034985940359539458581551164502700472
-            )
-        {} catch {}
 
         vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 12338);
-        try this.fuzz_liquidateFlagged(255) {} catch {}
+        vm.roll(block.number + 60364);
+        try this.fuzz_cancelOrder(44) {} catch {}
 
-        try this.IS_TEST() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 58783);
-        try this.excludeContracts() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 5952);
-        try this.fuzz_pumpWBTCPythPrice(947) {} catch {}
-
-        vm.warp(block.timestamp + 5);
-        vm.roll(block.number + 30784);
-        try this.fuzz_pumpWETHPythPrice(1524785991) {} catch {}
-
-        try
-            this.fuzz_pumpWETHPythPrice(
-                113048627196545928106219217792339821532186373662277131369397273845930721288601
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 53562);
-        try
-            this.fuzz_pumpWBTCPythPrice(
-                115792089237316195423570985008687907853269984665640564039457584007913129639931
-            )
-        {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 47075);
-        try this.fuzz_liquidateMarginOnly() {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 53349);
-        try this.fuzz_liquidatePosition() {} catch {}
-
-        vm.warp(block.timestamp + 5);
-        vm.roll(block.number + 19933);
-        try this.targetSelectors() {} catch {}
-
-        vm.warp(block.timestamp + 5);
-        vm.roll(block.number + 38100);
-        try this.fuzz_pumpWBTCPythPrice(0) {} catch {}
-
-        vm.warp(block.timestamp + 5);
-        vm.roll(block.number + 24311);
-        try this.fuzz_changeWETHPythPrice(1126350135) {} catch {}
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 15607);
+        try this.pendingOrder(1256657410) {} catch {}
 
         vm.warp(block.timestamp + 1);
         vm.roll(block.number + 4223);
-        try this.fuzz_guided_depositAndShortWBTC() {} catch {}
+        try this.fuzz_guided_depositAndShort() {} catch {}
 
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 1984);
-        try this.targetInterfaces() {} catch {}
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 15764);
+        try this.IS_TEST() {} catch {}
 
-        try this.fuzz_liquidateFlaggedAccounts(104) {} catch {}
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 27404);
+        try
+            this.fuzz_modifyCollateral(
+                8542833558636987789308118644925683403792117600965309022390609468528741291235,
+                1676809
+            )
+        {} catch {}
+
+        vm.warp(block.timestamp + 5);
+        vm.roll(block.number + 38350);
+        try this.fuzz_crashWBTCPythPrice(55) {} catch {}
 
         vm.warp(block.timestamp + 3);
-        vm.roll(block.number + 45819);
-        try this.fuzz_pumpWBTCPythPrice(1524785993) {} catch {}
+        vm.roll(block.number + 5023);
+        try
+            this.fuzz_commitOrder(
+                3153,
+                19404086526591562380684914545785193691637301789324297873349688953609032224
+            )
+        {} catch {}
 
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 10992);
-        try this.targetSenders() {} catch {}
+        vm.warp(block.timestamp + 3);
+        vm.roll(block.number + 60364);
+        try this.fuzz_crashWETHPythPrice(172660010) {} catch {}
 
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 30784);
-        try this.fuzz_changeWETHPythPrice(1524785993) {} catch {}
-
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 5054);
         fuzz_liquidatePosition();
     }
 

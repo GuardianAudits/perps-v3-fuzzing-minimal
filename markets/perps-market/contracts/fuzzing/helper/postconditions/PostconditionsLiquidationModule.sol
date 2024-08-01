@@ -92,21 +92,4 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             onFailInvariantsGeneral(returnData);
         }
     }
-
-    function liquidatePositionPostconditionsAndICheckAfterPriceMove(
-        bool success,
-        bytes memory returnData,
-        address[] memory actorsToUpdate,
-        address flaggedUser,
-        address liquidator,
-        uint128 accountIds
-    ) internal {
-        if (success) {
-            _after(actorsToUpdate);
-
-            onSuccessInvariantsGeneral(returnData, accountIds);
-        } else {
-            onFailInvariantsGeneral(returnData);
-        }
-    }
 }
