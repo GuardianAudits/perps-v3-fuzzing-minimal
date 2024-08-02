@@ -1,6 +1,6 @@
 # Synthetix Readme Draft
 
-```markdown
+
 # Quick Start with Echidna Installed 
 
 ```
@@ -237,5 +237,3 @@ Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 | MGN-09 | After modifying collateral, a trader should not be immediately liquidatable. | ✅ | 2m | - |
 | MGN-10 | After paying debt, a trader should not be immediately liquidatable. | ✅ | 2m | - |
 | MGN-11 | The sum of collateral amounts from all accounts should always equal the global collateral amount. | ✅ | 2m | - |
-
-```
