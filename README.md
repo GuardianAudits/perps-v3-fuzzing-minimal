@@ -52,12 +52,12 @@ mv lib markets/perps-market/lib
 
 5. Run Echidna with no Slither check (faster debugging)
 
-```PATH=./contracts/fuzzing/:$PATH echidna contracts/fuzzing/Fuzz.sol --contract Fuzz --config echidna.yaml
-```
+`PATH=./contracts/fuzzing/:$PATH echidna contracts/fuzzing/Fuzz.sol --contract Fuzz --config echidna.yaml`
+
 6. Run Echidna with a Slither check (slow)
 
-```echidna contracts/fuzzing/Fuzz.sol --contract Fuzz --config echidna.yaml```
-```
+`echidna contracts/fuzzing/Fuzz.sol --contract Fuzz --config echidna.yaml`
+
 
 7. Run Foundry
 `forge test --mt test_modifyCollateral`
