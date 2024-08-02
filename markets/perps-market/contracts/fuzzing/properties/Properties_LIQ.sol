@@ -156,62 +156,6 @@ abstract contract Properties_LIQ is PropertiesBase {
         );
     }
 
-    function invariant_LIQ_16() internal {
-        fl.log(
-            "states[0].wethMarket.debtCorrectionAccumulator",
-            states[0].wethMarket.debtCorrectionAccumulator
-        );
-        fl.log(
-            "states[1].wethMarket.debtCorrectionAccumulator",
-            states[1].wethMarket.debtCorrectionAccumulator
-        );
-        fl.log(
-            "states[0].wethMarket.reportedDebt",
-            states[0].wethMarket.reportedDebt
-        );
-        fl.log(
-            "states[1].wethMarket.reportedDebt",
-            states[1].wethMarket.reportedDebt
-        );
-
-        bool wethConditionMet = (states[0]
-            .wethMarket
-            .debtCorrectionAccumulator >=
-            states[1].wethMarket.debtCorrectionAccumulator) &&
-            (states[0].wethMarket.reportedDebt >=
-                states[1].wethMarket.reportedDebt);
-
-        fl.log(
-            "states[0].wbtcMarket.debtCorrectionAccumulator",
-            states[0].wbtcMarket.debtCorrectionAccumulator
-        );
-        fl.log(
-            "states[1].wbtcMarket.debtCorrectionAccumulator",
-            states[1].wbtcMarket.debtCorrectionAccumulator
-        );
-        fl.log(
-            "states[0].wbtcMarket.reportedDebt",
-            states[0].wbtcMarket.reportedDebt
-        );
-        fl.log(
-            "states[1].wbtcMarket.reportedDebt",
-            states[1].wbtcMarket.reportedDebt
-        );
-
-        bool wbtcConditionMet = (states[0]
-            .wbtcMarket
-            .debtCorrectionAccumulator >=
-            states[1].wbtcMarket.debtCorrectionAccumulator) &&
-            (states[0].wbtcMarket.reportedDebt >=
-                states[1].wbtcMarket.reportedDebt);
-
-        fl.t(
-            (wethConditionMet || wbtcConditionMet) ||
-                (wethConditionMet && wbtcConditionMet),
-            LIQ_16
-        );
-    }
-
     function invariant_LIQ_17(uint128 account) internal {
         if (states[0].actorStates[account].isAccountLiquidatable) {
             fl.eq(

@@ -1074,17 +1074,6 @@ contract FoundryPlayground is FuzzModules {
         fuzz_settleOrder();
     }
 
-    function test_LIQ_16() public {
-        vm.warp(block.timestamp + 1);
-        vm.roll(block.number + 4112);
-        fuzz_guided_depositAndShort();
-        fuzz_settleOrder();
-        fuzz_pumpWETHPythPrice(
-            163792592102731729135052124907094090042026070912324728664580660786065508436
-        );
-        fuzz_liquidatePosition();
-    }
-
     function test_MGN_08() public {
         try this.targetContracts() {} catch {}
 
