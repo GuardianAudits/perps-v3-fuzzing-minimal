@@ -1,4 +1,4 @@
-# Synthetix Readme Draft
+# Synthetix V3 Perps Market Fuzzing Suite
 
 
 # Quick Start with Echidna Installed 
@@ -27,7 +27,11 @@ A mock lens contract was created to access the states of the Perps market which 
 
 This suite implements sUSD, WETH, WBTC and a 30-decimal token (for deposit and withdrawal assertions) as collateral. 
 
-[Logical coverage](markets/perps-market/contracts/fuzzing/helper/logicalCoverage) for the main modules allow the fuzzer to view amounts, pnls, and statuses of trades with additional details beyond line coverage. 
+[Logical coverage](markets/perps-market/contracts/fuzzing/helper/logicalCoverage) is the next-gen fuzzing coverage level, allowing analysis of how deep into the system lifecycle a fuzzer's run got. Even the deepest and most insightful assertions about the system depend on impeccable coverage. Low-quality coverage means low-effort usage of the system, leaving lots of blind spots for a fuzzer. Typical line coverage conveys a basic fact: there is one case that touches the function. Latest Echidna updates bring a line hit counter, which can show that a function was hit several times. The problem is that multiple hits can happen with the same parameters, and there's no way to check if this was the case.
+
+Solution: logical coverage. With logical coverage, we can see what states the fuzzer gets the system into, if it used several types of parameters or just one, and if there are dead ends where some values can't go through. This allows fine-tuning of the fuzzing suite to ensure we're checking invariants after all possible scenarios. It also allows us to dig into specific states we want to check and be sure that we hit them, and how we hit them.
+
+This suite represents a minimalistic, instant-on approach to fuzzing. We compressed the setup into a one-liner so this suite can spin up in the cloud or any other powerful machine. Contract upgrades are smooth since all structure of the original Synthetix V3 repo was preserved.
 
 All properties tested can be found below in this readme.
 
@@ -50,16 +54,17 @@ mv lib markets/perps-market/lib
 
 ## Usage 
 
-5. Run Echidna with no Slither check (faster debugging)
+4. Run Echidna with no Slither check (faster debugging)
 
 `PATH=./contracts/fuzzing/:$PATH echidna contracts/fuzzing/Fuzz.sol --contract Fuzz --config echidna.yaml`
 
-6. Run Echidna with a Slither check (slow)
+5. Run Echidna with a Slither check (slow)
 
 `echidna contracts/fuzzing/Fuzz.sol --contract Fuzz --config echidna.yaml`
 
+## Reproduce with Foundry
 
-7. Run Foundry
+6. Run Foundry
 `forge test --mt test_modifyCollateral`
 
 # Scope
@@ -189,10 +194,7 @@ Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 │   ├── @openzeppelin
 │   └── @synthetixio
 ├── remappings.txt
-└── storage.dump.sol```
-
-
-
+└── storage.dump.sol
 ```
 | Invariant ID | Invariant Description | Passed | Run Count | Remediations |
 | --- | --- | --- | --- | --- |
