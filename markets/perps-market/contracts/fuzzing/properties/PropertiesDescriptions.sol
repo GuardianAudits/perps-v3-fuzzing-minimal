@@ -4,43 +4,43 @@ contract PropertiesDescriptions {
     string constant MGN_01 =
         "MGN-01: Position is never liquidatable after a successful margin withdraw";
     string constant MGN_02 =
-        "MGN-03: A modify collateral call will always revert for an account that has a pending order";
+        "MGN-02: A modify collateral call will always revert for an account that has a pending order";
     string constant MGN_03 =
-        "MGN-04: If an account's collateral is 0, then the account's debt must also be 0";
+        "MGN-03: If an account's collateral is 0, then the account's debt must also be 0";
     string constant MGN_04 =
-        "MGN-05: depositedCollaterals array should be adjusted by amount of collateral modified";
+        "MGN-04: depositedCollaterals array should be adjusted by amount of collateral modified";
     string constant MGN_05 =
-        "MGN-06: If sUSD collateral modified, minimumCredit should be updated by that amount";
+        "MGN-05: If sUSD collateral modified, minimumCredit should be updated by that amount";
     string constant MGN_06 =
-        "MGN-08: Sum of collateral token values should be the totalCollateralValueUsd stored in the market";
+        "MGN-06: Sum of collateral token values should be the totalCollateralValueUsd stored in the market";
     string constant MGN_07 =
-        "MGN-12: User cannot withdraw more non-susd collateral than they deposited";
+        "MGN-07: User cannot withdraw more non-susd collateral than they deposited";
     string constant MGN_08 =
-        "MGN-13: It should never happen that a user has an amount of collateral deposited with a token > 18 decimals precision and withdrawing lead to precision loss.";
+        "MGN-08: It should never happen that a user has an amount of collateral deposited with a token > 18 decimals precision and withdrawing lead to precision loss.";
     string constant MGN_09 =
-        "MGN-14:  After modifying collateral, a trader should not be immediately liquidatable.";
+        "MGN-09:  After modifying collateral, a trader should not be immediately liquidatable.";
     string constant MGN_10 =
-        "MGN-15:  After paying debt, a trader should not be immediately liquidatable.";
+        "MGN-10:  After paying debt, a trader should not be immediately liquidatable.";
     string constant MGN_11 =
-        "MGN-16:  The sum of collateral amounts from all accounts should always equal the global collateral amount.";
+        "MGN-11:  The sum of collateral amounts from all accounts should always equal the global collateral amount.";
 
     string constant LIQ_01 = "LIQ-01: isPositionLiquidatable never reverts";
     string constant LIQ_02 =
-        "LIQ-03: remainingLiquidatableSizeCapacity is strictly decreasing immediately after a successful liquidation";
+        "LIQ-02: remainingLiquidatableSizeCapacity is strictly decreasing immediately after a successful liquidation";
     string constant LIQ_03 =
-        "LIQ-08: A user can be liquidated if minimum credit is not met";
+        "LIQ-03: A user can be liquidated if minimum credit is not met";
     string constant LIQ_04 =
-        "LIQ-09: All account margin collateral should be removed after full liquidation";
+        "LIQ-04: All account margin collateral should be removed after full liquidation";
     string constant LIQ_05 =
-        "LIQ-11: Market deposited collateral should decrease after full liquidation by the account collaterla that was liquidated";
+        "LIQ-05: Market deposited collateral should decrease after full liquidation by the account collaterla that was liquidated";
     string constant LIQ_06 =
-        "LIQ-15: User should not be able to gain more in keeper fees than collateral lost in liquidateMarginOnly";
+        "LIQ-06: User should not be able to gain more in keeper fees than collateral lost in liquidateMarginOnly";
     string constant LIQ_07 =
-        "LIQ-17: If an account is flagged for liquidations the account is not allowed to have collateral or debt.";
+        "LIQ-07: If an account is flagged for liquidations the account is not allowed to have collateral or debt.";
     string constant LIQ_08 =
-        "LIQ-18: maxLiquidatableAmount can never return a value greater than requestedLiquidationAmount.";
+        "LIQ-08: maxLiquidatableAmount can never return a value greater than requestedLiquidationAmount.";
     string constant LIQ_09 =
-        "LIQ-19: Calling LiquidationModule.liquidate after it has been previously called in the same block should not increase the balance of the caller.";
+        "LIQ-09: Calling LiquidationModule.liquidate after it has been previously called in the same block should not increase the balance of the caller.";
 
     string constant ORD_01 =
         "ORD-01: If an account has an order commited that is unexpired, a subsequent commit order call will always revert";
@@ -69,21 +69,21 @@ contract PropertiesDescriptions {
     string constant ORD_11 =
         "ORD-12: An account should not be liquidatable by margin only after order settlement";
     string constant ORD_12 =
-        "ORD-13: An account should not be liquidatable by margin only after order cancelled";
+        "ORD-12: An account should not be liquidatable by margin only after order cancelled";
     string constant ORD_13 =
-        "ORD-14: Market size should always be the sum of individual position sizes";
+        "ORD-13: Market size should always be the sum of individual position sizes";
     string constant ORD_14 =
-        "ORD-15: Position should no be liquidatable after committing an order";
+        "ORD-14: Position should no be liquidatable after committing an order";
     string constant ORD_15 =
-        "ORD-16: Position should no be liquidatable after cancelling an order";
+        "ORD-15: Position should no be liquidatable after cancelling an order";
     string constant ORD_16 =
-        "ORD-18:  Open positions should always be added / removed from the openPositionMarketIds array.";
+        "ORD-16:  Open positions should always be added / removed from the openPositionMarketIds array.";
     string constant ORD_17 =
-        "ORD-19:  All tokens in the activeCollateralTypes array from individual accounts should be included in the global activeCollateralTypes array.";
+        "ORD-17:  All tokens in the activeCollateralTypes array from individual accounts should be included in the global activeCollateralTypes array.";
     string constant ORD_18 =
-        "ORD-20:  Sum of the debt of all accounts == global debt..";
+        "ORD-18:  Sum of the debt of all accounts == global debt..";
     string constant ORD_19 =
-        "ORD-22: Debt should not vanish after settle another order.";
+        "ORD-19: Debt should not vanish after settle another order.";
     string constant ORD_20 =
-        "ORD-23: AsyncOrder.calculateFillPrice() should never revert.";
+        "ORD-20: AsyncOrder.calculateFillPrice() should never revert.";
 }
