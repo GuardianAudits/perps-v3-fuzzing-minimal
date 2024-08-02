@@ -17,30 +17,26 @@ abstract contract PostconditionsPerpsAccountModule is PostconditionsBase {
             ? 1
             : collateral == address(wbtcTokenMock)
                 ? 2
-                : 0; //SUSD
+                : collateral == address(hugePrecisionTokenMock)
+                    ? 3
+                    : 0; //SUSD
 
         if (success) {
-            emit DebugPost("modifyCollateralPostconditions HERE#1");
             _after(actorsToUpdate);
-            emit DebugPost("modifyCollateralPostconditions HERE#2");
 
             if (amountDelta < 0) {
                 invariant_MGN_01(accountId);
-                invariant_MGN_12(accountId, collateralId);
-                invariant_MGN_13(amountDelta, collateral);
+                invariant_MGN_07(accountId, collateralId);
+                invariant_MGN_08(accountId, collateralId);
             }
-            emit DebugPost("modifyCollateralPostconditions HERE#3");
+            invariant_MGN_02(accountId);
             invariant_MGN_03(accountId);
-            invariant_MGN_04(accountId);
+            invariant_MGN_04(amountDelta, collateral);
             invariant_MGN_05(amountDelta, collateral);
-            invariant_MGN_06(amountDelta, collateral);
-            invariant_MGN_13(amountDelta, collateral);
-            // @audit Fails.
-            invariant_MGN_14(accountId);
-            invariant_MGN_16();
-            emit DebugPost("modifyCollateralPostconditions HERE#MGN_13");
-
-            // invariant_MGN_07();
+            invariant_MGN_06();
+            invariant_MGN_08(accountId, collateralId);
+            invariant_MGN_09(accountId);
+            invariant_MGN_11();
 
             onSuccessInvariantsGeneral(returnData, accountId);
             emit DebugPost("modifyCollateralPostconditions HERE#4");
@@ -57,10 +53,9 @@ abstract contract PostconditionsPerpsAccountModule is PostconditionsBase {
     ) internal {
         if (success) {
             _after(actorsToUpdate);
-            invariant_MGN_15(accountId);
-            //@audit fails
-            // invariant_MGN_07();
-            invariant_MGN_16();
+            invariant_MGN_10(accountId);
+
+            invariant_MGN_11();
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
             onFailInvariantsGeneral(returnData);

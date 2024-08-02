@@ -15,17 +15,18 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
         if (success) {
             _after(actorsToUpdate);
 
-            invariant_LIQ_03();
+            invariant_LIQ_02();
             // @audit-ok This assertion is supposed to fail to show a user can be liquidated in such a scenario.
-            // invariant_LIQ_08();
-            invariant_LIQ_09(accountIds);
-            invariant_LIQ_11(accountIds);
-            invariant_LIQ_17(accountIds);
-            invariant_MGN_16();
-            invariant_LIQ_19(
+            // invariant_LIQ_03();
+            invariant_LIQ_04(accountIds);
+            invariant_LIQ_05(accountIds);
+            invariant_LIQ_06(accountIds);
+            invariant_LIQ_07(accountIds);
+            invariant_LIQ_09(
                 _incrementAndCheckLiquidationCalls(actorsToUpdate[0]),
                 actorsToUpdate[0]
             ); //liquidator
+            invariant_MGN_11();
 
             onSuccessInvariantsGeneral(returnData, accountIds);
         } else {
@@ -44,7 +45,7 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             _after(actorsToUpdate);
             _checkLCov(true);
 
-            invariant_MGN_16();
+            invariant_MGN_11();
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
             onFailInvariantsGeneral(returnData);
@@ -60,7 +61,7 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
         if (success) {
             _after(actorsToUpdate);
             for (uint i = 0; i < flaggedAccounts.length; i++) {
-                invariant_MGN_16();
+                invariant_MGN_11();
                 onSuccessInvariantsGeneral(
                     returnData,
                     uint128(flaggedAccounts[i])
@@ -81,7 +82,7 @@ abstract contract PostconditionsLiquidationModule is PostconditionsBase {
             _after(actorsToUpdate);
             for (uint i = 0; i < flaggedAccounts.length; i++) {
                 //@audit currently fails
-                invariant_MGN_16();
+                invariant_MGN_11();
                 onSuccessInvariantsGeneral(
                     returnData,
                     uint128(flaggedAccounts[i])

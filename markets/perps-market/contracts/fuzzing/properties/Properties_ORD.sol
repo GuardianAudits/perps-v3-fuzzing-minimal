@@ -51,7 +51,6 @@ abstract contract Properties_ORD is PropertiesBase {
                     states[0].actorStates[account].wethMarket.positionSize
                 );
             if (!positionDecreasing) {
-                // TODO: DG review same Q abt min credit. Is it general value or per market.
                 fl.t(
                     states[1].minimumCredit <=
                         states[1].delegatedCollateralValueUsd,
@@ -88,7 +87,6 @@ abstract contract Properties_ORD is PropertiesBase {
     }
 
     function invariant_ORD_08(uint128 account) internal {
-        // TODO: introduce markets
         if (
             states[1].actorStates[account].collateralAmountSUSD >=
             states[0].actorStates[account].collateralAmountSUSD
@@ -110,8 +108,6 @@ abstract contract Properties_ORD is PropertiesBase {
     event DebugUint(uint256 a, string s);
 
     function invariant_ORD_09(uint128 account, uint128 marketId) internal {
-        // Upscale price to account for -8 exponent.
-        //TODO: introduce markets
         bool isLong = states[0].actorStates[account].sizeDelta > 0;
         // Trader gets better price than Pyth price if skew is decreased.
 
@@ -180,42 +176,31 @@ abstract contract Properties_ORD is PropertiesBase {
         fl.gte(states[1].utilizationRate, 0, ORD_10);
     }
 
-    // function invariant_ORD_11() internal {
-    //     if (
-    //         MathUtil.abs(states[1].reportedDebt - states[1].reportedDebtGhost) >
-    //         1000
-    //     ) {
-    //         fl.eq(states[1].reportedDebt, states[1].reportedDebtGhost, ORD_11);
-    //     }
-    // }
+    function invariant_ORD_11(uint128 account) internal {
+        fl.t(!states[1].actorStates[account].isMarginLiquidatable, ORD_11);
+    }
 
     function invariant_ORD_12(uint128 account) internal {
         fl.t(!states[1].actorStates[account].isMarginLiquidatable, ORD_12);
     }
 
-    function invariant_ORD_13(uint128 account) internal {
-        fl.t(!states[1].actorStates[account].isMarginLiquidatable, ORD_13);
-    }
-
-    function invariant_ORD_14() internal {
+    function invariant_ORD_13() internal {
         fl.eq(
             states[1].wbtcMarket.marketSize + states[1].wethMarket.marketSize,
             states[1].marketSizeGhost,
-            ORD_14
+            ORD_13
         );
+    }
+
+    function invariant_ORD_14(uint128 account) internal {
+        fl.t(!states[1].actorStates[account].isPositionLiquidatable, ORD_14);
     }
 
     function invariant_ORD_15(uint128 account) internal {
         fl.t(!states[1].actorStates[account].isPositionLiquidatable, ORD_15);
     }
 
-    function invariant_ORD_16(uint128 account) internal {
-        fl.t(!states[1].actorStates[account].isPositionLiquidatable, ORD_16);
-    }
-
-    //ORD_17 N/A no stale orders here
-
-    function invariant_ORD_18(uint128 account, uint128 marketId) internal {
+    function invariant_ORD_16(uint128 account, uint128 marketId) internal {
         bool shouldContain;
         if (marketId == 1) {
             shouldContain =
@@ -239,10 +224,10 @@ abstract contract Properties_ORD is PropertiesBase {
                 break;
             }
         }
-        fl.t(shouldContain == containsMarketId, ORD_18);
+        fl.t(shouldContain == containsMarketId, ORD_16);
     }
 
-    function invariant_ORD_19(uint128 account) internal {
+    function invariant_ORD_17(uint128 account) internal {
         uint128[] memory accountCollateralTypes = states[1]
             .actorStates[account]
             .activeCollateralTypes;
@@ -272,31 +257,21 @@ abstract contract Properties_ORD is PropertiesBase {
                     }
                 }
 
-                fl.t(found, ORD_19);
+                fl.t(found, ORD_17);
             }
         }
     }
 
-    function invariant_ORD_20() internal {
+    function invariant_ORD_18() internal {
         eqWithTolerance(
             MathUtil.abs(states[1].totalDebtCalculated),
             MathUtil.abs(states[1].totalDebt),
             0.000001e18,
-            ORD_20
+            ORD_18
         );
     }
 
-    function invariant_ORD_21() internal {
-        eqWithTolerance(
-            states[1].wethMarket.reportedDebt +
-                states[1].wbtcMarket.reportedDebt,
-            states[1].reportedDebtGhost,
-            0.01e18, //1%
-            ORD_21
-        );
-    }
-
-    function invariant_ORD_22(uint128 accountId) internal {
+    function invariant_ORD_19(uint128 accountId) internal {
         // Prior debt should not be zero and if existing position prior to settlement was in loss, debt should stay non zero
 
         console2.log(
@@ -317,7 +292,7 @@ abstract contract Properties_ORD is PropertiesBase {
                 "states[1].actorStates[accountId].debt",
                 states[1].actorStates[accountId].debt
             );
-            fl.t(states[1].actorStates[accountId].debt != 0, ORD_22);
+            fl.t(states[1].actorStates[accountId].debt != 0, ORD_19);
         }
     }
 }

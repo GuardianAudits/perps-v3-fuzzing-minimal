@@ -229,6 +229,7 @@ abstract contract BeforeAfter is
         checkIfAccountLiquidatable(callNum, accountId);
         getAccountBalances(callNum, accountId);
         getChargedAmount(callNum, accountId);
+        getMarketSize(callNum );
         console2.log("===== BeforeAfter::_setActorState END ===== ");
     }
     function _setActorState(
@@ -548,7 +549,7 @@ abstract contract BeforeAfter is
             );
             fl.t(
                 success,
-                "ORD-23: AsyncOrder.calculateFillPrice() should never revert"
+                "ORD-20: AsyncOrder.calculateFillPrice() should never revert"
             );
         }
         states[callNum].calculateFillPricePassing = success;
@@ -945,6 +946,34 @@ abstract contract BeforeAfter is
             userTotalWbtcValue
         );
     }
+
+    function getMarketSize(uint8 callNum) private {
+        //hevm sometimes has a memory leak problem with loops, so doing this verbosely
+        states[callNum].marketSizeGhost += MathUtil.abs(
+            states[callNum].actorStates[ACCOUNTS[0]].wethMarket.positionSize
+        );
+
+        states[callNum].marketSizeGhost += MathUtil.abs(
+            states[callNum].actorStates[ACCOUNTS[0]].wbtcMarket.positionSize
+        );
+
+        states[callNum].marketSizeGhost += MathUtil.abs(
+            states[callNum].actorStates[ACCOUNTS[1]].wethMarket.positionSize
+        );
+
+        states[callNum].marketSizeGhost += MathUtil.abs(
+            states[callNum].actorStates[ACCOUNTS[1]].wbtcMarket.positionSize
+        );
+
+        states[callNum].marketSizeGhost += MathUtil.abs(
+            states[callNum].actorStates[ACCOUNTS[2]].wethMarket.positionSize
+        );
+
+        states[callNum].marketSizeGhost += MathUtil.abs(
+            states[callNum].actorStates[ACCOUNTS[2]].wbtcMarket.positionSize
+        );
+    }
+
     function getUtilizationInfo(uint8 callNum) private {
         UtilizationVars memory vars;
 

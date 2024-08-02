@@ -1436,7 +1436,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
                 abi.encodeWithSelector(
                     perpsMarketFactoryModuleImpl.initializeFactory.selector,
                     address(v3Mock),
-                    address(spot) //TODO: reckeck
+                    address(spot)
                 )
             );
         assert(success);
@@ -2114,8 +2114,6 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         else if (clampedIndex == 1) collateral = address(wethTokenMock);
         else collateral = address(wbtcTokenMock);
         return collateral;
-        // TODO: Cleanup.
-        // return supportedCollaterals[clampedIndex]; //== 1 ? address(wethTokenMock) : address(wbtcTokenMock);
     }
 
     function _getRandomNodeId(

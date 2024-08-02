@@ -11,12 +11,10 @@ abstract contract PostconditionsBase is Properties {
         fl.log(">>ACCOUNT FOR onSuccessInvariantsGeneral", account);
         invariant_LIQ_01(account);
 
-        invariant_MGN_08();
-
         // @audit Fails with payDebt.
-        // invariant_ORD_20();
+        // invariant_ORD_17();
 
-        invariant_LIQ_18(account);
+        invariant_LIQ_08(account);
     }
 
     function onFailInvariantsGeneral(bytes memory returnData) internal {}

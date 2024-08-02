@@ -12,8 +12,6 @@ import {Position} from "../../storage/Position.sol";
 import {MockPythERC7412Wrapper} from "../../mocks/MockPythERC7412Wrapper.sol";
 import "@perimetersec/fuzzlib/src/IHEVM.sol";
 
-// import {IAsyncOrderSettlementPythModule} from "../../interfaces/IAsyncOrderSettlementPythModule.sol"; //TODO: delete
-
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {SafeCastI256, SafeCastU256, SafeCastU128} from "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
 

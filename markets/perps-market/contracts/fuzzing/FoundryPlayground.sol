@@ -117,7 +117,7 @@ contract FoundryPlayground is FuzzModules {
         fuzz_settleOrder();
     }
 
-    function test_ORD_22() public {
+    function test_ORD_19() public {
         fuzz_mintUSDToSynthetix(100_000_000_000e18);
         fuzz_modifyCollateral(1e18, 1);
 
@@ -368,7 +368,7 @@ contract FoundryPlayground is FuzzModules {
         );
     }
 
-    function test_ORD_19() public {
+    function test_ORD_16() public {
         fuzz_guided_depositAndShort();
         fuzz_settleOrder();
         fuzz_guided_depositAndShort();

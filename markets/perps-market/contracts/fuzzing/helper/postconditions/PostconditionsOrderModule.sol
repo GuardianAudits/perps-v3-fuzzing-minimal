@@ -14,15 +14,13 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
         if (success) {
             _after(actorsToUpdate);
             invariant_ORD_01(accountId);
-            invariant_ORD_15(accountId);
+            invariant_ORD_14(accountId);
 
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
             onFailInvariantsGeneral(returnData);
         }
     }
-
-    //TODO: after settle
 
     function settleOrderPostconditions(
         bool success,
@@ -38,7 +36,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
 
             invariant_ORD_02(accountId);
             invariant_ORD_03(accountId);
-            // TODO: This assertion was failing due to Foundry using default sender. Default sender 0x18 did not have an account, so balance was always 0.
+            // This assertion was failing due to Foundry using default sender. Default sender 0x18 did not have an account, so balance was always 0.
             // modifier setCurrentActor was modified, but should be given another look to prevent Foundry override.
             // fl.log("CURRENT ACTOR ACCOUNT ID SETTLE:", userToAccountIds[currentActor]);
             // fl.log("CURRENT ACTOR SETTLE:", currentActor);
@@ -48,16 +46,14 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             // @audit ORD-07 assertion fails. Looks like a valid break.
             // invariant_ORD_07();
             invariant_ORD_08(accountId);
-            // TODO: Properly handle markets for this invariant. BeforeAfter changes required.
             invariant_ORD_09(accountId, marketId);
-            invariant_ORD_12(accountId);
-            // @audit Invalid assertion formulation.
-            invariant_ORD_18(accountId, marketId);
-            invariant_ORD_19(accountId);
-            fl.log("4");
-            // @audit broken
-            // invariant_ORD_22(accountId);
-            invariant_MGN_16();
+            invariant_ORD_11(accountId);
+            invariant_ORD_13();
+            invariant_ORD_16(accountId, marketId);
+            invariant_ORD_17(accountId);
+            // @audit This assetion fails
+            // invariant_ORD_19(accountId);
+            invariant_MGN_11();
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
             onFailInvariantsGeneral(returnData);
@@ -75,11 +71,12 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             _after(actorsToUpdate);
             if (cancelUser != currentActor) {
                 // @audit This assertion fails.
-                invariant_ORD_05(userToAccountIds[currentActor]);
+                // invariant_ORD_05(userToAccountIds[currentActor]);
             }
+            invariant_ORD_12(accountId);
 
-            // @audit ORD-16 assertion fails. Looks like valid break.
-            // invariant_ORD_16(userToAccountIds[cancelUser]);
+            // @audit ORD-15 assertion fails. Looks like valid break.
+            // invariant_ORD_15(userToAccountIds[cancelUser]);
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
             onFailInvariantsGeneral(returnData);

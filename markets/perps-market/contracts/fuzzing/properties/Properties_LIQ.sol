@@ -18,9 +18,7 @@ abstract contract Properties_LIQ is PropertiesBase {
         );
     }
 
-    //LIQ_02 N/A no flaggedBy
-
-    function invariant_LIQ_03() internal {
+    function invariant_LIQ_02() internal {
         console2.log(
             "WETH Liquidation Capacity (Before):",
             states[0].wethMarket.liquidationCapacity
@@ -53,7 +51,7 @@ abstract contract Properties_LIQ is PropertiesBase {
                     states[1].wethMarket.liquidationCapacity &&
                     states[0].wbtcMarket.liquidationCapacity ==
                     states[1].wbtcMarket.liquidationCapacity,
-                "LIQ_03: At least one market should have zero initial capacity if unchanged"
+                "LIQ_02: At least one market should have zero initial capacity if unchanged"
             );
         }
 
@@ -63,13 +61,13 @@ abstract contract Properties_LIQ is PropertiesBase {
                 fl.lt(
                     states[1].wethMarket.liquidationCapacity,
                     states[0].wethMarket.liquidationCapacity,
-                    "LIQ_03: WETH capacity should decrease"
+                    "LIQ_02: WETH capacity should decrease"
                 );
             } else {
                 fl.eq(
                     states[1].wethMarket.liquidationCapacity,
                     states[0].wethMarket.liquidationCapacity,
-                    "LIQ_03: WETH capacity should remain zero"
+                    "LIQ_02: WETH capacity should remain zero"
                 );
             }
         }
@@ -80,42 +78,35 @@ abstract contract Properties_LIQ is PropertiesBase {
                 fl.lt(
                     states[1].wbtcMarket.liquidationCapacity,
                     states[0].wbtcMarket.liquidationCapacity,
-                    "LIQ_03: WBTC capacity should decrease"
+                    "LIQ_02: WBTC capacity should decrease"
                 );
             } else {
                 fl.eq(
                     states[1].wbtcMarket.liquidationCapacity,
                     states[0].wbtcMarket.liquidationCapacity,
-                    "LIQ_03: WBTC capacity should remain zero"
+                    "LIQ_02: WBTC capacity should remain zero"
                 );
             }
         }
     }
 
-    //LIQ_04 N/A no flaggedBy
-    //LIQ_05 N/A no flaggedBy
-    //LIQ_06 N/A no flaggedBy
-    //LIQ_07 N/A no flaggedBy
-
-    function invariant_LIQ_08() internal {
+    function invariant_LIQ_03() internal {
         fl.t(
             states[0].delegatedCollateralValueUsd >= states[0].minimumCredit,
-            LIQ_08
+            LIQ_03
         );
     }
 
-    function invariant_LIQ_09(uint128 account) internal {
+    function invariant_LIQ_04(uint128 account) internal {
         if (
             states[1].actorStates[account].wethMarket.positionSize == 0 &&
             states[1].actorStates[account].wbtcMarket.positionSize == 0
         ) {
-            fl.t(states[1].actorStates[account].availableMargin == 0, LIQ_09);
+            fl.t(states[1].actorStates[account].availableMargin == 0, LIQ_04);
         }
     }
 
-    //LIQ_10 N/A no flaggedBy
-
-    function invariant_LIQ_11(uint128 account) internal {
+    function invariant_LIQ_05(uint128 account) internal {
         if (
             states[1].actorStates[account].wethMarket.positionSize == 0 &&
             states[1].actorStates[account].wbtcMarket.positionSize == 0
@@ -137,45 +128,41 @@ abstract contract Properties_LIQ is PropertiesBase {
                 uint(
                     int256(states[0].actorStates[account].totalCollateralValue)
                 ),
-                1,
-                LIQ_11
+                1, //1 wei difference is tolerable
+                LIQ_05
             );
         }
     }
 
-    //LIQ_12 N/A no flaggedBy
-    //LIQ_13 N/A no flaggedBy
-    //LIQ_14 N/A no flaggedBy
-
-    function invariant_LIQ_15(uint128 account) internal {
+    function invariant_LIQ_06(uint128 account) internal {
         fl.gte(
             states[0].actorStates[account].totalCollateralValue -
                 states[1].actorStates[account].totalCollateralValue,
             states[0].actorStates[account].maxLiquidationReward,
-            LIQ_15
+            LIQ_06
         );
     }
 
-    function invariant_LIQ_17(uint128 account) internal {
+    function invariant_LIQ_07(uint128 account) internal {
         if (states[0].actorStates[account].isAccountLiquidatable) {
             fl.eq(
                 states[0].actorStates[account].totalCollateralValue,
                 0,
-                LIQ_17
+                LIQ_07
             );
-            fl.eq(states[0].actorStates[account].debt, 0, LIQ_17);
+            fl.eq(states[0].actorStates[account].debt, 0, LIQ_07);
         }
         if (states[1].actorStates[account].isAccountLiquidatable) {
             fl.eq(
                 states[1].actorStates[account].totalCollateralValue,
                 0,
-                LIQ_17
+                LIQ_07
             );
-            fl.eq(states[1].actorStates[account].debt, 0, LIQ_17);
+            fl.eq(states[1].actorStates[account].debt, 0, LIQ_07);
         }
     }
 
-    function invariant_LIQ_18(uint128 account) internal {
+    function invariant_LIQ_08(uint128 account) internal {
         console2.log("account", account);
 
         if (states[0].actorStates[account].wethMarket.positionSize > 0) {
@@ -194,7 +181,7 @@ abstract contract Properties_LIQ is PropertiesBase {
                         states[0].actorStates[account].wethMarket.positionSize
                     )
                 ),
-                LIQ_18
+                LIQ_08
             );
         }
 
@@ -214,7 +201,7 @@ abstract contract Properties_LIQ is PropertiesBase {
                         states[1].actorStates[account].wethMarket.positionSize
                     )
                 ),
-                LIQ_18
+                LIQ_08
             );
         }
 
@@ -234,7 +221,7 @@ abstract contract Properties_LIQ is PropertiesBase {
                         states[0].actorStates[account].wbtcMarket.positionSize
                     )
                 ),
-                LIQ_18
+                LIQ_08
             );
         }
 
@@ -254,12 +241,12 @@ abstract contract Properties_LIQ is PropertiesBase {
                         states[1].actorStates[account].wbtcMarket.positionSize
                     )
                 ),
-                LIQ_18
+                LIQ_08
             );
         }
     }
 
-    function invariant_LIQ_19(
+    function invariant_LIQ_09(
         bool firstLiquidationAttempt,
         address liquidator
     ) internal {
@@ -275,7 +262,7 @@ abstract contract Properties_LIQ is PropertiesBase {
                 states[1]
                     .actorStates[userToAccountIds[liquidator]]
                     .balanceOfSUSD,
-                LIQ_19
+                LIQ_09
             );
             fl.eq(
                 states[0]
@@ -284,7 +271,7 @@ abstract contract Properties_LIQ is PropertiesBase {
                 states[1]
                     .actorStates[userToAccountIds[liquidator]]
                     .balanceOfWETH,
-                LIQ_19
+                LIQ_09
             );
             fl.eq(
                 states[0]
@@ -293,7 +280,7 @@ abstract contract Properties_LIQ is PropertiesBase {
                 states[1]
                     .actorStates[userToAccountIds[liquidator]]
                     .balanceOfWBTC,
-                LIQ_19
+                LIQ_09
             );
         }
     }
