@@ -1,6 +1,6 @@
 # Synthetix Readme Draft
 
-```markdown
+
 # Quick Start with Echidna Installed 
 
 ```
@@ -27,7 +27,7 @@ A mock lens contract was created to access the states of the Perps market which 
 
 This suite implements sUSD, WETH, WBTC and a 30-decimal token (for deposit and withdrawal assertions) as collateral. 
 
-[Logical coverage](TODO) for the main modules allow the fuzzer to view amounts, pnls, and statuses of trades with additional details beyond line coverage. 
+[Logical coverage]((markets/perps-market/contracts/fuzzing/helper/logicalCoverage)) for the main modules allow the fuzzer to view amounts, pnls, and statuses of trades with additional details beyond line coverage. 
 
 All properties tested can be found below in this readme.
 
@@ -70,8 +70,7 @@ Branch: `main`
 
 Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 
-```
-.
+```.
 ├── README.md
 ├── cache
 │   ├── solidity-files-cache.json
@@ -190,11 +189,11 @@ Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 │   ├── @openzeppelin
 │   └── @synthetixio
 ├── remappings.txt
-└── storage.dump.sol
+└── storage.dump.sol```
+
+
 
 ```
-#List of assertions
-
 | Invariant ID | Invariant Description | Passed | Run Count | Remediations |
 | --- | --- | --- | --- | --- |
 | ORD-01 | If an account has an unexpired committed order, a subsequent commit order call will always revert | ✅ | 2m | - |
@@ -237,5 +236,3 @@ Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 | MGN-09 | After modifying collateral, a trader should not be immediately liquidatable. | ✅ | 2m | - |
 | MGN-10 | After paying debt, a trader should not be immediately liquidatable. | ✅ | 2m | - |
 | MGN-11 | The sum of collateral amounts from all accounts should always equal the global collateral amount. | ✅ | 2m | - |
-
-```
