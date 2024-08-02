@@ -27,7 +27,7 @@ A mock lens contract was created to access the states of the Perps market which 
 
 This suite implements sUSD, WETH, WBTC and a 30-decimal token (for deposit and withdrawal assertions) as collateral. 
 
-[Logical coverage](TODO) for the main modules allow the fuzzer to view amounts, pnls, and statuses of trades with additional details beyond line coverage. 
+[Logical coverage]((markets/perps-market/contracts/fuzzing/helper/logicalCoverage)) for the main modules allow the fuzzer to view amounts, pnls, and statuses of trades with additional details beyond line coverage. 
 
 All properties tested can be found below in this readme.
 
@@ -70,7 +70,7 @@ Branch: `main`
 
 Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 
-```
+````
 .
 ├── README.md
 ├── cache
@@ -193,6 +193,7 @@ Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 └── storage.dump.sol
 
 ```
+
 #List of assertions
 
 | Invariant ID | Invariant Description | Passed | Run Count | Remediations |
