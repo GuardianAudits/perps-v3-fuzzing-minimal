@@ -39,7 +39,7 @@ abstract contract BeforeAfter is
         uint256 liquidationCapacity;
         uint128 marketSkew;
         uint256 reportedDebt;
-        uint256 debtCorrectionAccumulator;
+        int256 debtCorrectionAccumulator;
     }
 
     struct State {
@@ -156,7 +156,7 @@ abstract contract BeforeAfter is
     struct DebtVars {
         int256 totalDebt;
         uint256 reportedDebt;
-        uint256 debtCorrectionAccumulator;
+        int256 debtCorrectionAccumulator;
     }
 
     event DebugSize(int size, address a, string s);
@@ -1066,7 +1066,7 @@ abstract contract BeforeAfter is
             )
         );
         assert(success);
-        vars.debtCorrectionAccumulator = abi.decode(returnData, (uint256));
+        vars.debtCorrectionAccumulator = abi.decode(returnData, (int256));
 
         if (marketId == 1) {
             states[callNum].wethMarket.debtCorrectionAccumulator = vars

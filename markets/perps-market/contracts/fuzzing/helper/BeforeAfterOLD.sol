@@ -39,7 +39,7 @@ abstract contract BeforeAfter is
         uint256 liquidationCapacity;
         uint128 marketSkew;
         uint256 reportedDebt;
-        uint256 debtCorrectionAccumulator;
+        int256 debtCorrectionAccumulator;
     }
 
     struct State {
@@ -1287,12 +1287,12 @@ abstract contract BeforeAfter is
         if (marketId == 1) {
             states[callNum].wethMarket.debtCorrectionAccumulator = abi.decode(
                 returnData,
-                (uint256)
+                (int256)
             );
         } else if (marketId == 2) {
             states[callNum].wbtcMarket.debtCorrectionAccumulator = abi.decode(
                 returnData,
-                (uint256)
+                (int256)
             );
         }
     }
