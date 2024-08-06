@@ -84,6 +84,7 @@ contract FuzzOrderModule is
         console2.log("===== commitOrderPostconditions END =====");
 
         console2.log("===== FuzzOrderModule::fuzz_commitOrder END =====");
+
     }
 
     function fuzz_settleOrder() public setCurrentActor {

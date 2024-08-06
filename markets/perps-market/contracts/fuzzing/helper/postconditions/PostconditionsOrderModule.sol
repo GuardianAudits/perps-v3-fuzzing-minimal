@@ -42,9 +42,9 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             // fl.log("CURRENT ACTOR SETTLE:", currentActor);
             invariant_ORD_04(userToAccountIds[currentActor]);
             // @audit ORD-06 assertion fails. Looks like a valid break.
-            // invariant_ORD_06(accountId, marketId);
+            invariant_ORD_06(accountId, marketId);
             // @audit ORD-07 assertion fails. Looks like a valid break.
-            // invariant_ORD_07();
+            invariant_ORD_07();
             invariant_ORD_08(accountId);
             invariant_ORD_09(accountId, marketId);
             invariant_ORD_11(accountId);

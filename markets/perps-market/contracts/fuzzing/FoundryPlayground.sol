@@ -1476,4 +1476,40 @@ contract FoundryPlayground is FuzzModules {
         vm.roll(block.number + 22909);
         fuzz_guided_depositAndShort();
     }
+
+    function test_replay_ORD_06() public {
+    try this.fuzz_mintUSDToSynthetix(18329829961862691518257000528330881424070419307030749422768108113630620629429) {} catch {}
+
+    try this.fuzz_guided_depositAndShortWBTC() {} catch {}
+
+    vm.warp(block.timestamp + 1);
+    vm.roll(block.number + 9325);
+    try this.fuzz_pumpWBTCPythPrice(20079743752382885067395316983845624885594884925959430883302774403698322370867) {} catch {}
+
+    vm.warp(block.timestamp + 1);
+    vm.roll(block.number + 5053);
+    try this.targetArtifactSelectors() {} catch {}
+
+    try this.fuzz_settleOrder() {} catch {}
+
+    try this.fuzz_guided_depositAndShort() {} catch {}
+
+    vm.warp(block.timestamp + 1);
+    vm.roll(block.number + 15367);
+    try this.fuzz_commitOrder(76413803259075998186062483675361633198,48341230234196509182914409678238716474097771562164139443371451480353326043804) {} catch {}
+
+    vm.warp(block.timestamp + 5);
+    vm.roll(block.number + 3661);
+    try this.targetInterfaces() {} catch {}
+
+    vm.warp(block.timestamp + 1);
+    vm.roll(block.number + 19088);
+
+    try this.excludeSenders() {} catch {}
+
+    try this.targetSelectors() {} catch {}
+
+    fuzz_guided_createDebt_LiquidateMarginOnly(false,141034);
+
+}
 }

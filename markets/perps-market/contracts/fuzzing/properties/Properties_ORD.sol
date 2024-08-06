@@ -51,8 +51,8 @@ abstract contract Properties_ORD is PropertiesBase {
                     states[0].actorStates[account].wethMarket.positionSize
                 );
             if (!positionDecreasing) {
-                fl.t(
-                    states[1].minimumCredit <=
+                fl.lte(
+                    states[1].minimumCredit,
                         states[1].delegatedCollateralValueUsd,
                     ORD_06_WETH
                 );

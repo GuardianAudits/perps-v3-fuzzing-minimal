@@ -2,7 +2,6 @@
 pragma solidity >=0.8.11 <0.9.0;
 
 import {ERC2771Context} from "@synthetixio/core-contracts/contracts/utils/ERC2771Context.sol";
-import {Price} from "@synthetixio/spot-market/contracts/storage/Price.sol";
 import {DecimalMath} from "@synthetixio/core-contracts/contracts/utils/DecimalMath.sol";
 import {SafeCastI256, SafeCastU256, SafeCastU128} from "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
@@ -193,7 +192,23 @@ library PerpsAccount {
         Data storage self,
         PerpsPrice.Tolerance stalenessTolerance
     ) internal view returns (bool isEligible, int256 availableMargin) {
-        availableMargin = getAvailableMargin(self, stalenessTolerance);
+        // calculate keeper costs
+        KeeperCosts.Data storage keeperCosts = KeeperCosts.load();
+        uint256 totalLiquidationCost = keeperCosts.getFlagKeeperCosts(self.id) +
+            keeperCosts.getLiquidateKeeperCosts();
+        uint256 totalCollateralValue = getTotalCollateralValue(self, stalenessTolerance, false);
+
+        GlobalPerpsMarketConfiguration.Data storage globalConfig = GlobalPerpsMarketConfiguration
+            .load();
+        uint256 liquidationRewardForKeeper = globalConfig.calculateCollateralLiquidateReward(
+            totalCollateralValue
+        );
+
+        int256 totalLiquidationReward = globalConfig
+            .keeperReward(liquidationRewardForKeeper, totalLiquidationCost, totalCollateralValue)
+            .toInt();
+
+        availableMargin = getAvailableMargin(self, stalenessTolerance) - totalLiquidationReward;
         isEligible = availableMargin < 0;
     }
 
@@ -269,23 +284,11 @@ library PerpsAccount {
         if (!liquidatableAccounts.contains(self.id)) {
             flagKeeperCost = KeeperCosts.load().getFlagKeeperCosts(self.id);
             liquidatableAccounts.add(self.id);
-            seizedMarginValue = transferAllCollateral(self);
+            seizedMarginValue = seizeCollateral(self);
             AsyncOrder.load(self.id).reset();
 
             updateAccountDebt(self, -self.debt.toInt());
         }
-    }
-
-    function getMarginLiquidationCostAndSeizeMargin(
-        Data storage self
-    )
-        internal
-        returns (uint256 marginLiquidateCost, uint256 seizedMarginValue)
-    {
-        // notice: using getFlagKeeperCosts here since the logic is the same, but with no positions.
-        marginLiquidateCost = KeeperCosts.load().getFlagKeeperCosts(self.id);
-
-        seizedMarginValue = transferAllCollateral(self);
     }
 
     function updateOpenPositions(
@@ -327,29 +330,27 @@ library PerpsAccount {
         );
     }
 
-    function payDebt(Data storage self, uint256 amount) internal {
+    function payDebt(Data storage self, uint256 amount) internal returns (uint256 debtPaid) {
         if (self.debt == 0) {
             revert NonexistentDebt(self.id);
         }
 
-        PerpsMarketFactory.Data storage perpsMarketFactory = PerpsMarketFactory
-            .load();
+        /*
+            1. if the debt is less than the amount, set debt to 0 and only deposit debt amount
+            2. if the debt is more than the amount, subtract the amount from the debt
+            3. excess amount is ignored
+        */
+
+        PerpsMarketFactory.Data storage perpsMarketFactory = PerpsMarketFactory.load();
+
+        debtPaid = MathUtil.min(self.debt, amount);
+        updateAccountDebt(self, -debtPaid.toInt());
+
         perpsMarketFactory.synthetix.depositMarketUsd(
             perpsMarketFactory.perpsMarketId,
             ERC2771Context._msgSender(),
-            amount
+            debtPaid
         );
-
-        if (self.debt < amount) {
-            self.debt = 0;
-            updateCollateralAmount(
-                self,
-                SNX_USD_MARKET_ID,
-                (amount - self.debt).toInt()
-            );
-        } else {
-            self.debt -= amount;
-        }
     }
 
     /**
@@ -790,9 +791,7 @@ library PerpsAccount {
         return possibleLiquidationReward;
     }
 
-    function transferAllCollateral(
-        Data storage self
-    ) internal returns (uint256 seizedCollateralValue) {
+    function seizeCollateral(Data storage self) internal returns (uint256 seizedCollateralValue) {
         uint256[] memory activeCollateralTypes = self
             .activeCollateralTypes
             .values();

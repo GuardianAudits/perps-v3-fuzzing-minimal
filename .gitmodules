@@ -1,0 +1,7 @@
+[submodule "lib/fuzzlib"]
+	path = lib/fuzzlib
+	url = https://github.com/perimetersec/fuzzlib
+	branch = main
+[submodule "lib/forge-std"]
+	path = lib/forge-std
+	url = https://github.com/foundry-rs/forge-std

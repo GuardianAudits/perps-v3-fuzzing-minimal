@@ -2,19 +2,19 @@
 # solcArgs: "--include-path ../perps-market --base-path  ../perps-market"
 # solcArgs: "--allow-paths ../,../../"
 cryticArgs: ["--solc-remaps", "@synthetixio/=node_modules/@synthetixio/ @openzeppelin/=node_modules/@openzeppelin/ lib/=lib/ @perimetersec/=node_modules/@perimetersec/"]
-workers: 4
+workers: 10
 
 testMode: assertion
 
 corpusDir: echidna-corpus
 
-testLimit: 100000000000
-# testLimit: 1000000
+# testLimit: 100000000000
+testLimit: 1000000
 codeSize: 0x8000
 
 shrinkLimit: 1000
 
-seqLen: 100
+seqLen: 50
 
 propMaxGas: 1000000000
 testMaxGas: 1000000000

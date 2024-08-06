@@ -189,7 +189,8 @@ contract FuzzGuidedModule is
 
                 // If position size is not zero, close the position
                 if (positionSize != 0) {
-                    vm.prank(accountIdToUser[accountId]);
+                    console2.log("HERE");
+                    // vm.prank(accountIdToUser[accountId]);
                     fuzz_commitOrder(
                         int128(uint128(positionSize)) * -1,
                         isWETH ? 6 : 5 // 6 for WETH (marketId 1), 5 for WBTC (marketId 2)

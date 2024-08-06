@@ -105,8 +105,8 @@ contract LiquidationModule is ILiquidationModule, IMarketEvents {
         );
         if (isEligible) {
             // margin is sent to liquidation rewards distributor in getMarginLiquidationCostAndSeizeMargin
-            (uint256 marginLiquidateCost, uint256 seizedMarginValue) = account
-                .getMarginLiquidationCostAndSeizeMargin();
+            uint256 marginLiquidateCost = KeeperCosts.load().getFlagKeeperCosts(account.id);
+            uint256 seizedMarginValue = account.seizeCollateral();
             // keeper is rewarded in _liquidateAccount
             liquidationReward = _liquidateAccount(
                 account,
@@ -342,10 +342,10 @@ contract LiquidationModule is ILiquidationModule, IMarketEvents {
                     .load()
                     .calculateCollateralLiquidateReward(totalCollateralValue);
 
-            runtime.totalFlaggingRewards = totalCollateralLiquidateRewards >
+            runtime.totalFlaggingRewards = MathUtil.max(
+                totalCollateralLiquidateRewards,
                 runtime.totalFlaggingRewards
-                ? totalCollateralLiquidateRewards
-                : runtime.totalFlaggingRewards;
+            );
         }
 
         runtime.totalLiquidationCost =
