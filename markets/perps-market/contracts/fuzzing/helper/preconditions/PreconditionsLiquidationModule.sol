@@ -122,7 +122,14 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
                 liquidatableAccountsCount++;
             }
         }
-
+        if (liquidatableAccountsCount == 0) {
+            uint256[] memory emptyFlaggedAccounts = new uint256[](1);
+            emptyFlaggedAccounts[0] = 0;
+            return LiquidateFlaggedParams({
+                numberOfAccounts: 0,
+                flaggedAccounts: emptyFlaggedAccounts
+            });
+        } 
         require(liquidatableAccountsCount > 0, "No accounts to liquidate");
 
         uint256[] memory finalLiquidatableAccounts = new uint256[](

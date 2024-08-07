@@ -53,7 +53,7 @@ abstract contract Properties_ORD is PropertiesBase {
             if (!positionDecreasing) {
                 fl.lte(
                     states[1].minimumCredit,
-                        states[1].delegatedCollateralValueUsd,
+                        states[1].delegatedCollateral,
                     ORD_06_WETH
                 );
             }
@@ -264,7 +264,7 @@ abstract contract Properties_ORD is PropertiesBase {
 
     function invariant_ORD_18() internal {
         eqWithTolerance(
-            MathUtil.abs(states[1].totalDebtCalculated),
+            states[1].totalDebtCalculated,
             MathUtil.abs(states[1].totalDebt),
             0.000001e18,
             ORD_18

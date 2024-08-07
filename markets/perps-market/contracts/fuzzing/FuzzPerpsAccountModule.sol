@@ -50,6 +50,8 @@ contract FuzzPerpsAccountModule is
 
         _before(actorsToUpdate);
 
+        if (states[0].actorStates[params.accountId].debt == 0) return;
+
         (bool success, bytes memory returnData) = _payDebtCall(
             params.accountId,
             params.amount

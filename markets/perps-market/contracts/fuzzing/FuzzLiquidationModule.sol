@@ -72,6 +72,8 @@ contract FuzzLiquidationModule is
             maxNumberOfAccounts
         );
 
+        if (params.numberOfAccounts == 0) return;
+
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor; //This is liquidator
 
@@ -95,6 +97,8 @@ contract FuzzLiquidationModule is
         LiquidateFlaggedParams memory params = liquidateFlaggedPreconditions(
             maxNumberOfAccounts
         );
+
+        if (params.numberOfAccounts == 0) return;
 
         address[] memory actorsToUpdate = new address[](2);
         actorsToUpdate[0] = currentActor; //This is liquidator

@@ -66,7 +66,7 @@ abstract contract BeforeAfter is
         uint256 totalCollateralValueUsdGhost;
         uint256 minimumCredit;
         int128 skew;
-        int256 totalDebtCalculated;
+        uint128 totalDebtCalculated;
         int256 totalDebt;
         bool calculateFillPricePassing;
     }
@@ -252,6 +252,12 @@ abstract contract BeforeAfter is
         );
         assert(success);
         states[callNum].totalDebt = abi.decode(returnData, (int256));
+
+        // states[callNum].totalDebtCalculated += states[callNum].actorStates[ACCOUNTS[0]].debt;
+
+        // states[callNum].totalDebtCalculated += states[callNum].actorStates[ACCOUNTS[1]].debt;
+
+        // states[callNum].totalDebtCalculated += states[callNum].actorStates[ACCOUNTS[2]].debt;
     }
 
     function getChargedAmount(uint8 callNum, uint128 accountId) private {
@@ -1056,6 +1062,12 @@ abstract contract BeforeAfter is
         assert(success);
         vars.totalDebt = abi.decode(returnData, (int256));
         states[callNum].totalDebt = vars.totalDebt;
+
+        states[callNum].totalDebtCalculated += states[callNum].actorStates[ACCOUNTS[0]].debt;
+
+        states[callNum].totalDebtCalculated += states[callNum].actorStates[ACCOUNTS[1]].debt;
+
+        states[callNum].totalDebtCalculated += states[callNum].actorStates[ACCOUNTS[2]].debt;
 
         getReportedDebt(callNum, 1);
         getReportedDebt(callNum, 2);

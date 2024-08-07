@@ -32,7 +32,8 @@ contract FuzzGuidedModule is
         uint collateralBeforeWithdrawal = getTotalCollateralValue(
             userToAccountIds[currentActor]
         );
-        require(collateralBeforeWithdrawal > 0);
+        if (collateralBeforeWithdrawal == 0) return;
+        require(collateralBeforeWithdrawal > 0, "HERE");
 
         fl.log(
             "fuzz_guided_createDebt_LiquidateMarginOnly::collateralBeforeWithdrawal",
@@ -190,7 +191,7 @@ contract FuzzGuidedModule is
                 // If position size is not zero, close the position
                 if (positionSize != 0) {
                     console2.log("HERE");
-                    // vm.prank(accountIdToUser[accountId]);
+                    vm.prank(accountIdToUser[accountId]);
                     fuzz_commitOrder(
                         int128(uint128(positionSize)) * -1,
                         isWETH ? 6 : 5 // 6 for WETH (marketId 1), 5 for WBTC (marketId 2)

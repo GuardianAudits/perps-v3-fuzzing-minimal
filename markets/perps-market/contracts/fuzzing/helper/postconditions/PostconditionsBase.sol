@@ -12,7 +12,7 @@ abstract contract PostconditionsBase is Properties {
         invariant_LIQ_01(account);
 
         // @audit Fails with payDebt.
-        // invariant_ORD_18();
+        invariant_ORD_18();
 
         invariant_LIQ_08(account);
     }

@@ -14,7 +14,7 @@ codeSize: 0x8000
 
 shrinkLimit: 1000
 
-seqLen: 50
+seqLen: 100
 
 propMaxGas: 1000000000
 testMaxGas: 1000000000
