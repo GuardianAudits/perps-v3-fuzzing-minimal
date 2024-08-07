@@ -1514,58 +1514,16 @@ contract FoundryPlayground is FuzzModules {
 }
 
 function test_replay_1() public {
-    try this.targetArtifactSelectors() {} catch {}
 
     try this.fuzz_mintUSDToSynthetix(77609116061247720439301554353117805030910174819943417500208990074415498039756) {} catch {}
 
-    vm.warp(block.timestamp + 1);
-    vm.roll(block.number + 24987);
-
-    try this.fuzz_modifyCollateral(846479,42455110974216229615166798737531933178411162999211475029814481343651673542840) {} catch {}
-
-    try this.fuzz_changeWBTCPythPrice(110162207160741183414151297851270448845) {} catch {}
-
-    try this.excludeContracts() {} catch {}
-
-    try this.fuzz_commitOrder(135599092879623243520123544605865711069,1524785992) {} catch {}
-
-    try this.excludeSenders() {} catch {}
-
-    try this.fuzz_changeOracleManagerPrice(37426014340995115448623149420681133265864066699369593744321910871928906413409,29542189701434751843799066396196757251664367850689765218183527863352899633410) {} catch {}
-
-    try this.fuzz_changeWETHPythPrice(2316986167) {} catch {}
-
-    vm.warp(block.timestamp + 3);
-    vm.roll(block.number + 23978);
-    try this.fuzz_changeOracleManagerPrice(115501968635480222204459835154239901506369535519422016282831558451322023560752,4369999) {} catch {}
-
     try this.fuzz_guided_depositAndShortWBTC() {} catch {}
-
-    try this.fuzz_payDebt(200242343394096332541676665486758798950) {} catch {}
-
-    try this.fuzz_pumpWETHPythPrice(79291439750381281044643028572800723581790930887782017714671751446694421164376) {} catch {}
 
     try this.fuzz_settleOrder() {} catch {}
 
-    try this.targetArtifactSelectors() {} catch {}
-
     try this.fuzz_modifyCollateral(44693265316351470267345528251035516808706335773470830302348216559009956862813,20512456656501161345335800194779957184607338153999306528389159339149033259416) {} catch {}
 
-    try this.fuzz_modifyCollateral(1240119390,37183721945489340350801955465707208093421979588102115173420442284) {} catch {}
-
     try this.fuzz_commitOrder(358,4370000) {} catch {}
-
-    try this.fuzz_crashWBTCPythPrice(76053657604320089974150782730152095460531521811242977150749962349289394142393) {} catch {}
-
-    vm.warp(block.timestamp + 1);
-    vm.roll(block.number + 3621);
-    try this.excludeContracts() {} catch {}
-
-    vm.warp(block.timestamp + 1);
-    vm.roll(block.number + 42595);
-    try this.excludeSenders() {} catch {}
-
-    try this.fuzz_changeWBTCPythPrice(85531549762756941508645855209982258642) {} catch {}
 
     fuzz_settleOrder();
 

@@ -97,11 +97,11 @@ contract FuzzOrderModule is
         _before(actorsToUpdate);
 
         fl.log(">>>>>>CURRENT ACTOR:", currentActor);
-        // fl.t(false, "TEST");
         (bool success, bytes memory returnData) = _settleOrderCall(
             actorsToUpdate[1],
             params.accountId
         );
+
         // if (success && (params.sizeDelta < 0)) {
         //     fl.eq(params.sizeDelta, 0, "SO SIZE NEGATIVE SETTLED");
         // }
