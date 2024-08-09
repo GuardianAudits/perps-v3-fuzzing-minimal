@@ -200,10 +200,10 @@ Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 | --- | --- | --- | --- | --- |
 | ORD-01 | If an account has an unexpired committed order, a subsequent commit order call will always revert | ✅ | 2m | ✅ |
 | ORD-02 | The sizeDelta of an order is always 0 after a successful settle order call | ✅ | 2m | ✅ |
-| ORD-03 | An order immediately after a successful settle order call is never liquidatable | ❌ | 2m | ✅ |
+| ORD-03 | An order immediately after a successful settle order call is never liquidatable | ❌ | 2m | ❌ |
 | ORD-04 | If a user successfully settles an order, their sUSD balance is strictly increasing | ✅  | 2m | ✅ |
 | ORD-05 | The sUSD balance of a user that successfully cancels an order for another user is strictly increasing | ✅ | 2m | ✅ |
-| ORD-06 | The minimum credit requirement must be met after increase order settlement | ❌ | 2m | ✅ |
+| ORD-06 | The minimum credit requirement must be met after increase order settlement | ❌ | 2m | ❌ |
 | ORD-07 | Utilization is between 0% and 100% before and after order settlement | ❌ | 2m | ✅ |
 | ORD-08 | Non-SUSD collateral should stay the same after profitably settling order | ✅ | 2m | ✅ |
 | ORD-09 | Should always give premium when increasing skew and discount when decreasing skew | ✅ | 2m | ✅ |
@@ -212,7 +212,7 @@ Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 | ORD-12 | An account should not be liquidatable by margin only after order cancelled | ✅ | 2m | ✅ |
 | ORD-13 | Market size should always be the sum of individual position sizes | ✅ | 2m | ✅ |
 | ORD-14 | Position should not be liquidatable after committing an order | ✅ | 2m | ✅ |
-| ORD-15 | Position should not be liquidatable after cancelling an order | ❌ | 2m | ✅ |
+| ORD-15 | Position should not be liquidatable after cancelling an order | ❌ | 2m | ❌ |
 | ORD-16 | Open positions should always be added / removed from the openPositionMarketIds array | ✅ | 2m | ✅ |
 | ORD-17 | All tokens in the activeCollateralTypes array from individual accounts should be included in the global activeCollateralTypes array | ✅ | 2m | ✅ |
 | ORD-18 | Sum of the debt of all accounts == global debt | ❌ | 2m | ✅ |
