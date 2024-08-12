@@ -203,7 +203,7 @@ Commit: `fd4c562868761bdcafb1a3dc080c3465e4e4de76`
 | ORD-03 | An order immediately after a successful settle order call is never liquidatable | ❌ | 2m | ❌ |
 | ORD-04 | If a user successfully settles an order, their sUSD balance is strictly increasing | ✅  | 2m | ✅ |
 | ORD-05 | The sUSD balance of a user that successfully cancels an order for another user is strictly increasing | ✅ | 2m | ✅ |
-| ORD-06 | The minimum credit requirement must be met after increase order settlement | ❌ | 2m | ❌ |
+| ORD-06 | The minimum credit requirement must be met after increase order settlement | ❌ | 2m | ✅ |
 | ORD-07 | Utilization is between 0% and 100% before and after order settlement | ❌ | 2m | ✅ |
 | ORD-08 | Non-SUSD collateral should stay the same after profitably settling order | ✅ | 2m | ✅ |
 | ORD-09 | Should always give premium when increasing skew and discount when decreasing skew | ✅ | 2m | ✅ |

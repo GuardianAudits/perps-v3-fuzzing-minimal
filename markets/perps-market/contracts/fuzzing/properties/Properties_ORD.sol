@@ -53,7 +53,7 @@ abstract contract Properties_ORD is PropertiesBase {
             if (!positionDecreasing) {
                 fl.lte(
                     states[1].minimumCredit,
-                        states[1].delegatedCollateral,
+                        states[1].delegatedCollateral + states[1].depositedSusdCollateral,
                     ORD_06_WETH
                 );
             }
@@ -70,7 +70,7 @@ abstract contract Properties_ORD is PropertiesBase {
                 );
             if (!positionDecreasing) {
                 fl.t(
-                    states[1].minimumCredit <= states[1].delegatedCollateral,
+                    states[1].minimumCredit <= states[1].delegatedCollateral + states[1].depositedSusdCollateral,
                     ORD_06_WBTC
                 );
             }
