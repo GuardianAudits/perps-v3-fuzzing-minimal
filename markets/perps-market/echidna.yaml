@@ -2,7 +2,7 @@
 # solcArgs: "--include-path ../perps-market --base-path  ../perps-market"
 # solcArgs: "--allow-paths ../,../../"
 cryticArgs: ["--solc-remaps", "@synthetixio/=node_modules/@synthetixio/ @openzeppelin/=node_modules/@openzeppelin/ lib/=lib/ @perimetersec/=node_modules/@perimetersec/"]
-workers: 4
+workers: 10
 
 testMode: assertion
 
@@ -38,7 +38,7 @@ maxTimeDelay: 6
 
 # seed: 883771614506616433
 # seed: 7477410103401019355
-format: text 
+# format: text 
 
 
 allow_paths: [".", "../perps-market"]

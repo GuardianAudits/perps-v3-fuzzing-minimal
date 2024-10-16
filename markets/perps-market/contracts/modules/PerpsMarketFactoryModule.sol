@@ -9,6 +9,7 @@ import {PerpsMarketFactory} from "../storage/PerpsMarketFactory.sol";
 import {GlobalPerpsMarket} from "../storage/GlobalPerpsMarket.sol";
 import {PerpsMarket} from "../storage/PerpsMarket.sol";
 import {PerpsPrice} from "../storage/PerpsPrice.sol";
+import {SNX_USD_MARKET_ID} from "../storage/PerpsAccount.sol";
 import {Flags} from "../utils/Flags.sol";
 import {MathUtil} from "../utils/MathUtil.sol";
 import {InterestRate} from "../storage/InterestRate.sol";
@@ -20,7 +21,6 @@ import {PerpsMarketConfiguration} from "../storage/PerpsMarketConfiguration.sol"
 import {IMarket} from "@synthetixio/main/contracts/interfaces/external/IMarket.sol";
 import {SetUtil} from "@synthetixio/core-contracts/contracts/utils/SetUtil.sol";
 import {SafeCastU256, SafeCastI256} from "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
-
 /**
  * @title Module for registering perpetual futures markets. The factory tracks all markets in the system and consolidates implementation.
  * @dev See IPerpsMarketFactoryModule.
@@ -33,9 +33,7 @@ contract PerpsMarketFactoryModule is IPerpsMarketFactoryModule {
     using SafeCastI256 for int256;
     using SetUtil for SetUtil.UintSet;
     using PerpsMarket for PerpsMarket.Data;
-
     bytes32 private constant _ACCOUNT_TOKEN_SYSTEM = "accountNft";
-
     /**
      * @inheritdoc IPerpsMarketFactoryModule
      */
@@ -44,17 +42,15 @@ contract PerpsMarketFactoryModule is IPerpsMarketFactoryModule {
         ISpotMarketSystem spotMarket
     ) external override returns (uint128) {
         OwnableStorage.onlyOwner();
-
         PerpsMarketFactory.Data storage factory = PerpsMarketFactory.load();
-
         uint128 perpsMarketId;
         if (factory.perpsMarketId == 0) {
             perpsMarketId = factory.initialize(synthetix, spotMarket);
+
+            emit FactoryInitialized(perpsMarketId);
         } else {
             perpsMarketId = factory.perpsMarketId;
         }
-
-        emit FactoryInitialized(perpsMarketId);
 
         return perpsMarketId;
     }
@@ -66,7 +62,6 @@ contract PerpsMarketFactoryModule is IPerpsMarketFactoryModule {
         OwnableStorage.onlyOwner();
         PerpsMarketFactory.load().name = marketName;
     }
-
     /**
      * @inheritdoc IPerpsMarketFactoryModule
      */
@@ -77,42 +72,32 @@ contract PerpsMarketFactoryModule is IPerpsMarketFactoryModule {
     ) external override returns (uint128) {
         FeatureFlag.ensureAccessToFeature(Flags.PERPS_SYSTEM);
         FeatureFlag.ensureAccessToFeature(Flags.CREATE_MARKET);
-
         OwnableStorage.onlyOwner();
         PerpsMarketFactory.load().onlyIfInitialized();
-
         if (requestedMarketId == 0) {
             revert ParameterError.InvalidParameter("requestedMarketId", "cannot be 0");
         }
-
         PerpsMarket.createValid(requestedMarketId, marketName, marketSymbol);
         GlobalPerpsMarket.load().addMarket(requestedMarketId);
-
         emit MarketCreated(requestedMarketId, marketName, marketSymbol);
-
         return requestedMarketId;
     }
-
     /**
      * @inheritdoc IMarket
      */
     // solc-ignore-next-line func-mutability
     function name(uint128 perpsMarketId) external view override returns (string memory) {
         PerpsMarketFactory.Data storage factory = PerpsMarketFactory.load();
-
         if (factory.perpsMarketId == perpsMarketId) {
             return string.concat(factory.name, " Perps Market");
         }
-
         return "";
     }
-
     /**
      * @inheritdoc IMarket
      */
     function reportedDebt(uint128 perpsMarketId) external view override returns (uint256) {
         PerpsMarketFactory.Data storage factory = PerpsMarketFactory.load();
-
         if (factory.perpsMarketId == perpsMarketId) {
             // debt is the total debt of all markets
             // can be computed as total collateral value - sum_each_market( debt )
@@ -120,13 +105,14 @@ contract PerpsMarketFactoryModule is IPerpsMarketFactoryModule {
             uint256 collateralValue = globalMarket.totalCollateralValue();
             int256 totalMarketDebt;
 
-            SetUtil.UintSet storage activeMarkets = globalMarket.activeMarkets;
-            uint256 activeMarketsLength = activeMarkets.length();
-            for (uint256 i = 1; i <= activeMarketsLength; i++) {
-                uint128 marketId = activeMarkets.valueAt(i).to128();
-                totalMarketDebt += PerpsMarket.load(marketId).marketDebt(
-                    PerpsPrice.getCurrentPrice(marketId, PerpsPrice.Tolerance.DEFAULT)
-                );
+            uint256[] memory activeMarkets = globalMarket.activeMarkets.values();
+
+            uint256[] memory prices = PerpsPrice.getCurrentPrices(
+                activeMarkets,
+                PerpsPrice.Tolerance.DEFAULT
+            );
+            for (uint256 i = 0; i < activeMarkets.length; i++) {
+                totalMarketDebt += PerpsMarket.load(activeMarkets[i].to128()).marketDebt(prices[i]);
             }
 
             int256 totalDebt = collateralValue.toInt() +
@@ -134,28 +120,26 @@ contract PerpsMarketFactoryModule is IPerpsMarketFactoryModule {
                 globalMarket.totalAccountsDebt.toInt();
             return MathUtil.max(0, totalDebt).toUint();
         }
-
         return 0;
     }
-
     /**
      * @inheritdoc IMarket
      */
     function minimumCredit(uint128 perpsMarketId) external view override returns (uint256) {
         if (PerpsMarketFactory.load().perpsMarketId == perpsMarketId) {
-            return GlobalPerpsMarket.load().minimumCredit(PerpsPrice.Tolerance.DEFAULT);
+            GlobalPerpsMarket.Data storage globalMarket = GlobalPerpsMarket.load();
+            uint256 minRequiredCredit = globalMarket.minimumCredit(PerpsPrice.Tolerance.DEFAULT);
+            // add the sUSD collateral value to the minimum credit since it's used as escrow
+            return minRequiredCredit + globalMarket.collateralAmounts[SNX_USD_MARKET_ID];
         }
-
         return 0;
     }
-
     /**
      * @inheritdoc IPerpsMarketFactoryModule
      */
     function interestRate() external view override returns (uint128) {
         return InterestRate.load().interestRate;
     }
-
     /**
      * @inheritdoc IPerpsMarketFactoryModule
      */
@@ -167,7 +151,6 @@ contract PerpsMarketFactoryModule is IPerpsMarketFactoryModule {
     {
         return GlobalPerpsMarket.load().utilizationRate(PerpsPrice.Tolerance.ONE_MONTH);
     }
-
     /**
      * @dev See {IERC165-supportsInterface}.
      */

@@ -55,4 +55,17 @@ contract MockOracleManager {
     ) external view returns (NodeOutput.Data memory node) {
         return nodes[nodeId];
     }
+
+    function processManyWithRuntime(
+        bytes32[] memory nodeIds,
+        bytes32[] memory runtimeKeys,
+        bytes32[] memory runtimeValues
+    ) external view returns (NodeOutput.Data[] memory) {
+        NodeOutput.Data[] memory nodeArray = new NodeOutput.Data[](nodeIds.length);
+        getActiveNodesLength();
+        for (uint256 i; i < nodeIds.length; i++) {
+            nodeArray[i] = nodes[nodeIds[i]];
+        }
+        return nodeArray;
+    }
 }

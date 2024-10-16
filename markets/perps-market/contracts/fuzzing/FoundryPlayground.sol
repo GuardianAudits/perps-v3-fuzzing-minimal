@@ -1476,4 +1476,38 @@ contract FoundryPlayground is FuzzModules {
         vm.roll(block.number + 22909);
         fuzz_guided_depositAndShort();
     }
+
+    function test_ORD_03() public {
+    try this.fuzz_pumpWBTCPythPrice(297438859393400983384725495979791842282640572577674996747937424213431335558) {} catch {}
+
+    try this.fuzz_crashWETHPythPrice(76599276773013787703648646267970536833372444755365747263279817092582169507) {} catch {}
+
+    try this.fuzz_pumpWETHPythPrice(13474899003150616500232) {} catch {}
+
+    try this.fuzz_mintUSDToSynthetix(1569732514951774894792577872305511393047383155651463514057633340815359) {} catch {}
+
+    try this.fuzz_pumpWETHPythPrice(90698195293624529797368111175854062438945100003633099404324928445275155916980) {} catch {}
+
+    try this.fuzz_crashWBTCPythPrice(109384810993130552931992464493517736897175359595990643887433434869805035329189) {} catch {}
+
+    try this.fuzz_changeWETHPythPrice(125230) {} catch {}
+
+    try this.fuzz_crashWBTCPythPrice(311006992715199280756718496225144071323385641509902359095442427973106617685) {} catch {}
+
+    try this.fuzz_crashWETHPythPrice(85) {} catch {}
+
+    try this.fuzz_guided_depositAndShortWBTC() {} catch {}
+
+    try this.fuzz_changeWBTCPythPrice(11446343799473295649270294395403422203) {} catch {}
+
+    fuzz_settleOrder();
+
+}
+
+function test_ORD_06() public {
+    try this.fuzz_mintUSDToSynthetix(16822967690160368243413069823) {} catch {}
+    try this.fuzz_guided_depositAndShort() {} catch {}
+    fuzz_settleOrder();
+
+}
 }

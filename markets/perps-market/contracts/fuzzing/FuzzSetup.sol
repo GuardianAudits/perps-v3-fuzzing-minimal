@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: GPL-3.0
 pragma solidity ^0.8.0;
 import {SettlementStrategy} from "../storage/SettlementStrategy.sol";
-import {MarketConfiguration} from "../../storage.dump.sol";
+// import {MarketConfiguration} from "../../storage.dump.sol";
 import {Flags} from "../utils/Flags.sol";
 import {AccountRBAC} from "@synthetixio/main/contracts/storage/AccountRBAC.sol";
 import "@perimetersec/fuzzlib/src/FuzzBase.sol";

@@ -61,28 +61,18 @@ def convert_to_solidity(call_sequence):
 
 # Example usage
 call_sequence = """
- Fuzz.fuzz_crashWBTCPythPrice(8272663) Time delay: 3 seconds Block delay: 14246
-    Fuzz.fuzz_changeOracleManagerPrice(5876995114192504108114557442559075274233847232337755884555805112560331383974,20374593907295150528490908016128133617111158061146294585622734675020521622889)
-    Fuzz.fuzz_crashWBTCPythPrice(3801989)
-    Fuzz.fuzz_guided_depositAndShortWBTC() Time delay: 1 seconds Block delay: 11942
-    Fuzz.repayDebt() Time delay: 1 seconds Block delay: 31807
+Fuzz.fuzz_pumpWBTCPythPrice(297438859393400983384725495979791842282640572577674996747937424213431335558)
+    Fuzz.fuzz_crashWETHPythPrice(76599276773013787703648646267970536833372444755365747263279817092582169507)
+    Fuzz.fuzz_pumpWETHPythPrice(13474899003150616500232)
+    Fuzz.fuzz_mintUSDToSynthetix(1569732514951774894792577872305511393047383155651463514057633340815359)
+    Fuzz.fuzz_pumpWETHPythPrice(90698195293624529797368111175854062438945100003633099404324928445275155916980)
+    Fuzz.fuzz_crashWBTCPythPrice(109384810993130552931992464493517736897175359595990643887433434869805035329189)
+    Fuzz.fuzz_changeWETHPythPrice(125230)
+    Fuzz.fuzz_crashWBTCPythPrice(311006992715199280756718496225144071323385641509902359095442427973106617685)
+    Fuzz.fuzz_crashWETHPythPrice(85)
+    Fuzz.fuzz_guided_depositAndShortWBTC()
+    Fuzz.fuzz_changeWBTCPythPrice(11446343799473295649270294395403422203)
     Fuzz.fuzz_settleOrder()
-    Fuzz.targetSenders() Time delay: 3 seconds Block delay: 58783
-    Fuzz.fuzz_guided_depositAndShort()
-    Fuzz.excludeSenders() Time delay: 3 seconds Block delay: 60
-    Fuzz.collateralToMarketId(0x0) Time delay: 3 seconds Block delay: 33218
-    *wait* Time delay: 10 seconds Block delay: 69950
-    Fuzz.fuzz_cancelOrder(5) Time delay: 1 seconds Block delay: 35731
-    *wait* Time delay: 5 seconds Block delay: 49415
-    Fuzz.fuzz_cancelOrder(44) Time delay: 1 seconds Block delay: 60364
-    Fuzz.pendingOrder(1256657410) Time delay: 3 seconds Block delay: 15607
-    Fuzz.fuzz_guided_depositAndShort() Time delay: 1 seconds Block delay: 4223
-    Fuzz.IS_TEST() Time delay: 5 seconds Block delay: 15764
-    Fuzz.fuzz_modifyCollateral(8542833558636987789308118644925683403792117600965309022390609468528741291235,1676809) Time delay: 5 seconds Block delay: 27404
-    Fuzz.fuzz_crashWBTCPythPrice(55) Time delay: 5 seconds Block delay: 38350
-    Fuzz.fuzz_commitOrder(3153,19404086526591562380684914545785193691637301789324297873349688953609032224) Time delay: 3 seconds Block delay: 5023
-    Fuzz.fuzz_crashWETHPythPrice(172660010) Time delay: 3 seconds Block delay: 60364
-    Fuzz.fuzz_liquidatePosition()
 """
 
 solidity_code = convert_to_solidity(call_sequence)

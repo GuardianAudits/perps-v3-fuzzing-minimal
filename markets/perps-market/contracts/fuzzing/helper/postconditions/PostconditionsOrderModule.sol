@@ -42,9 +42,9 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             // fl.log("CURRENT ACTOR SETTLE:", currentActor);
             invariant_ORD_04(userToAccountIds[currentActor]);
             // @audit ORD-06 assertion fails. Looks like a valid break.
-            // invariant_ORD_06(accountId, marketId);
+            invariant_ORD_06(accountId, marketId);
             // @audit ORD-07 assertion fails. Looks like a valid break.
-            // invariant_ORD_07();
+            invariant_ORD_07();
             invariant_ORD_08(accountId);
             invariant_ORD_09(accountId, marketId);
             invariant_ORD_11(accountId);
@@ -52,7 +52,7 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             invariant_ORD_16(accountId, marketId);
             invariant_ORD_17(accountId);
             // @audit This assetion fails
-            // invariant_ORD_19(accountId);
+            invariant_ORD_19(accountId);
             invariant_MGN_11();
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
@@ -71,12 +71,12 @@ abstract contract PostconditionsOrderModule is PostconditionsBase {
             _after(actorsToUpdate);
             if (cancelUser != currentActor) {
                 // @audit This assertion fails.
-                // invariant_ORD_05(userToAccountIds[currentActor]);
+                invariant_ORD_05(userToAccountIds[currentActor]);
             }
             invariant_ORD_12(accountId);
 
             // @audit ORD-15 assertion fails. Looks like valid break.
-            // invariant_ORD_15(userToAccountIds[cancelUser]);
+            invariant_ORD_15(userToAccountIds[cancelUser]);
             onSuccessInvariantsGeneral(returnData, accountId);
         } else {
             onFailInvariantsGeneral(returnData);
