@@ -38,7 +38,7 @@ maxTimeDelay: 6
 
 # seed: 883771614506616433
 # seed: 7477410103401019355
-# format: text 
+format: text 
 
 
 allow_paths: [".", "../perps-market"]

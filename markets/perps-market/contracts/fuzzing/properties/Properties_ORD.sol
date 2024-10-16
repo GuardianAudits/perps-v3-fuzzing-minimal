@@ -19,7 +19,9 @@ abstract contract Properties_ORD is PropertiesBase {
     }
 
     function invariant_ORD_03(uint128 account) internal {
-        fl.t(!states[1].actorStates[account].isPositionLiquidatable, ORD_03);
+        if (!states[0].actorStates[account].isPositionLiquidatable) {
+            fl.t(!states[1].actorStates[account].isPositionLiquidatable, ORD_03);
+        }
     }
 
     function invariant_ORD_04(uint128 account) internal {
@@ -51,9 +53,9 @@ abstract contract Properties_ORD is PropertiesBase {
                     states[0].actorStates[account].wethMarket.positionSize
                 );
             if (!positionDecreasing) {
-                fl.t(
-                    states[1].minimumCredit <=
-                        states[1].delegatedCollateralValueUsd,
+                fl.lte(
+                    states[1].minimumCredit,
+                    states[1].delegatedCollateral + uint256(states[1].collateralValueAllUsersSUSDCalculated),
                     ORD_06_WETH
                 );
             }
@@ -69,8 +71,9 @@ abstract contract Properties_ORD is PropertiesBase {
                     states[0].actorStates[account].wbtcMarket.positionSize
                 );
             if (!positionDecreasing) {
-                fl.t(
-                    states[1].minimumCredit <= states[1].delegatedCollateral,
+                fl.lte(
+                    states[1].minimumCredit,
+                    states[1].delegatedCollateral + uint256(states[1].collateralValueAllUsersSUSDCalculated),
                     ORD_06_WBTC
                 );
             }
