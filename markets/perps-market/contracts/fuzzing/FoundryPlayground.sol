@@ -1504,10 +1504,58 @@ contract FoundryPlayground is FuzzModules {
 
 }
 
-function test_ORD_06() public {
-    try this.fuzz_mintUSDToSynthetix(16822967690160368243413069823) {} catch {}
-    try this.fuzz_guided_depositAndShort() {} catch {}
-    fuzz_settleOrder();
+function test_ORD_12() public {
+    try this.fuzz_mintUSDToSynthetix(389710261765692191029748882101845950071414929515871786935606764914907558) {} catch {}
+
+    vm.warp(block.timestamp + 1);
+    vm.roll(block.number + 1663);
+    try this.fuzz_pumpWETHPythPrice(213082464454704143435197186790335736291542479520687203683051485983701763210) {} catch {}
+
+    try this.fuzz_pumpWETHPythPrice(606084226024809351428367687748612859596009861826803420244472732797531619777) {} catch {}
+
+    try this.fuzz_pumpWBTCPythPrice(115792089237316195423570985008687907853269984665640564039457584007913129639934) {} catch {}
+
+    try this.fuzz_crashWETHPythPrice(431709439691528361455798752391340009837311401210745473296154915217026177544) {} catch {}
+
+    try this.fuzz_pumpWETHPythPrice(4060922002706325220599678633686257164675650391452921803847003219840808937090) {} catch {}
+
+    try this.fuzz_pumpWETHPythPrice(1758362263769669530757153781318605093134542995492870982874558406809260073431) {} catch {}
+
+    try this.fuzz_changeWBTCPythPrice(102796653981161089979539327737888481704) {} catch {}
+
+    try this.fuzz_guided_depositAndShortWBTC() {} catch {}
+
+    try this.fuzz_pumpWBTCPythPrice(20986833545337926496483639114214100638069420920141707445495424223586535142999) {} catch {}
+
+    try this.fuzz_crashWETHPythPrice(572566638634433125154357921980847482949647729221151692155982121329987606) {} catch {}
+
+    try this.fuzz_settleOrder() {} catch {}
+
+    vm.warp(block.timestamp + 3);
+    vm.roll(block.number + 4032);
+    try this.fuzz_crashWETHPythPrice(468788714) {} catch {}
+
+    fuzz_guided_createDebt_LiquidateMarginOnly(false,829006349567248821756895048805294982598048294665499834673585248951155102272);
+
+}
+
+function test_ORD_15() public {
+    try this.fuzz_mintUSDToSynthetix(60931845324509501343960714408765375080138021333948) {} catch {}
+
+    try this.fuzz_pumpWBTCPythPrice(291528291368286923410041109898303622599205329626339634953217) {} catch {}
+
+    vm.warp(block.timestamp + 2);
+    vm.roll(block.number + 12);
+
+    try this.fuzz_guided_depositAndShortWBTC() {} catch {}
+
+    try this.fuzz_settleOrder() {} catch {}
+
+    try this.fuzz_commitOrder(8831118056180453411792465828069129610,1012701540334523698193399664774641032242108007863688323799466015846370414935) {} catch {}
+
+    try this.fuzz_pumpWBTCPythPrice(0) {} catch {}
+
+    fuzz_cancelOrder(0);
 
 }
 }
