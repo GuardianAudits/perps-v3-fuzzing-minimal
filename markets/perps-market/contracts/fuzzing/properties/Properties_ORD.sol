@@ -184,7 +184,9 @@ abstract contract Properties_ORD is PropertiesBase {
     }
 
     function invariant_ORD_12(uint128 account) internal {
-        fl.t(!states[1].actorStates[account].isMarginLiquidatable, ORD_12);
+        if (!states[0].actorStates[account].isMarginLiquidatable) {
+            fl.t(!states[1].actorStates[account].isMarginLiquidatable, ORD_12);
+        }
     }
 
     function invariant_ORD_13() internal {
@@ -200,7 +202,9 @@ abstract contract Properties_ORD is PropertiesBase {
     }
 
     function invariant_ORD_15(uint128 account) internal {
-        fl.t(!states[1].actorStates[account].isPositionLiquidatable, ORD_15);
+        if (!states[0].actorStates[account].isPositionLiquidatable) {
+            fl.t(!states[1].actorStates[account].isPositionLiquidatable, ORD_15);
+        }
     }
 
     function invariant_ORD_16(uint128 account, uint128 marketId) internal {
