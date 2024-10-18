@@ -10,6 +10,6 @@ remappings = [
     "@openzeppelin=node_modules/@openzeppelin",
 ]
 src = 'contracts/fuzzing'
-out = 'out'
+out = 'out/contracts'
 # deny_warnings = true
 optimization = false

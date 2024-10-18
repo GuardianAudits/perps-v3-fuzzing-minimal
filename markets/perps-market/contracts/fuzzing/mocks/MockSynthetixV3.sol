@@ -84,78 +84,55 @@ contract MockSynthetixV3 {
     function getWithdrawableMarketUsd(
         uint128 marketId
     ) external view returns (uint256 withdrawableUsd) {
-        console2.log(
-            "===== MockSynthetixV3::getWithdrawableMarketUsd START ====="
-        );
-        console2.log("marketId", marketId);
-
+        
         Cache memory cache;
 
         cache.sUSDBalance = MockERC20(sUSD).balanceOf(address(this));
-        console2.log("sUSDBalance", cache.sUSDBalance);
 
         cache.wETHBalance = MockERC20(wETH).balanceOf(address(this));
-        console2.log("wETHBalance", cache.wETHBalance);
 
         cache.wBTCBalance = MockERC20(wBTC).balanceOf(address(this));
-        console2.log("wBTCBalance", cache.wBTCBalance);
 
         cache.hugeBalance = MockERC20(huge).balanceOf(address(this));
-        console2.log("hugeBalance", cache.hugeBalance);
 
         cache.sUSDNodeId = vaults[sUSD].nodeId;
-        console2.log("sUSDNodeId");
-        console2.logBytes32(cache.sUSDNodeId);
+        // console2.logBytes32(cache.sUSDNodeId);
 
         cache.wETHNodeId = vaults[wETH].nodeId;
-        console2.log("wETHNodeId");
-        console2.logBytes32(cache.wETHNodeId);
 
         cache.wBTCNodeId = vaults[wBTC].nodeId;
-        console2.log("wBTCNodeId");
-        console2.logBytes32(cache.wBTCNodeId);
 
         cache.hugeNodeId = vaults[huge].nodeId;
-        console2.log("hugeNodeId");
-        console2.logBytes32(cache.hugeNodeId);
 
         cache.sUSDNode = MockOracleManager(oracleManager).process(
             cache.sUSDNodeId
         );
-        console2.log("sUSDNode.price", cache.sUSDNode.price);
 
         cache.wETHNode = MockOracleManager(oracleManager).process(
             cache.wETHNodeId
         );
-        console2.log("wETHNode.price", cache.wETHNode.price);
 
         cache.wBTCNode = MockOracleManager(oracleManager).process(
             cache.wBTCNodeId
         );
-        console2.log("wBTCNode.price", cache.wBTCNode.price);
 
         cache.hugeNode = MockOracleManager(oracleManager).process(
             cache.hugeNodeId
         );
-        console2.log("hugeNode.price", cache.hugeNode.price);
 
         cache.valueSUSD = uint256(int256(cache.sUSDBalance));
-        console2.log("valueSUSD", cache.valueSUSD);
 
         cache.valueWETH = uint256(
             (int256(cache.wETHBalance) * cache.wETHNode.price) / 1e18
         );
-        console2.log("valueWETH", cache.valueWETH);
 
         cache.valuewBTC = uint256(
             (int256(cache.wBTCBalance) * cache.wBTCNode.price) / 1e18
         );
-        console2.log("valuewBTC", cache.valuewBTC);
 
         cache.valuehuge = uint256(
             (int256(cache.hugeBalance) * cache.hugeNode.price) / 1e18
         );
-        console2.log("valuehuge", cache.valuehuge);
 
         withdrawableUsd = MathUtil.min(
             creditCapacity +
@@ -165,11 +142,8 @@ contract MockSynthetixV3 {
                     cache.valuehuge),
             type(uint128).max
         );
-        console2.log("withdrawableUsd", withdrawableUsd);
 
-        console2.log(
-            "===== MockSynthetixV3::getWithdrawableMarketUsd END ====="
-        );
+        
     }
 
     event Debug(string s);
@@ -318,50 +292,47 @@ contract MockSynthetixV3 {
         address target,
         uint256 amount
     ) external returns (uint256) {
-        console2.log("marketId", marketId);
-        console2.log("target", target);
-        console2.log("amount", amount);
+        //console2.log("marketId", marketId);
+        //console2.log("target", target);
+        //console2.log("amount", amount);
 
         MockERC20(sUSD).mint(target, amount);
-        console2.log("Minted to target", amount);
+        //console2.log("Minted to target", amount);
 
         uint256 feeAmount = (amount * FEE_PERCENT) / 1e18;
-        console2.log("feeAmount", feeAmount);
+        //console2.log("feeAmount", feeAmount);
 
         MockERC20(sUSD).mint(address(1), feeAmount);
-        console2.log("Minted fee to address(1)", feeAmount);
+        //console2.log("Minted fee to address(1)", feeAmount);
 
-        console2.log("msg.sender", msg.sender);
-        console2.log(
-            "shares[msg.sender][sUSD] before",
-            shares[msg.sender][sUSD]
-        );
+        //console2.log("msg.sender", msg.sender);
+        // console2.log(
+        //     "shares[msg.sender][sUSD] before",
+        //     shares[msg.sender][sUSD]
+        // );
 
         // accounting for user shares for handling rewards that get distributed in a liquidation event
         // if the user has shares in the vault, then they should be decremented
         if (shares[msg.sender][sUSD]) {
-            console2.log(
-                "vaults[sUSD].totalShares before",
-                vaults[sUSD].totalShares
-            );
+            // console2.log(
+            //     "vaults[sUSD].totalShares before",
+            //     vaults[sUSD].totalShares
+            // );
             vaults[sUSD].totalShares -= 1;
-            console2.log(
-                "vaults[sUSD].totalShares after",
-                vaults[sUSD].totalShares
-            );
+            // console2.log(
+            //     "vaults[sUSD].totalShares after",
+            //     vaults[sUSD].totalShares
+            // );
 
             shares[msg.sender][sUSD] = false;
-            console2.log(
-                "shares[msg.sender][sUSD] after",
-                shares[msg.sender][sUSD]
-            );
+            // console2.log(
+            //     "shares[msg.sender][sUSD] after",
+            //     shares[msg.sender][sUSD]
+            // );
         }
 
-        console2.log("creditCapacity before", creditCapacity);
         creditCapacity -= (amount + feeAmount);
-        console2.log("creditCapacity after", creditCapacity);
 
-        console2.log("Returning feeAmount", feeAmount);
         return feeAmount;
     }
     /// @notice allows a market to deposit collateral

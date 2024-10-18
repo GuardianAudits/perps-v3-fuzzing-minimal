@@ -179,60 +179,60 @@ library PerpsMarketConfiguration {
             uint256 maintenanceMargin
         )
     {
-        console2.log("size", int256(size));
-        console2.log("price", price);
+        // console2.log("size", int256(size));
+        // console2.log("price", price);
 
         if (size == 0) {
-            console2.log("size is 0, returning all zeros");
+            // console2.log("size is 0, returning all zeros");
             return (0, 0, 0, 0);
         }
 
         uint256 sizeAbs = MathUtil.abs(size.to256());
-        console2.log("sizeAbs", sizeAbs);
+        // console2.log("sizeAbs", sizeAbs);
 
-        console2.log("self.skewScale", self.skewScale);
+        // console2.log("self.skewScale", self.skewScale);
         uint256 impactOnSkew = self.skewScale == 0
             ? 0
             : sizeAbs.divDecimal(self.skewScale);
-        console2.log("impactOnSkew", impactOnSkew);
+        // console2.log("impactOnSkew", impactOnSkew);
 
-        console2.log("self.initialMarginRatioD18", self.initialMarginRatioD18);
-        console2.log(
-            "self.minimumInitialMarginRatioD18",
-            self.minimumInitialMarginRatioD18
-        );
+        // console2.log("self.initialMarginRatioD18", self.initialMarginRatioD18);
+        // console2.log(
+        //     "self.minimumInitialMarginRatioD18",
+        //     self.minimumInitialMarginRatioD18
+        // );
         initialMarginRatio =
             impactOnSkew.mulDecimal(self.initialMarginRatioD18) +
             self.minimumInitialMarginRatioD18;
-        console2.log("initialMarginRatio", initialMarginRatio);
+        // console2.log("initialMarginRatio", initialMarginRatio);
 
-        console2.log(
-            "self.maintenanceMarginScalarD18",
-            self.maintenanceMarginScalarD18
-        );
+        // console2.log(
+        //     "self.maintenanceMarginScalarD18",
+        //     self.maintenanceMarginScalarD18
+        // );
         maintenanceMarginRatio = initialMarginRatio.mulDecimal(
             self.maintenanceMarginScalarD18
         );
-        console2.log("maintenanceMarginRatio", maintenanceMarginRatio);
+        // console2.log("maintenanceMarginRatio", maintenanceMarginRatio);
 
         uint256 notional = sizeAbs.mulDecimal(price);
-        console2.log("notional", notional);
+        // console2.log("notional", notional);
 
-        console2.log("self.minimumPositionMargin", self.minimumPositionMargin);
+        // console2.log("self.minimumPositionMargin", self.minimumPositionMargin);
         initialMargin =
             notional.mulDecimal(initialMarginRatio) +
             self.minimumPositionMargin;
-        console2.log("initialMargin", initialMargin);
+        // console2.log("initialMargin", initialMargin);
 
         maintenanceMargin =
             notional.mulDecimal(maintenanceMarginRatio) +
             self.minimumPositionMargin;
-        console2.log("maintenanceMargin", maintenanceMargin);
+        // console2.log("maintenanceMargin", maintenanceMargin);
 
-        console2.log("Final initialMarginRatio", initialMarginRatio);
-        console2.log("Final maintenanceMarginRatio", maintenanceMarginRatio);
-        console2.log("Final initialMargin", initialMargin);
-        console2.log("Final maintenanceMargin", maintenanceMargin);
+        // console2.log("Final initialMarginRatio", initialMarginRatio);
+        // console2.log("Final maintenanceMarginRatio", maintenanceMarginRatio);
+        // console2.log("Final initialMargin", initialMargin);
+        // console2.log("Final maintenanceMargin", maintenanceMargin);
     }
     /**
      * @notice given a strategy id, returns the entire settlement strategy struct

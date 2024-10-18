@@ -44,10 +44,10 @@ contract MockVaultModule {
             );
             assert(success);
             uint128 minimumMarketCreditCapacity = abi.decode(returnData, (uint128));
-            console2.log(
-                "delegateCollateral::minimumMarketCreditCapacity",
-                minimumMarketCreditCapacity
-            );
+            // console2.log(
+            //     "delegateCollateral::minimumMarketCreditCapacity",
+            //     minimumMarketCreditCapacity
+            // );
             require(currentCreditCapacity > minimumMarketCreditCapacity, "isCapacityLocked");
 
             increase = false;

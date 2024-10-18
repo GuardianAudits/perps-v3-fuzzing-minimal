@@ -80,11 +80,11 @@ contract MockLensModule {
         // runtime.marketId = asyncOrder.request.marketId;
 
         AsyncOrder.Data storage asyncOrder = AsyncOrder.load(accountId);
-        // console2.log(
+        // //console2.log(
         //     "MockLens::isOrderExpired::order.request.marketId",
         //     asyncOrder.request.marketId
         // );
-        // console2.log(
+        // //console2.log(
         //     "MockLens::isasyncOrderExpired::asyncOrder.request.sizeDelta",
         //     asyncOrder.request.sizeDelta
         // );
@@ -96,31 +96,33 @@ contract MockLensModule {
                     .settlementStrategies[
                         asyncOrder.request.settlementStrategyId
                     ];
-            // console2.log("PythWrapper in MockLens", address(pythWrapper));
+            // //console2.log("PythWrapper in MockLens", address(pythWrapper));
             int256 offchainPrice = pythWrapper.getBenchmarkPrice(
                 settlementStrategy.feedId,
                 0
             );
-            
+            // //console2.log("After pythWrapper.getBenchmarkPrice");
+            // //console2.log("offchainPrice:", offchainPrice);
+
             uint256 price = offchainPrice.toUint();
 
             Position.Data storage oldPosition;
-            // console2.log("Before asyncOrder.validateRequest");
+            //console2.log("Before asyncOrder.validateRequest");
             (
                 runtime.newPosition,
                 runtime.totalFees,
                 runtime.fillPrice,
                 oldPosition
             ) = asyncOrder.validateRequest(settlementStrategy, price);
-            // console2.log("After asyncOrder.validateRequest");
-            // console2.log("runtime.totalFees:", runtime.totalFees);
-            // console2.log("runtime.fillPrice:", runtime.fillPrice);
+            // //console2.log("After asyncOrder.validateRequest");
+            // //console2.log("runtime.totalFees:", runtime.totalFees);
+            // //console2.log("runtime.fillPrice:", runtime.fillPrice);
 
-            // console2.log("Before asyncOrder.validateAcceptablePrice");
+            // //console2.log("Before asyncOrder.validateAcceptablePrice");
             asyncOrder.validateAcceptablePrice(runtime.fillPrice);
-            // console2.log("After asyncOrder.validateAcceptablePrice");
+            // //console2.log("After asyncOrder.validateAcceptablePrice");
 
-            // console2.log("Before oldPosition.getPnl");
+            // //console2.log("Before oldPosition.getPnl");
             (
                 runtime.pnl,
                 ,
@@ -129,15 +131,15 @@ contract MockLensModule {
                 ,
 
             ) = oldPosition.getPnl(runtime.fillPrice);
-            // console2.log("After oldPosition.getPnl");
-            // console2.log("runtime.pnl:", runtime.pnl);
-            // console2.log("runtime.chargedInterest:", runtime.chargedInterest);
-            // console2.log("runtime.accruedFunding:", runtime.accruedFunding);
+            //console2.log("After oldPosition.getPnl");
+            //console2.log("runtime.pnl:", runtime.pnl);
+            //console2.log("runtime.chargedInterest:", runtime.chargedInterest);
+            //console2.log("runtime.accruedFunding:", runtime.accruedFunding);
 
             chargedAmount = runtime.pnl - runtime.totalFees.toInt();
-            // console2.log("chargedAmount:", chargedAmount);
+            //console2.log("chargedAmount:", chargedAmount);
         } else {
-            // console2.log("getChargedAmount skipped, no order found");
+            //console2.log("getChargedAmount skipped, no order found");
         }
     }
     function isAccountLiquidatable(
@@ -270,14 +272,7 @@ contract MockLensModule {
 
     function isOrderExpired(uint128 accountId) external view returns (bool) {
         AsyncOrder.Data storage order = AsyncOrder.load(accountId);
-        // console2.log(
-        //     "MockLens::isOrderExpired::order.request.marketId",
-        //     order.request.marketId
-        // );
-        // console2.log(
-        //     "MockLens::isOrderExpired::order.request.sizeDelta",
-        //     order.request.sizeDelta
-        // );
+        
         if (order.request.sizeDelta != 0) {
             SettlementStrategy.Data storage strategy = PerpsMarketConfiguration
                 .load(order.request.marketId)

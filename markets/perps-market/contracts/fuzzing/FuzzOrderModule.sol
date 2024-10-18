@@ -17,23 +17,16 @@ contract FuzzOrderModule is
         int128 sizeDelta,
         uint256 acceptablePrice
     ) public setCurrentActor {
-        console2.log("===== FuzzOrderModule::fuzz_commitOrder START =====");
 
         address[] memory actorsToUpdate = new address[](1);
         actorsToUpdate[0] = currentActor;
-        console2.log("===== _currentActor  =====", msg.sender);
 
         bytes32 trackingCode;
         address referrer;
         int128 positionSize;
-        console2.log("msg.sender", msg.sender);
-        console2.log("===== _before START =====");
         _before(actorsToUpdate);
-        console2.log("msg.sender", msg.sender);
 
-        console2.log("===== _before END =====");
 
-        console2.log("===== commitOrderPreconditions START =====");
         CommitOrderParams memory params = commitOrderPreconditions(
             sizeDelta,
             acceptablePrice,
@@ -46,9 +39,6 @@ contract FuzzOrderModule is
 
         // require(pendingOrder[params.accountId].accountId == uint128(0), "User has a pending order");
 
-        console2.log("msg.sender", msg.sender);
-
-        console2.log("===== commitOrderPreconditions END =====");
 
         positionSize = params.marketId == 1
             ? states[0].actorStates[params.accountId].wethMarket.positionSize
@@ -58,7 +48,6 @@ contract FuzzOrderModule is
         if (acceptablePrice % 5 == 0 && positionSize != 0) {
             params.sizeDelta = positionSize * -1;
         }
-        console2.log("===== _commitOrderCall START =====");
 
         (bool success, bytes memory returnData) = _commitOrderCall(
             params.accountId,
@@ -69,8 +58,6 @@ contract FuzzOrderModule is
             params.trackingCode,
             params.referrer
         );
-        console2.log("===== _commitOrderCall END =====");
-        console2.log("===== commitOrderPostconditions START =====");
 
         commitOrderPostconditions(
             success,
@@ -81,9 +68,7 @@ contract FuzzOrderModule is
         );
 
         pendingOrder[params.accountId] = params;
-        console2.log("===== commitOrderPostconditions END =====");
 
-        console2.log("===== FuzzOrderModule::fuzz_commitOrder END =====");
     }
 
     function fuzz_settleOrder() public setCurrentActor {
@@ -95,7 +80,6 @@ contract FuzzOrderModule is
 
         _before(actorsToUpdate);
 
-        fl.log(">>>>>>CURRENT ACTOR:", currentActor);
         (bool success, bytes memory returnData) = _settleOrderCall(
             actorsToUpdate[1],
             params.accountId

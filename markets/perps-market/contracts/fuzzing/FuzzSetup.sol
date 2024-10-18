@@ -1662,7 +1662,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         assert(success);
 
         vm.prank(USER3);
-        console2.log("Msg sender in setup", msg.sender);
+        // console2.log("Msg sender in setup", msg.sender);
         (success, ) = perps.call(
             abi.encodeWithSelector(
                 mockModuleImpl.grantPermission.selector,

@@ -1504,7 +1504,7 @@ contract FoundryPlayground is FuzzModules {
 
 }
 
-function test_ORD_12() public {
+function test_ORD_11() public {
     try this.fuzz_mintUSDToSynthetix(389710261765692191029748882101845950071414929515871786935606764914907558) {} catch {}
 
     vm.warp(block.timestamp + 1);

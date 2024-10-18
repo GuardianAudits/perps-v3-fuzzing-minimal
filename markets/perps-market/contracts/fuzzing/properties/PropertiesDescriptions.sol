@@ -67,7 +67,7 @@ contract PropertiesDescriptions {
     string constant ORD_10 =
         "ORD-10: market.currentUtilizationAccruedComputed decreases";
     string constant ORD_11 =
-        "ORD-12: An account should not be liquidatable by margin only after order settlement";
+        "ORD-11: An account should not be liquidatable by margin only after order settlement";
     string constant ORD_12 =
         "ORD-12: An account should not be liquidatable by margin only after order cancelled";
     string constant ORD_13 =
