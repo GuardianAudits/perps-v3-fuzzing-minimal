@@ -18,6 +18,7 @@ import {PerpsMarketConfiguration} from "./PerpsMarketConfiguration.sol";
 import {KeeperCosts} from "../storage/KeeperCosts.sol";
 import {AsyncOrder} from "../storage/AsyncOrder.sol";
 import {PerpsCollateralConfiguration} from "./PerpsCollateralConfiguration.sol";
+import "forge-std/console2.sol";
 
 uint128 constant SNX_USD_MARKET_ID = 0;
 
@@ -361,6 +362,8 @@ library PerpsAccount {
         int256 totalCollateralValue = getTotalCollateralValue(self, stalenessTolerance, true)
             .toInt();
         int256 accountPnl = getAccountPnl(self, stalenessTolerance);
+        console2.log("<getAvailableMargin> totalCollateralValue:", totalCollateralValue);
+        console2.log("<getAvailableMargin> accountPnl:", accountPnl);
         return totalCollateralValue + accountPnl - self.debt.toInt();
     }
     function getTotalNotionalOpenInterest(

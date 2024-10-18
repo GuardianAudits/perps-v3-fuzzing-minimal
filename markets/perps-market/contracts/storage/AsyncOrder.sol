@@ -12,6 +12,7 @@ import {GlobalPerpsMarket} from "./GlobalPerpsMarket.sol";
 import {MathUtil} from "../utils/MathUtil.sol";
 import {OrderFee} from "./OrderFee.sol";
 import {KeeperCosts} from "./KeeperCosts.sol";
+import "forge-std/console2.sol";
 /**
  * @title Async order top level data storage
  */
@@ -278,10 +279,15 @@ library AsyncOrder {
         oldPosition = PerpsMarket.accountPosition(runtime.marketId, runtime.accountId);
         runtime.newPositionSize = oldPosition.size + runtime.sizeDelta;
         // only account for negative pnl
+        console2.log("<validateRequest> currentAvailableMargin:", runtime.currentAvailableMargin);
         runtime.currentAvailableMargin += MathUtil.min(
             calculateFillPricePnl(runtime.fillPrice, orderPrice, runtime.sizeDelta),
             0
         );
+        console2.log("<validateRequest> currentAvailableMargin after PnL adjustment:", runtime.currentAvailableMargin);
+        console2.log("<validateRequest> currentAvailableMargin after PnL adjustment + order fees:", runtime.currentAvailableMargin - int256(runtime.orderFees));
+        console2.log("<validateRequest> Neg PnL:", calculateFillPricePnl(runtime.fillPrice, orderPrice, runtime.sizeDelta));
+
         if (runtime.currentAvailableMargin < runtime.orderFees.toInt()) {
             revert InsufficientMargin(runtime.currentAvailableMargin, runtime.orderFees);
         }

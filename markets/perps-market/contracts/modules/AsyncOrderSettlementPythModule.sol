@@ -19,6 +19,8 @@ import {IAccountEvents} from "../interfaces/IAccountEvents.sol";
 import {KeeperCosts} from "../storage/KeeperCosts.sol";
 import {IPythERC7412Wrapper} from "../interfaces/external/IPythERC7412Wrapper.sol";
 import {SafeCastU256, SafeCastI256} from "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
+import "forge-std/console2.sol";
+import {PerpsPrice} from "../storage/PerpsPrice.sol";
 
 /**
  * @title Module for settling async orders using pyth as price feed.
@@ -83,43 +85,105 @@ contract AsyncOrderSettlementPythModule is
         GlobalPerpsMarket.load().checkLiquidation(runtime.accountId);
 
         Position.Data storage oldPosition;
+        console2.log("%%%%%%%%%%%%% validate request %%%%%%%%%%%%%");
+         PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
 
         // validate order request can be settled; call reverts if not
         (runtime.newPosition, runtime.totalFees, runtime.fillPrice, oldPosition) = asyncOrder
             .validateRequest(settlementStrategy, price);
+        int currentAvailableMargin;
+        bool isEligible;
+
+        console2.log("oldPosition:", oldPosition.size);
+        console2.log("newPosition:", runtime.newPosition.size);
+        console2.log("size:", runtime.sizeDelta);
+        
+        console2.log("############## end validate request ############");
+        console2.log();
+
+         console2.log("------ ELIGIBLE CHECK BEFORE CHARGE -----");
+
+         (
+            isEligible,
+            currentAvailableMargin
+        ) = perpsAccount.isEligibleForMarginLiquidation(PerpsPrice.Tolerance.DEFAULT);
+        console2.log("<_settleOrder> isEligible BEFORE CHARGE:", isEligible);
+        console2.log("<_settleOrder> currentAvailableMargin BEFORE CHARGE:", currentAvailableMargin);
+        console2.log("------ END ELIGIBLE CHECK BEFORE CHARGE -----");
+
 
         // validate final fill price is acceptable relative to price specified by trader
         asyncOrder.validateAcceptablePrice(runtime.fillPrice);
 
         PerpsMarketFactory.Data storage factory = PerpsMarketFactory.load();
-        PerpsAccount.Data storage perpsAccount = PerpsAccount.load(runtime.accountId);
-
+       
         // use actual fill price to calculate realized pnl
         (runtime.pnl, , runtime.chargedInterest, runtime.accruedFunding, , ) = oldPosition.getPnl(
             runtime.fillPrice
         );
-
+        
         runtime.chargedAmount = runtime.pnl - runtime.totalFees.toInt();
         perpsAccount.charge(runtime.chargedAmount);
 
         emit AccountCharged(runtime.accountId, runtime.chargedAmount, perpsAccount.debt);
+
+        console2.log("------ ELIGIBLE CHECK AFTER CHARGE -----");
+
+         (
+            isEligible,
+            currentAvailableMargin
+        ) = perpsAccount.isEligibleForMarginLiquidation(PerpsPrice.Tolerance.DEFAULT);
+        console2.log("<_settleOrder> isEligible AFTER CHARGE:", isEligible);
+        console2.log("<_settleOrder> currentAvailableMargin AFTER CHARGE:", currentAvailableMargin);
+        console2.log("------ END ELIGIBLE CHECK AFTER CHARGE -----");
+
+
+
 
         // only update position state after pnl has been realized
         runtime.updateData = PerpsMarket.loadValid(runtime.marketId).updatePositionData(
             runtime.accountId,
             runtime.newPosition
         );
+
+
+        console2.log("------ ELIGIBLE CHECK AFTER UPDATE POSITION DATA -----");
+
+         (
+            isEligible,
+            currentAvailableMargin
+        ) = perpsAccount.isEligibleForMarginLiquidation(PerpsPrice.Tolerance.DEFAULT);
+        console2.log("<_settleOrder> isEligible AFTER UPDATE POS DATA:", isEligible);
+        console2.log("<_settleOrder> currentAvailableMargin AFTER UPDATE POS DATA:", currentAvailableMargin);
+        console2.log("------ END ELIGIBLE CHECK AFTER UPDATE POSITION DATA -----");
+
+
+
         perpsAccount.updateOpenPositions(runtime.marketId, runtime.newPosition.size);
-        emit MarketUpdated(
-            runtime.updateData.marketId,
-            price,
-            runtime.updateData.skew,
-            runtime.updateData.size,
-            runtime.sizeDelta,
-            runtime.updateData.currentFundingRate,
-            runtime.updateData.currentFundingVelocity,
-            runtime.updateData.interestRate
-        );
+
+        console2.log("------ ELIGIBLE CHECK AFTER UPDATE OPEN POSITIONS -----");
+
+         (
+            isEligible,
+            currentAvailableMargin
+        ) = perpsAccount.isEligibleForMarginLiquidation(PerpsPrice.Tolerance.DEFAULT);
+        console2.log("<_settleOrder> isEligible AFTER UPDATE OPEN POSITIONS:", isEligible);
+        console2.log("<_settleOrder> currentAvailableMargin AFTER UPDATE OPEN POSITIONS:", currentAvailableMargin);
+        console2.log("------ END ELIGIBLE CHECK AFTER UPDATE OPEN POSITIONS -----");
+
+
+
+
+        // emit MarketUpdated(
+        //     runtime.updateData.marketId,
+        //     price,
+        //     runtime.updateData.skew,
+        //     runtime.updateData.size,
+        //     runtime.sizeDelta,
+        //     runtime.updateData.currentFundingRate,
+        //     runtime.updateData.currentFundingVelocity,
+        //     runtime.updateData.interestRate
+        // );
 
         runtime.settlementReward = AsyncOrder.settlementRewardCost(settlementStrategy);
 
@@ -139,23 +203,23 @@ contract AsyncOrderSettlementPythModule is
         asyncOrder.reset();
 
         /// @dev two events emitted to avoid stack limitations
-        emit InterestCharged(runtime.accountId, runtime.chargedInterest);
+        // emit InterestCharged(runtime.accountId, runtime.chargedInterest);
 
         // emit event
-        emit OrderSettled(
-            runtime.marketId,
-            runtime.accountId,
-            runtime.fillPrice,
-            runtime.pnl,
-            runtime.accruedFunding,
-            runtime.sizeDelta,
-            runtime.newPosition.size,
-            runtime.totalFees,
-            runtime.referralFees,
-            runtime.feeCollectorFees,
-            runtime.settlementReward,
-            asyncOrder.request.trackingCode,
-            ERC2771Context._msgSender()
-        );
+        // emit OrderSettled(
+        //     runtime.marketId,
+        //     runtime.accountId,
+        //     runtime.fillPrice,
+        //     runtime.pnl,
+        //     runtime.accruedFunding,
+        //     runtime.sizeDelta,
+        //     runtime.newPosition.size,
+        //     runtime.totalFees,
+        //     runtime.referralFees,
+        //     runtime.feeCollectorFees,
+        //     runtime.settlementReward,
+        //     asyncOrder.request.trackingCode,
+        //     ERC2771Context._msgSender()
+        // );
     }
 }

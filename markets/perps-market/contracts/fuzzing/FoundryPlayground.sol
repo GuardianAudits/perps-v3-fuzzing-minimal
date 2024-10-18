@@ -1534,7 +1534,10 @@ function test_ORD_11() public {
     vm.warp(block.timestamp + 3);
     vm.roll(block.number + 4032);
     try this.fuzz_crashWETHPythPrice(468788714) {} catch {}
-
+    console2.log("----------------");
+    console2.log("----------------");
+    console2.log("----------------");
+    console2.log();
     fuzz_guided_createDebt_LiquidateMarginOnly(false,829006349567248821756895048805294982598048294665499834673585248951155102272);
 
 }
