@@ -116,7 +116,7 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         asyncOrderSettlementPythModuleImpl = new AsyncOrderSettlementPythModule();
         collateralConfigurationModuleImpl = new CollateralConfigurationModule();
         featureFlagModuleImpl = new FeatureFlagModule();
-        globalPerpsMarketModuleImpl = new GlobalPerpsMarketModule();
+        globalPerpsMarketModuleImpl = new GlobalPerpsMarketModule(address(v3Mock));
         liquidationModuleImpl = new LiquidationModule();
         marketConfigurationModuleImpl = new MarketConfigurationModule();
         perpsAccountModuleImpl = new PerpsAccountModule();
@@ -1427,8 +1427,9 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
         );
         assert(success);
     }
-
+    event DebugA(string a);
     function initializePerpsMarketFactory() private {
+        emit DebugA("HERE");
         (
             bool success, //returns supermarket id
 
@@ -1436,7 +1437,8 @@ contract FuzzSetup is FuzzBase, FuzzStorageVariables {
                 abi.encodeWithSelector(
                     perpsMarketFactoryModuleImpl.initializeFactory.selector,
                     address(v3Mock),
-                    address(spot)
+                    address(spot),
+                    0
                 )
             );
         assert(success);

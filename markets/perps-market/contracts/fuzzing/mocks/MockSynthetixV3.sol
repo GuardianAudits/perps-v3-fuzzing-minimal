@@ -43,6 +43,8 @@ contract MockSynthetixV3 {
     uint256 public withdrawableUSD;
     uint256 public creditCapacity;
 
+    uint32 internal minDelegateTime;
+
     mapping(address collateralToken => Vault) public vaults;
     mapping(address user => mapping(address collateralToken => bool deposited))
         public shares; // mock implementation of vault shares where each user gets 1 share of the vault they're depositing into, independent of deposit size for simplicity, since each user gets one share, just need to know if they're deposited into a vault
@@ -239,6 +241,10 @@ contract MockSynthetixV3 {
         } else {
             creditCapacity -= amount;
         }
+    }
+
+    function setMarketMinDelegateTime(uint128 marketId, uint32 _minDelegateTime) external {
+        minDelegateTime = _minDelegateTime;
     }
 
     /**
