@@ -43,11 +43,11 @@ contract PerpsAccountModule is IPerpsAccountModule {
         uint128 collateralId,
         int256 amountDelta
     ) external override {
-        console2.log("===== PerpsAccountModule::modifyCollateral START =====");
+        // console2("===== PerpsAccountModule::modifyCollateral START =====");
 
-        console2.log("Before ensureAccessToFeature");
+        // console2("Before ensureAccessToFeature");
         FeatureFlag.ensureAccessToFeature(Flags.PERPS_SYSTEM);
-        console2.log("After ensureAccessToFeature");
+        // console2("After ensureAccessToFeature");
 
         bool distributorExists = PerpsCollateralConfiguration.validDistributorExists(collateralId);
         if (!distributorExists) {
@@ -62,16 +62,16 @@ contract PerpsAccountModule is IPerpsAccountModule {
 
         if (amountDelta == 0) revert InvalidAmountDelta(amountDelta);
 
-        console2.log("Before perpsMarketFactory");
+        // console2("Before perpsMarketFactory");
         PerpsMarketFactory.Data storage perpsMarketFactory = PerpsMarketFactory
             .load();
-        console2.log("After perpsMarketFactory");
+        // console2("After perpsMarketFactory");
 
-        console2.log("Before globalPerpsMarket");
+        // console2("Before globalPerpsMarket");
 
         GlobalPerpsMarket.Data storage globalPerpsMarket = GlobalPerpsMarket
             .load();
-        console2.log("After globalPerpsMarket");
+        // console2("After globalPerpsMarket");
 
         globalPerpsMarket.validateCollateralAmount(collateralId, amountDelta);
         globalPerpsMarket.checkLiquidation(accountId);
@@ -84,7 +84,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
         AsyncOrder.checkPendingOrder(account.id);
 
         if (amountDelta > 0) {
-            console2.log("DEPOSIT MARGIN");
+            // console2("DEPOSIT MARGIN");
             _depositMargin(
                 perpsMarketFactory,
                 perpsMarketId,
@@ -99,7 +99,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
                 amountAbs,
                 perpsMarketFactory.spotMarket
             );
-            console2.log("WITHDRAW MARGIN");
+            // console2("WITHDRAW MARGIN");
 
             _withdrawMargin(
                 perpsMarketFactory,
@@ -118,7 +118,7 @@ contract PerpsAccountModule is IPerpsAccountModule {
             amountDelta,
             ERC2771Context._msgSender()
         );
-        console2.log("===== PerpsAccountModule::modifyCollateral END =====");
+        // console2("===== PerpsAccountModule::modifyCollateral END =====");
     }
 
     function debt(
@@ -196,9 +196,9 @@ contract PerpsAccountModule is IPerpsAccountModule {
         ) = position.getPositionData(
             PerpsPrice.getCurrentPrice(marketId, PerpsPrice.Tolerance.DEFAULT)
         );
-        console2.log("PepsAccountModule::totalPnl", totalPnl);
-        console2.log("PepsAccountModule::owedInterest", owedInterest);
-        console2.log("PepsAccountModule::positionSize", position.size);
+        // console2("PepsAccountModule::totalPnl", totalPnl);
+        // console2("PepsAccountModule::owedInterest", owedInterest);
+        // console2("PepsAccountModule::positionSize", position.size);
         return (totalPnl, accruedFunding, position.size, owedInterest);
     }
 

@@ -32,26 +32,26 @@ abstract contract PreconditionsOrderModule is PreconditionsBase {
         bytes32 trackingCode,
         address referrer
     ) internal returns (CommitOrderParams memory) {
-        console2.log(
-            "===== PreconditionsOrderModule:commitOrderPreconditions START ====="
-        );
+        // console2.log(
+        //     "===== PreconditionsOrderModule:commitOrderPreconditions START ====="
+        // );
 
         uint128 settlementStrategyId = 0; //@coverage:limiter currently employing only one settlement strategy
-        console2.log("===== uint128 account  START =====");
-        console2.log("currentActor", currentActor);
-        console2.log("current msg.sender", msg.sender);
+        // console2("===== uint128 account  START =====");
+        // console2("currentActor", currentActor);
+        // console2("current msg.sender", msg.sender);
 
-        console2.log("acceptablePrice", acceptablePrice);
+        // console2("acceptablePrice", acceptablePrice);
 
         uint128 accountIds = userToAccountIds[currentActor];
         uint128 account = userToAccountIds[currentActor];
-        console2.log("===== uint128 account  END =====");
+        // console2("===== uint128 account  END =====");
 
         uint128 marketId = acceptablePrice % 2 == 0 ? 1 : 2;
-        console2.log("===== Constructing CommitOrderParams START =====");
+        // console2("===== Constructing CommitOrderParams START =====");
 
-        console2.log("account", account);
-        console2.log("marketId", marketId);
+        // console2("account", account);
+        // console2("marketId", marketId);
 
         int128 clampedSizeDelta = int128(
             fl.clamp(
@@ -64,13 +64,13 @@ abstract contract PreconditionsOrderModule is PreconditionsBase {
                 )
             )
         );
-        console2.log("clampedSizeDelta", clampedSizeDelta);
+        // console2("clampedSizeDelta", clampedSizeDelta);
 
-        console2.log("WETH_MAX_MARKET_SIZE", WETH_MAX_MARKET_SIZE);
-        console2.log("WBTC_MAX_MARKET_SIZE", WBTC_MAX_MARKET_SIZE);
+        // console2("WETH_MAX_MARKET_SIZE", WETH_MAX_MARKET_SIZE);
+        // console2("WBTC_MAX_MARKET_SIZE", WBTC_MAX_MARKET_SIZE);
 
-        console2.log("acceptablePrice", acceptablePrice);
-        console2.log("===== Constructing CommitOrderParams END =====");
+        // console2("acceptablePrice", acceptablePrice);
+        // console2("===== Constructing CommitOrderParams END =====");
         sizeDelta = int128(
             fl.clamp(
                 sizeDelta,
@@ -82,11 +82,11 @@ abstract contract PreconditionsOrderModule is PreconditionsBase {
                 )
             )
         );
-        console2.log("Commit size delta", sizeDelta);
-        console2.log(
-            "Commit acceptable price",
-            sizeDelta > 0 ? acceptablePrice = type(uint256).max : 0
-        );
+        // console2("Commit size delta", sizeDelta);
+        // console2.log(
+        //     "Commit acceptable price",
+        //     sizeDelta > 0 ? acceptablePrice = type(uint256).max : 0
+        // );
 
         return
             CommitOrderParams({
@@ -100,9 +100,9 @@ abstract contract PreconditionsOrderModule is PreconditionsBase {
                 trackingCode: trackingCode,
                 referrer: referrer
             });
-        console2.log(
-            "===== PreconditionsOrderModule:commitOrderPreconditions END ====="
-        );
+        // console2.log(
+        //     "===== PreconditionsOrderModule:commitOrderPreconditions END ====="
+        // );
     }
 
     function settleOrderPreconditions()

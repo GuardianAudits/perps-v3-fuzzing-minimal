@@ -1499,7 +1499,9 @@ contract FoundryPlayground is FuzzModules {
     try this.fuzz_guided_depositAndShortWBTC() {} catch {}
 
     try this.fuzz_changeWBTCPythPrice(11446343799473295649270294395403422203) {} catch {}
-
+    console.log("-------------------------------------------");
+    console.log("-------------------------------------------");
+    console.log("-------------------------------------------");
     fuzz_settleOrder();
 
 }

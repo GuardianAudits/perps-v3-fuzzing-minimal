@@ -12,6 +12,7 @@ import {PerpsPrice} from "./PerpsPrice.sol";
 import {Liquidation} from "./Liquidation.sol";
 import {KeeperCosts} from "./KeeperCosts.sol";
 import {InterestRate} from "./InterestRate.sol";
+import "forge-std/console2.sol";
 /**
  * @title Data for a single perps market
  */
@@ -238,6 +239,8 @@ library PerpsMarket {
         (uint128 interestRate, uint256 currentInterestAccrued) = InterestRate.update(
             PerpsPrice.Tolerance.ONE_MONTH
         );
+        console2.log("currentInterestAccrued:", currentInterestAccrued);
+        console2.log("runtime.fundingDelta:", runtime.fundingDelta );
         oldPosition.update(newPosition, currentInterestAccrued);
         return
             MarketUpdate.Data(

@@ -34,9 +34,9 @@ contract MockRewardDistributor {
         // distribute a portion of debt rewards to different vaults
         // TODO: commenting out temporarily to resolve issues in LiquidationModule coverage
         // v3Mock.updateRewardDistribution(collateralType, amount);
-        console2.log(
-            "====== MockRewardDistributor::distributeRewards END ======"
-        );
+        // console2.log(
+        //     "====== MockRewardDistributor::distributeRewards END ======"
+        // );
     }
 
     /**

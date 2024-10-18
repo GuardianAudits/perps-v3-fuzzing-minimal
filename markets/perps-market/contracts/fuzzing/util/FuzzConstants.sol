@@ -211,5 +211,5 @@ abstract contract FuzzConstants {
 
     uint128 internal constant MAX_ALLOWABLE = 10_000_000 * 1e18;
     int256 internal constant PRICE_DIVERGENCE_BPS_256 = 100;
-    int64 internal constant PRICE_DIVERGENCE_BPS_64 = 100;
+    int64 internal constant PRICE_DIVERGENCE_BPS_64 = 0;
 }

@@ -118,13 +118,13 @@ abstract contract Properties_ORD is PropertiesBase {
             uint256 oraclePrice = uint256(
                 pythWrapper.getBenchmarkPrice(WETH_PYTH_PRICE_FEED_ID, 0)
             );
-            console2.log("weth pyth oracle price", oraclePrice);
-            console2.log("after skew");
-            console2.logInt(states[1].wethMarket.skew);
-            console2.log("after size", states[1].wethMarket.marketSize);
-            console2.log("before skew");
-            console2.logInt(states[0].wethMarket.skew);
-            console2.log("before size", states[0].wethMarket.marketSize);
+            // console2("weth pyth oracle price", oraclePrice);
+            // console2("after skew");
+            // console2Int(states[1].wethMarket.skew);
+            // console2("after size", states[1].wethMarket.marketSize);
+            // console2("before skew");
+            // console2Int(states[0].wethMarket.skew);
+            // console2("before size", states[0].wethMarket.marketSize);
             if (
                 MathUtil.abs(states[1].wethMarket.skew) <
                 MathUtil.abs(states[0].wethMarket.skew)
@@ -147,11 +147,11 @@ abstract contract Properties_ORD is PropertiesBase {
             uint256 oraclePrice = uint256(
                 pythWrapper.getBenchmarkPrice(WBTC_PYTH_PRICE_FEED_ID, 0)
             );
-            console2.log("wbtc pyth oracle price", oraclePrice);
-            console2.log("after skew");
-            console2.logInt(states[1].wbtcMarket.skew);
-            console2.log("before skew");
-            console2.logInt(states[0].wbtcMarket.skew);
+            // console2("wbtc pyth oracle price", oraclePrice);
+            // console2("after skew");
+            // console2Int(states[1].wbtcMarket.skew);
+            // console2("before skew");
+            // console2Int(states[0].wbtcMarket.skew);
             if (
                 MathUtil.abs(states[1].wbtcMarket.skew) <
                 MathUtil.abs(states[0].wbtcMarket.skew)
@@ -290,7 +290,7 @@ abstract contract Properties_ORD is PropertiesBase {
             states[0].actorStates[accountId].debt != 0 &&
             states[0].actorStates[accountId].chargedAmount < 0
         ) {
-            console2.log("entered ord 22 condition");
+            // console2("entered ord 22 condition");
             console2.log(
                 "states[1].actorStates[accountId].debt",
                 states[1].actorStates[accountId].debt

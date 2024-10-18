@@ -7,7 +7,7 @@ import {PerpsMarket} from "./PerpsMarket.sol";
 import {PerpsMarketConfiguration} from "./PerpsMarketConfiguration.sol";
 import {InterestRate} from "./InterestRate.sol";
 import {MathUtil} from "../utils/MathUtil.sol";
-
+import "forge-std/console2.sol";
 library Position {
     using SafeCastU256 for uint256;
     using SafeCastU128 for uint128;
@@ -85,10 +85,16 @@ library Position {
         accruedFunding = self.size.mulDecimal(netFundingPerUnit);
 
         int256 priceShift = price.toInt() - self.latestInteractionPrice.toInt();
+        console2.log("<GET PNL> price:", price);
+        console2.log("<GET PNL> self.latestInteractionPrice:", self.latestInteractionPrice);
+        console2.log("<GET PNL>size:", self.size);
+
         pricePnl = self.size.mulDecimal(priceShift);
+        console2.log("<GET PNL> pricePnl:", pricePnl);
+
 
         chargedInterest = interestAccrued(self, price);
-
+        // console2.log("PRICE PNL:", pricePnl);
         totalPnl = pricePnl + accruedFunding - chargedInterest.toInt();
     }
 

@@ -19,6 +19,8 @@ import {IAccountEvents} from "../interfaces/IAccountEvents.sol";
 import {KeeperCosts} from "../storage/KeeperCosts.sol";
 import {IPythERC7412Wrapper} from "../interfaces/external/IPythERC7412Wrapper.sol";
 import {SafeCastU256, SafeCastI256} from "@synthetixio/core-contracts/contracts/utils/SafeCast.sol";
+import "forge-std/console2.sol";
+import {PerpsPrice} from "../storage/PerpsPrice.sol";
 
 /**
  * @title Module for settling async orders using pyth as price feed.
@@ -58,7 +60,7 @@ contract AsyncOrderSettlementPythModule is
                 (asyncOrder.commitmentTime +
                     settlementStrategy.commitmentPriceDelay).to64()
             );
-
+        // console2.log(">Offchain Pyth Price:",offchainPrice);
         _settleOrder(offchainPrice.toUint(), asyncOrder, settlementStrategy);
     }
 
@@ -85,8 +87,17 @@ contract AsyncOrderSettlementPythModule is
         Position.Data storage oldPosition;
 
         // validate order request can be settled; call reverts if not
+        console2.log("%%%%%%%%%%%%% validate request %%%%%%%%%%%%%");
         (runtime.newPosition, runtime.totalFees, runtime.fillPrice, oldPosition) = asyncOrder
             .validateRequest(settlementStrategy, price);
+        console2.log("############## end validate request ############");
+        console2.log();
+
+        // console2.log(">Offchain Fill Price:",runtime.fillPrice);
+        // console2.log(">Old Position Size:",oldPosition.size);
+        // console2.log(">New Position Size:",runtime.newPosition.size);
+        // console2.log(">Order Size:",asyncOrder.request.sizeDelta);
+        
 
         // validate final fill price is acceptable relative to price specified by trader
         asyncOrder.validateAcceptablePrice(runtime.fillPrice);
@@ -99,27 +110,81 @@ contract AsyncOrderSettlementPythModule is
             runtime.fillPrice
         );
 
+        int currentAvailableMargin;
+        bool isEligible;
+
+        //  (
+        //     ,
+        //     currentAvailableMargin,
+        //     ,,
+
+        // ) = perpsAccount.isEligibleForLiquidation(PerpsPrice.Tolerance.DEFAULT);
+        // console2.log("><_settleOrder> runtime.available margin BEFORE CHARGE:", currentAvailableMargin);
+
+
+
         runtime.chargedAmount = runtime.pnl - runtime.totalFees.toInt();
         perpsAccount.charge(runtime.chargedAmount);
+        console2.log("<perpsAccounts> Debt:",  perpsAccount.debt);
+        console2.log("<perpsAccounts> Total charged Amount:",  runtime.chargedAmount);
+        console2.log("<perpsAccounts> runtime.pnl:",  runtime.pnl);
+        console2.log("<perpsAccounts> runtime.totalFees:",  runtime.totalFees);
+       
+        // (
+        //     ,
+        //     currentAvailableMargin,
+        //     ,,
 
-        emit AccountCharged(runtime.accountId, runtime.chargedAmount, perpsAccount.debt);
+        // ) = perpsAccount.isEligibleForLiquidation(PerpsPrice.Tolerance.DEFAULT);
+        // console2.log("><_settleOrder> runtime.available margin AFTER CHARGE:", currentAvailableMargin);
+        // emit AccountCharged(runtime.accountId, runtime.chargedAmount, perpsAccount.debt);
 
         // only update position state after pnl has been realized
         runtime.updateData = PerpsMarket.loadValid(runtime.marketId).updatePositionData(
             runtime.accountId,
             runtime.newPosition
         );
+        console2.log("------- UPDATE POSITION AND CHECK MARGIN --------");
+
+         (
+            isEligible,
+            currentAvailableMargin,
+            ,,
+
+        ) = perpsAccount.isEligibleForLiquidation(PerpsPrice.Tolerance.DEFAULT);
+        console2.log("><_settleOrder> runtime.available margin AFTER UPDATE POSITION:", currentAvailableMargin);
+        console2.log("><_settleOrder> isEligible:", isEligible);
+        console2.log("------- END UPDATE POSITION AND CHECK MARGIN --------");
+        console2.log();
+
+        console2.log("------- UPDATE OPEN POSITIONS AND CHECK MARGIN --------");
+
+
+
         perpsAccount.updateOpenPositions(runtime.marketId, runtime.newPosition.size);
-        emit MarketUpdated(
-            runtime.updateData.marketId,
-            price,
-            runtime.updateData.skew,
-            runtime.updateData.size,
-            runtime.sizeDelta,
-            runtime.updateData.currentFundingRate,
-            runtime.updateData.currentFundingVelocity,
-            runtime.updateData.interestRate
-        );
+
+
+         (
+            isEligible,
+            currentAvailableMargin,
+            ,,
+
+        ) = perpsAccount.isEligibleForLiquidation(PerpsPrice.Tolerance.DEFAULT);
+        console2.log("><_settleOrder> runtime.available margin AFTER UPDATE OPEN POSITIONS:", currentAvailableMargin);
+        console2.log("><_settleOrder> isEligible:", isEligible);
+
+        console2.log("------- END UPDATE OPEN POSITIONS AND CHECK MARGIN --------");
+
+        // emit MarketUpdated(
+        //     runtime.updateData.marketId,
+        //     price,
+        //     runtime.updateData.skew,
+        //     runtime.updateData.size,
+        //     runtime.sizeDelta,
+        //     runtime.updateData.currentFundingRate,
+        //     runtime.updateData.currentFundingVelocity,
+        //     runtime.updateData.interestRate
+        // );
 
         runtime.settlementReward = AsyncOrder.settlementRewardCost(settlementStrategy);
 
@@ -142,20 +207,20 @@ contract AsyncOrderSettlementPythModule is
         emit InterestCharged(runtime.accountId, runtime.chargedInterest);
 
         // emit event
-        emit OrderSettled(
-            runtime.marketId,
-            runtime.accountId,
-            runtime.fillPrice,
-            runtime.pnl,
-            runtime.accruedFunding,
-            runtime.sizeDelta,
-            runtime.newPosition.size,
-            runtime.totalFees,
-            runtime.referralFees,
-            runtime.feeCollectorFees,
-            runtime.settlementReward,
-            asyncOrder.request.trackingCode,
-            ERC2771Context._msgSender()
-        );
+        // emit OrderSettled(
+        //     runtime.marketId,
+        //     runtime.accountId,
+        //     runtime.fillPrice,
+        //     runtime.pnl,
+        //     runtime.accruedFunding,
+        //     runtime.sizeDelta,
+        //     runtime.newPosition.size,
+        //     runtime.totalFees,
+        //     runtime.referralFees,
+        //     runtime.feeCollectorFees,
+        //     runtime.settlementReward,
+        //     asyncOrder.request.trackingCode,
+        //     ERC2771Context._msgSender()
+        // );
     }
 }

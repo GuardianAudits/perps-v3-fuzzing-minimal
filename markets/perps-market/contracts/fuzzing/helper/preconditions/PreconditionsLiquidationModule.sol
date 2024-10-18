@@ -27,7 +27,7 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
         uint128 accountToLiquidate;
         // search users array for one is eligible for liquidation
         for (uint128 i; i < USERS.length; i++) {
-            console2.log("Checking account:", userToAccountIds[USERS[i]]);
+            // console2("Checking account:", userToAccountIds[USERS[i]]);
 
             (bool success, bytes memory returnData) = perps.call(
                 abi.encodeWithSelector(
@@ -62,7 +62,7 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
     {
         uint128 accountToLiquidate;
         for (uint128 i; i < USERS.length; i++) {
-            console2.log("Checking account for margin-only liquidation:", i);
+            // console2("Checking account for margin-only liquidation:", i);
 
             (bool success, bytes memory returnData) = perps.call(
                 abi.encodeWithSelector(
@@ -103,7 +103,7 @@ abstract contract PreconditionsLiquidationModule is PreconditionsBase {
         uint256[] memory liquidatableAccounts = new uint256[](USERS.length);
 
         for (uint128 i; i < USERS.length; i++) {
-            console2.log("Checking account:", userToAccountIds[USERS[i]]);
+            // console2("Checking account:", userToAccountIds[USERS[i]]);
 
             (bool success, bytes memory returnData) = perps.call(
                 abi.encodeWithSelector(

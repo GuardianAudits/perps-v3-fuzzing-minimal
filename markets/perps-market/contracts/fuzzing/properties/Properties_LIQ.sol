@@ -41,8 +41,8 @@ abstract contract Properties_LIQ is PropertiesBase {
         bool wbtcCapacityChanged = states[1].wbtcMarket.liquidationCapacity !=
             states[0].wbtcMarket.liquidationCapacity;
 
-        console2.log("WBTC Capacity Changed:", wbtcCapacityChanged);
-        console2.log("WETH Capacity Changed:", wethCapacityChanged);
+        // console2("WBTC Capacity Changed:", wbtcCapacityChanged);
+        // console2("WETH Capacity Changed:", wethCapacityChanged);
 
         // Check if neither changed and was not zero
         if (!wethCapacityChanged && !wbtcCapacityChanged) {

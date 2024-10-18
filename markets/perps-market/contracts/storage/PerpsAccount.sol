@@ -18,7 +18,7 @@ import {PerpsMarketConfiguration} from "./PerpsMarketConfiguration.sol";
 import {KeeperCosts} from "../storage/KeeperCosts.sol";
 import {AsyncOrder} from "../storage/AsyncOrder.sol";
 import {PerpsCollateralConfiguration} from "./PerpsCollateralConfiguration.sol";
-
+import "forge-std/console2.sol";
 uint128 constant SNX_USD_MARKET_ID = 0;
 
 /**
@@ -175,12 +175,19 @@ library PerpsAccount {
             uint256 liquidationReward
         )
     {
+        console2.log();
+        console2.log("<><><><>isEligibleForLiquidation<><><><>");
+
         availableMargin = getAvailableMargin(self, stalenessTolerance);
         (
             requiredInitialMargin,
             requiredMaintenanceMargin,
             liquidationReward
         ) = getAccountRequiredMargins(self, stalenessTolerance);
+        console2.log("<isEligibleForLiquidation> Available margin:", availableMargin);
+        console2.log("<isEligibleForLiquidation> requiredMaintenanceMargin:", requiredMaintenanceMargin);
+        console2.log("<isEligibleForLiquidation> liquidationReward:", liquidationReward);
+        console2.log("<isEligibleForLiquidation> requiredMaintenanceMargin + liquidationReward:", (requiredMaintenanceMargin + liquidationReward));
         isEligible = (requiredMaintenanceMargin + liquidationReward).toInt() > availableMargin;
     }
     function flagForLiquidation(
@@ -343,11 +350,13 @@ library PerpsAccount {
         for (uint256 i = 1; i <= self.openPositionMarketIds.length(); i++) {
             uint128 marketId = self.openPositionMarketIds.valueAt(i).to128();
             Position.Data storage position = PerpsMarket.load(marketId).positions[self.id];
+            console2.log(">PerpsPrice.getCurrentPrice(marketId, stalenessTolerance):", PerpsPrice.getCurrentPrice(marketId, stalenessTolerance));
             (int256 pnl, , , , , ) = position.getPnl(
                 PerpsPrice.getCurrentPrice(marketId, stalenessTolerance)
             );
             totalPnl += pnl;
         }
+        console2.log("<getAccountPnl> totalPnl:", totalPnl);
     }
     /**
      * @notice This function returns the available margin for an account (this is not withdrawable margin which takes into account, margin requirements for open positions)
@@ -393,6 +402,7 @@ library PerpsAccount {
         )
     {
         uint256 openPositionMarketIdsLength = self.openPositionMarketIds.length();
+        console2.log("<getAccountRequiredMargins> openPositionMarketIdsLength:", openPositionMarketIdsLength);
         if (openPositionMarketIdsLength == 0) {
             return (0, 0, 0);
         }
@@ -408,6 +418,9 @@ library PerpsAccount {
                     position.size,
                     PerpsPrice.getCurrentPrice(marketId, stalenessTolerance)
                 );
+            console2.log(">positionInitialMargin:", positionInitialMargin);
+            console2.log(">positionMaintenanceMargin:", positionMaintenanceMargin);
+            
             maintenanceMargin += positionMaintenanceMargin;
             initialMargin += positionInitialMargin;
         }

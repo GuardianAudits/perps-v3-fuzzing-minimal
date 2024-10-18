@@ -12,6 +12,7 @@ import {GlobalPerpsMarket} from "./GlobalPerpsMarket.sol";
 import {MathUtil} from "../utils/MathUtil.sol";
 import {OrderFee} from "./OrderFee.sol";
 import {KeeperCosts} from "./KeeperCosts.sol";
+import "forge-std/console2.sol";
 /**
  * @title Async order top level data storage
  */
@@ -26,6 +27,7 @@ library AsyncOrder {
     using GlobalPerpsMarket for GlobalPerpsMarket.Data;
     using PerpsAccount for PerpsAccount.Data;
     using KeeperCosts for KeeperCosts.Data;
+    using Position for Position.Data;
     /**
      * @notice Thrown when settlement window is not open yet.
      */
@@ -275,13 +277,25 @@ library AsyncOrder {
                 marketConfig.orderFees
             ) +
             settlementRewardCost(strategy);
+        console2.log("<validateRequest> orderFees:", runtime.orderFees);
         oldPosition = PerpsMarket.accountPosition(runtime.marketId, runtime.accountId);
         runtime.newPositionSize = oldPosition.size + runtime.sizeDelta;
+        int pnl;
+        (pnl, , , , , ) = oldPosition.getPnl(
+            runtime.fillPrice
+        );
+        console2.log("<validateRequest>  runtime.currentAvailableMargin before adjust:",  runtime.currentAvailableMargin);
+
         // only account for negative pnl
         runtime.currentAvailableMargin += MathUtil.min(
             calculateFillPricePnl(runtime.fillPrice, orderPrice, runtime.sizeDelta),
             0
         );
+        console2.log("<validateRequest>  runtime.currentAvailableMargin after adjust for negative PI:",  runtime.currentAvailableMargin);
+        console2.log("<validateRequest>  runtime.currentAvailableMargin after adjust for negative PI and order fees:",  runtime.currentAvailableMargin - int256(runtime.orderFees));
+        console2.log("<validateRequest> Negative PI Value:", calculateFillPricePnl(runtime.fillPrice, orderPrice, runtime.sizeDelta));
+        console2.log("<validateRequest> fill price, order price:", runtime.fillPrice, orderPrice);
+        console2.log("<validateRequest> size delta:", runtime.sizeDelta);
         if (runtime.currentAvailableMargin < runtime.orderFees.toInt()) {
             revert InsufficientMargin(runtime.currentAvailableMargin, runtime.orderFees);
         }
@@ -304,6 +318,7 @@ library AsyncOrder {
                 runtime.requiredInitialMargin
             ) +
             runtime.orderFees;
+        console2.log(">validateRequest: runtime.totalRequiredMargin:", runtime.totalRequiredMargin);
         if (runtime.currentAvailableMargin < runtime.totalRequiredMargin.toInt()) {
             revert InsufficientMargin(runtime.currentAvailableMargin, runtime.totalRequiredMargin);
         }
@@ -523,10 +538,14 @@ library AsyncOrder {
             return 0;
         }
         // get initial margin requirement for the new position
-        (, , runtime.newRequiredMargin, ) = marketConfig.calculateRequiredMargins(
+        uint maintenanceMargin;
+        (, , runtime.newRequiredMargin, maintenanceMargin) = marketConfig.calculateRequiredMargins(
             newPositionSize,
-            fillPrice
+            PerpsPrice.getCurrentPrice(marketId, PerpsPrice.Tolerance.DEFAULT)
         );
+        console2.log("><getRequiredMarginWithNewPosition> runtime.newRequiredMargin:", runtime.newRequiredMargin);
+        console2.log("><getRequiredMarginWithNewPosition> maintenance margin:", maintenanceMargin);
+        // console2(">runtime.newRequiredMargin:", runtime.newRequiredMargin);
         // get initial margin of old position
         (, , runtime.oldRequiredMargin, ) = marketConfig.calculateRequiredMargins(
             oldPositionSize,
@@ -544,7 +563,7 @@ library AsyncOrder {
                 marketId,
                 PerpsPrice.Tolerance.DEFAULT,
                 marketConfig.calculateFlagReward(
-                    MathUtil.abs(newPositionSize).mulDecimal(fillPrice)
+                    MathUtil.abs(newPositionSize).mulDecimal( PerpsPrice.getCurrentPrice(marketId, PerpsPrice.Tolerance.DEFAULT))
                 )
             );
         runtime.numberOfWindows = marketConfig.numberOfLiquidationWindows(
@@ -559,6 +578,19 @@ library AsyncOrder {
             runtime.maxNumberOfWindows
         );
         // this is the required margin for the new position (minus any order fees)
+        console2.log(">runtime.requiredMarginForNewPosition:", runtime.requiredMarginForNewPosition);
+        console2.log(">runtime.requiredRewardMargin:", runtime.requiredRewardMargin);
+        console2.log(">runtime.total margin:", runtime.requiredMarginForNewPosition + runtime.requiredRewardMargin);
+        // int currentAvailableMargin;
+        // (
+        //     ,
+        //     currentAvailableMargin,
+        //     ,,
+
+        // ) = account.isEligibleForLiquidation(PerpsPrice.Tolerance.DEFAULT);
+        // console2.log(">runtime.available margin:", currentAvailableMargin);
+
+
         return runtime.requiredMarginForNewPosition + runtime.requiredRewardMargin;
     }
     function validateAcceptablePrice(Data storage order, uint256 fillPrice) internal view {
